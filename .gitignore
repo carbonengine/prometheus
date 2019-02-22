@@ -1,0 +1,24 @@
+# Visual Studio artifacts
+Debug
+Release
+x64
+ipch
+*.user
+*.suo
+*.sdf
+*.opensdf
+Backup
+UpgradeLog.htm
+
+# IDE settings
+.vs
+.vscode
+
+# Imports
+# This includes:
+# [Python27] Stackless Python from here: http://www.stackless.com/binaries/python-2.7.15150.amd64-stackless.msi
+import
+
+# Binaries
+*.pyd
+*.exe
