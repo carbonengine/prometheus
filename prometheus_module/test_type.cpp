@@ -36,6 +36,16 @@ static void MetricTest_dealloc(MetricTestObject* self)
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
+static PyObject* MetricTest_increment(MetricTestObject* self) {
+	self->test_type->Increment();
+	return Py_None;
+}
+
+static PyMethodDef MetricTestMethods[] = {
+	{"increment", (PyCFunction)MetricTest_increment, METH_NOARGS, "Increment the test counter"},
+	{NULL}  /* Sentinel */
+};
+
 static PyTypeObject MetricTestType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"prometheus_module.MetricTest",             /* tp_name */
@@ -64,7 +74,7 @@ static PyTypeObject MetricTestType = {
 	0,                         /* tp_weaklistoffset */
 	0,                         /* tp_iter */
 	0,                         /* tp_iternext */
-	0,					       /* tp_methods */
+	MetricTestMethods,	       /* tp_methods */
 	0,						   /* tp_members */
 	0,                         /* tp_getset */
 	0,                         /* tp_base */
@@ -75,10 +85,6 @@ static PyTypeObject MetricTestType = {
 	(initproc)MetricTest_init, /* tp_init */
 	0,                         /* tp_alloc */
 	0,                         /* tp_new */
-};
-
-static PyMethodDef MetricTestMethods[] = {
-	{NULL}  /* Sentinel */
 };
 
 void TestType::RegisterPythonObject(PyObject* module) {

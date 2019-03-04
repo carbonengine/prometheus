@@ -1,18 +1,15 @@
+import time
+
 import prometheus_module
-
-#prometheus_module.hello_world()
-
-#print 'test setup'
-#prometheus_module.test_setup()
-
-#print 'test increment'
-#prometheus_module.test_increment()
-
-#print 'test object'
-#prometheus_module.test_object()
 
 raw_input('Press enter to begin hosting the /metrics endpoint')
 test_object = prometheus_module.MetricTest()
+
+print 'Incrementing the counter for 10 seconds...'
+for x in range(10):
+    time.sleep(1)
+    test_object.increment()
+    print x+1
 
 raw_input('Press enter to terminate the /metrics endpoint')
 test_object = None
