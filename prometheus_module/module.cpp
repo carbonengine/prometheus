@@ -59,4 +59,6 @@ PyMODINIT_FUNC initprometheus_module(void) {
     PrometheusError = PyErr_NewException("prometheus.error", NULL, NULL);
     Py_INCREF(PrometheusError);
     PyModule_AddObject(m, "error", PrometheusError);
+
+	TestType::RegisterPythonObject(m);
 }

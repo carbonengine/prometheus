@@ -9,15 +9,17 @@
 #include <string>
 #include <thread>
 
+// Python
+#include <Python.h>
+
 // Prometheus
 #include <prometheus/exposer.h>
 #include <prometheus/registry.h>
 
-// Python
-#include <Python.h>
-
 class TestType {
 public:
+
+	static void RegisterPythonObject(PyObject* module);
 
 	TestType();
 
@@ -29,5 +31,6 @@ private:
 	std::shared_ptr<prometheus::Registry> registry_;
 	prometheus::Counter* counter_;
 };
+
 
 #endif
