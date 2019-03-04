@@ -11,6 +11,10 @@ import prometheus_module
 #print 'test object'
 #prometheus_module.test_object()
 
+raw_input('Press enter to begin hosting the /metrics endpoint')
 test_object = prometheus_module.MetricTest()
+
+raw_input('Press enter to terminate the /metrics endpoint')
+test_object = None
 
 raw_input('press enter to quit')

@@ -27,7 +27,7 @@ static PyObject* hello_world(PyObject* self, PyObject* param) {
 }
 
 static PyObject* test_object(PyObject* self, PyObject* param) {
-	TestType test;
+	TestType test("127.0.0.1:20800");
 
 	std::cout << "Incrementing once per second for 60 seconds" << std::endl;
 	for (int i = 0; i < 60; i++) {

@@ -19,11 +19,11 @@
 class TestType {
 public:
 
-	static void RegisterPythonObject(PyObject* module);
-
-	TestType();
+	TestType(const char* endpoint);
 
 	void Increment();
+
+	static void RegisterPythonObject(PyObject* module);
 
 private:
 
