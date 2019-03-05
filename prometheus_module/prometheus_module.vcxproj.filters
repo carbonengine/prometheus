@@ -21,9 +21,15 @@
     <ClCompile Include="test_type.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="metric_registry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test_type.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="metric_registry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
