@@ -47,3 +47,4 @@ PyMODINIT_FUNC initprometheus_module(void) {
 
 	MetricRegistry::RegisterPythonObject(m);
 }
+

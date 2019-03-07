@@ -51,24 +51,31 @@ static int MetricRegistry_init(MetricRegistryPyObject *self, PyObject *args, PyO
 	return 0;
 }
 
-static void MetricRegistry_dealloc(MetricRegistryPyObject* self)
-{
+static void MetricRegistry_dealloc(MetricRegistryPyObject* self) {
 	self->metric_registry.reset(nullptr);
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-static PyObject* MetricRegistry_Serve(MetricRegistryPyObject* self) {
-	self->metric_registry->Serve("127.0.0.1:20800");
-	return Py_None;
+static PyObject* MetricRegistry_Serve(MetricRegistryPyObject* self, PyObject* py_bind_address) {
+	// todo: failure modes for args here
+	char* bind_address = PyString_AsString(py_bind_address);
+	
+	// todo: validate bind_address
+	//		 prometheus-cpp is not well-behaved with strings like ":1234" or "localhost:1234"
+	//		 as far as I can tell, it only works with "#.#.#.#:#"
+
+	self->metric_registry->Serve(bind_address);
+
+	Py_RETURN_TRUE;
 }
 
 static PyObject* MetricRegistry_StopServing(MetricRegistryPyObject* self) {
 	self->metric_registry->StopServing();
-	return Py_None;
+	Py_RETURN_TRUE;
 }
 
 static PyMethodDef MetricRegistryPyMethods[] = {
-	{"Serve", (PyCFunction)MetricRegistry_Serve, METH_NOARGS, "Start serving metrics at the specified address:port"},
+	{"Serve", (PyCFunction)MetricRegistry_Serve, METH_O, "Start serving metrics at the specified address:port"},
 	{"StopServing", (PyCFunction)MetricRegistry_StopServing, METH_NOARGS, "Stop serving metrics"},
 
 	{NULL}  /* Sentinel */
@@ -123,3 +130,4 @@ void MetricRegistry::RegisterPythonObject(PyObject* module) {
 	Py_INCREF(&MetricRegistryPyType);
 	PyModule_AddObject(module, "MetricRegistry", (PyObject *)&MetricRegistryPyType);
 }
+
