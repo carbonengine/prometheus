@@ -54,11 +54,9 @@
   <ItemGroup>
     <ClCompile Include="metric_registry.cpp" />
     <ClCompile Include="module.cpp" />
-    <ClCompile Include="test_type.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="metric_registry.h" />
-    <ClInclude Include="test_type.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
