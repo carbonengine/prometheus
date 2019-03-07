@@ -12,7 +12,9 @@ public:
 	MetricRegistry();
 
 	// MakeCounter, MakeGauge, etc
-	// Serve(endpoint), StopServing
+
+	void Serve(const char* bind_address);
+	void StopServing();
 
 	static void RegisterPythonObject(PyObject* module);
 

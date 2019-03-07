@@ -16,6 +16,7 @@ static PyObject* PrometheusError;
 #include <prometheus/registry.h>
 
 // Project
+#include "metric_registry.h"
 #include "test_type.h"
 
 
@@ -61,4 +62,5 @@ PyMODINIT_FUNC initprometheus_module(void) {
     PyModule_AddObject(m, "error", PrometheusError);
 
 	TestType::RegisterPythonObject(m);
+	MetricRegistry::RegisterPythonObject(m);
 }
