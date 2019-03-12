@@ -62,7 +62,23 @@ static PyObject* MetricRegistry_Serve(MetricRegistryPyObject* self, PyObject* py
 	
 	// todo: validate bind_address
 	//		 prometheus-cpp is not well-behaved with strings like ":1234" or "localhost:1234"
-	//		 as far as I can tell, it only works with "#.#.#.#:#"
+	//		 see following comment for valid string examples
+
+	// Port string spec from CivetWeb:
+	// https://github.com/civetweb/civetweb/blob/a714efa0a0f36607f70226f75269cd3f9361204b/src/civetweb.c#L14244
+	//	* Valid listening port specification is: [ip_address:]port[s]
+	//	* Examples for IPv4: 80, 443s, 127.0.0.1:3128, 192.0.2.3:8080s
+	//	* Examples for IPv6: [::]:80, [::1]:80,
+	//	*   [2001:0db8:7654:3210:FEDC:BA98:7654:3210]:443s
+	//	*   see https://tools.ietf.org/html/rfc3513#section-2.2
+	//	* In order to bind to both, IPv4 and IPv6, you can either add
+	//	* both ports using 8080,[::]:8080, or the short form +8080.
+	//	* Both forms differ in detail: 8080,[::]:8080 create two sockets,
+	//	* one only accepting IPv4 the other only IPv6. +8080 creates
+	//	* one socket accepting IPv4 and IPv6. Depending on the IPv6
+	//	* environment, they might work differently, or might not work
+	//	* at all - it must be tested what options work best in the
+	//	* relevant network environment.
 
 	self->metric_registry->Serve(bind_address);
 
@@ -75,7 +91,7 @@ static PyObject* MetricRegistry_StopServing(MetricRegistryPyObject* self) {
 }
 
 static PyMethodDef MetricRegistryPyMethods[] = {
-	{"Serve", (PyCFunction)MetricRegistry_Serve, METH_O, "Start serving metrics at the specified address:port"},
+	{"Serve", (PyCFunction)MetricRegistry_Serve, METH_O, "Start serving metrics at the specified [ip:]port. To serve multiple ports, use comma separation: [ip:]port,[ip:]port[,...]"},
 	{"StopServing", (PyCFunction)MetricRegistry_StopServing, METH_NOARGS, "Stop serving metrics"},
 
 	{NULL}  /* Sentinel */

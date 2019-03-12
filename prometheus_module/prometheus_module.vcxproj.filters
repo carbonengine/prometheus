@@ -21,9 +21,15 @@
     <ClCompile Include="metric_registry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="counter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="metric_registry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="counter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

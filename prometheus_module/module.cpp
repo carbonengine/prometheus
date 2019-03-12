@@ -17,6 +17,7 @@ static PyObject* PrometheusError;
 
 // Project
 #include "metric_registry.h"
+#include "counter.h"
 
 
 // Hello world
@@ -46,5 +47,6 @@ PyMODINIT_FUNC initprometheus_module(void) {
     PyModule_AddObject(m, "error", PrometheusError);
 
 	MetricRegistry::RegisterPythonObject(m);
+	Counter::RegisterPythonObject(m);
 }
 
