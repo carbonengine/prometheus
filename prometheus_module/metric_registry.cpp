@@ -15,9 +15,14 @@
 #include <prometheus/exposer.h>
 #include <prometheus/registry.h>
 
+// prometheus_module
+#include "counter.h"
+
 struct MetricRegistry::Private {
 	std::unique_ptr<prometheus::Exposer> exposer_;
 	std::shared_ptr<prometheus::Registry> registry_;
+
+	std::map<std::string, std::string> default_labels_;
 };
 
 MetricRegistry::MetricRegistry() :
@@ -26,10 +31,18 @@ MetricRegistry::MetricRegistry() :
 	private_->registry_ = std::make_shared<prometheus::Registry>();
 }
 
+Counter* MetricRegistry::MakeCounter() {
+	auto& family = prometheus::BuildCounter().Name("Test Counter").Labels(private_->default_labels_).Register(*private_->registry_);
+	prometheus::Counter& prometheus_counter = family.Add(private_->default_labels_);
+
+	return new Counter(prometheus_counter);
+}
+
 void MetricRegistry::Serve(const char* bind_address) {
 	StopServing();
 
 	private_->exposer_ = std::make_unique<prometheus::Exposer>(bind_address, "");
+	private_->exposer_->RegisterCollectable(private_->registry_);
 }
 
 void MetricRegistry::StopServing() {
@@ -54,6 +67,12 @@ static int MetricRegistry_init(MetricRegistryPyObject *self, PyObject *args, PyO
 static void MetricRegistry_dealloc(MetricRegistryPyObject* self) {
 	self->metric_registry.reset(nullptr);
 	Py_TYPE(self)->tp_free((PyObject*)self);
+}
+
+
+static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self) {
+	Counter* native_counter = self->metric_registry->MakeCounter();
+	return Py_BuildValue("O", Counter::CreatePythonObject(native_counter));
 }
 
 static PyObject* MetricRegistry_Serve(MetricRegistryPyObject* self, PyObject* py_bind_address) {
@@ -91,6 +110,8 @@ static PyObject* MetricRegistry_StopServing(MetricRegistryPyObject* self) {
 }
 
 static PyMethodDef MetricRegistryPyMethods[] = {
+	{"MakeCounter", (PyCFunction)MetricRegistry_MakeCounter, METH_NOARGS, "Creates and returns a new prometheus_module.Counter metric"},
+
 	{"Serve", (PyCFunction)MetricRegistry_Serve, METH_O, "Start serving metrics at the specified [ip:]port. To serve multiple ports, use comma separation: [ip:]port,[ip:]port[,...]"},
 	{"StopServing", (PyCFunction)MetricRegistry_StopServing, METH_NOARGS, "Stop serving metrics"},
 

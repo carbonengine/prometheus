@@ -47,8 +47,15 @@ typedef struct {
 } CounterPyObject;
 
 static int Counter_init(CounterPyObject *self, PyObject *args, PyObject *kwds) {
-	// self->counter must be set externally since its constructor needs a reference to a native type
-	// This class is only intended to be instantiated by MetricRegistry, which is responsible for handling this.
+	PyObject* capsule = NULL;
+
+	static char *kwlist[] = { "capsule", NULL };
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &capsule))
+		return -1;
+
+	Counter* wrapped = (Counter*)PyCapsule_GetPointer(capsule, NULL);
+	self->counter.reset(wrapped);
 	return 0;
 }
 
@@ -57,9 +64,15 @@ static void Counter_dealloc(CounterPyObject* self) {
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-static PyObject* Counter_Increment(CounterPyObject* self, PyObject* py_value) {
-	if (PyFloat_Check(py_value)) {
-		double value = PyFloat_AsDouble(py_value);
+static PyObject* Counter_Increment(CounterPyObject* self, PyObject* args) {
+	// value is optional.  If it is not passed in from Python, then Python won't touch the value
+	// That means we can do a direct comparison (no floating-point threshold shenanigans) to determine whether
+	//		or not a value was passed in.  Python doesn't reveal that information any other way.
+	// I chose zero for the sentinel since it would be a no-op, and therefore useless as a value.
+	double sentinel = 0.0;
+	double value = sentinel;
+
+	if (PyArg_ParseTuple(args, "|d", &value) && value != sentinel) {
 		self->counter->Increment(value);
 	}
 	else {
@@ -70,7 +83,7 @@ static PyObject* Counter_Increment(CounterPyObject* self, PyObject* py_value) {
 }
 
 static PyMethodDef CounterPyMethods[] = {
-	{"Increment", (PyCFunction)Counter_Increment, METH_O, "Increment the counter. Optionally, specify a value to increment by (default 1.0)."},
+	{"Increment", (PyCFunction)Counter_Increment, METH_VARARGS, "Increment the counter. Optionally, specify a value to increment by (default 1.0). If a value is specified, it must be non-zero."},
 
 	{NULL}  /* Sentinel */
 };
@@ -123,5 +136,11 @@ void Counter::RegisterPythonObject(PyObject* module) {
 
 	Py_INCREF(&CounterPyType);
 	PyModule_AddObject(module, "Counter", (PyObject *)&CounterPyType);
+}
+
+PyObject* Counter::CreatePythonObject(Counter* wrapped) {
+	PyObject* capsule = PyCapsule_New((void*)wrapped, NULL, NULL);
+	PyObject* obj = PyObject_CallObject((PyObject*)&CounterPyType, Py_BuildValue("(O)", capsule));
+	return obj;
 }
 

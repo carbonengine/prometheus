@@ -6,12 +6,15 @@
 struct _object;
 typedef _object PyObject;
 
+class Counter;
+
 class MetricRegistry {
 public:
 
 	MetricRegistry();
 
 	// MakeCounter, MakeGauge, etc
+	Counter* MakeCounter();
 
 	void Serve(const char* bind_address);
 	void StopServing();

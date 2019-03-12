@@ -17,6 +17,7 @@ public:
 	void Increment(double value);
 
 	static void RegisterPythonObject(PyObject* module);
+	static PyObject* CreatePythonObject(Counter* wrapped);
 
 private:
 
