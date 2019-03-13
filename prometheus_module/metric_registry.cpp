@@ -20,21 +20,21 @@
 using namespace prometheus_module;
 
 struct MetricRegistry::Private {
-	std::unique_ptr<prometheus::Exposer> exposer_;
-	std::shared_ptr<prometheus::Registry> registry_;
+	std::unique_ptr<prometheus::Exposer> exposer;
+	std::shared_ptr<prometheus::Registry> registry;
 
-	std::map<std::string, std::string> default_labels_;
+	std::map<std::string, std::string> default_labels;
 };
 
 MetricRegistry::MetricRegistry() :
 	private_(std::make_unique<Private>())
 {
-	private_->registry_ = std::make_shared<prometheus::Registry>();
+	private_->registry = std::make_shared<prometheus::Registry>();
 }
 
 Counter* MetricRegistry::MakeCounter(const char* name, const std::map<std::string, std::string>& labels) {
-	auto& family = prometheus::BuildCounter().Name(name).Labels(labels).Register(*private_->registry_);
-	prometheus::Counter& prometheus_counter = family.Add(private_->default_labels_);
+	auto& family = prometheus::BuildCounter().Name(name).Labels(labels).Register(*private_->registry);
+	prometheus::Counter& prometheus_counter = family.Add(private_->default_labels);
 
 	return new Counter(prometheus_counter);
 }
@@ -42,12 +42,12 @@ Counter* MetricRegistry::MakeCounter(const char* name, const std::map<std::strin
 void MetricRegistry::Serve(const char* bind_address) {
 	StopServing();
 
-	private_->exposer_ = std::make_unique<prometheus::Exposer>(bind_address, "");
-	private_->exposer_->RegisterCollectable(private_->registry_);
+	private_->exposer = std::make_unique<prometheus::Exposer>(bind_address, "");
+	private_->exposer->RegisterCollectable(private_->registry);
 }
 
 void MetricRegistry::StopServing() {
-	private_->exposer_ = nullptr;
+	private_->exposer = nullptr;
 }
 
 

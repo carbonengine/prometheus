@@ -17,11 +17,11 @@ using namespace prometheus_module;
 
 struct Counter::Private {
 	Private(prometheus::Counter& counter) :
-		counter_(counter)
+		counter(counter)
 	{
 	}
 
-	prometheus::Counter& counter_;
+	prometheus::Counter& counter;
 };
 
 Counter::Counter(prometheus::Counter& counter) :
@@ -30,11 +30,11 @@ Counter::Counter(prometheus::Counter& counter) :
 }
 
 void Counter::Increment() {
-	private_->counter_.Increment();
+	private_->counter.Increment();
 }
 
 void Counter::Increment(double value) {
-	private_->counter_.Increment(value);
+	private_->counter.Increment(value);
 }
 
 
