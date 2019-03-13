@@ -1,6 +1,7 @@
 #ifndef METRIC_REGISTRY_H
 #define METRIC_REGISTRY_H
 
+#include <map>
 #include <memory>
 
 struct _object;
@@ -14,7 +15,7 @@ public:
 	MetricRegistry();
 
 	// MakeCounter, MakeGauge, etc
-	Counter* MakeCounter(const char* name);
+	Counter* MakeCounter(const char* name, const std::map<std::string, std::string>& labels);
 
 	void Serve(const char* bind_address);
 	void StopServing();

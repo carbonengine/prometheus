@@ -31,8 +31,8 @@ MetricRegistry::MetricRegistry() :
 	private_->registry_ = std::make_shared<prometheus::Registry>();
 }
 
-Counter* MetricRegistry::MakeCounter(const char* name) {
-	auto& family = prometheus::BuildCounter().Name(name).Labels(private_->default_labels_).Register(*private_->registry_);
+Counter* MetricRegistry::MakeCounter(const char* name, const std::map<std::string, std::string>& labels) {
+	auto& family = prometheus::BuildCounter().Name(name).Labels(labels).Register(*private_->registry_);
 	prometheus::Counter& prometheus_counter = family.Add(private_->default_labels_);
 
 	return new Counter(prometheus_counter);
@@ -72,14 +72,34 @@ static void MetricRegistry_dealloc(MetricRegistryPyObject* self) {
 
 static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self, PyObject* args) {
 	const char* arg_name = NULL;
-	PyArg_ParseTuple(args, "|s", &arg_name);
+	PyObject* arg_labels = NULL;
+	if (!PyArg_ParseTuple(args, "s|O", &arg_name, &arg_labels)) {
+		Py_RETURN_NONE;
+	}
 
 	std::string name = "Unnamed Counter";
 	if (arg_name != NULL) {
 		name = arg_name;
 	}
 
-	Counter* native_counter = self->metric_registry->MakeCounter(name.c_str());
+	std::map<std::string, std::string> labels;
+	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
+		PyObject* py_key = NULL;
+		PyObject* py_value = NULL;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
+			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
+				continue;
+			}
+
+			const char* key = PyString_AsString(py_key);
+			const char* value = PyString_AsString(py_value);
+			labels.insert(std::make_pair(key, value));
+		}
+	}
+
+	Counter* native_counter = self->metric_registry->MakeCounter(name.c_str(), labels);
 	return Py_BuildValue("O", Counter::CreatePythonObject(native_counter));
 }
 
