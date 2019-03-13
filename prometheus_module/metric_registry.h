@@ -14,7 +14,7 @@ public:
 	MetricRegistry();
 
 	// MakeCounter, MakeGauge, etc
-	Counter* MakeCounter();
+	Counter* MakeCounter(const char* name);
 
 	void Serve(const char* bind_address);
 	void StopServing();

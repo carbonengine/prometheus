@@ -31,8 +31,8 @@ MetricRegistry::MetricRegistry() :
 	private_->registry_ = std::make_shared<prometheus::Registry>();
 }
 
-Counter* MetricRegistry::MakeCounter() {
-	auto& family = prometheus::BuildCounter().Name("Test Counter").Labels(private_->default_labels_).Register(*private_->registry_);
+Counter* MetricRegistry::MakeCounter(const char* name) {
+	auto& family = prometheus::BuildCounter().Name(name).Labels(private_->default_labels_).Register(*private_->registry_);
 	prometheus::Counter& prometheus_counter = family.Add(private_->default_labels_);
 
 	return new Counter(prometheus_counter);
@@ -70,8 +70,16 @@ static void MetricRegistry_dealloc(MetricRegistryPyObject* self) {
 }
 
 
-static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self) {
-	Counter* native_counter = self->metric_registry->MakeCounter();
+static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self, PyObject* args) {
+	const char* arg_name = NULL;
+	PyArg_ParseTuple(args, "|s", &arg_name);
+
+	std::string name = "Unnamed Counter";
+	if (arg_name != NULL) {
+		name = arg_name;
+	}
+
+	Counter* native_counter = self->metric_registry->MakeCounter(name.c_str());
 	return Py_BuildValue("O", Counter::CreatePythonObject(native_counter));
 }
 
@@ -110,7 +118,7 @@ static PyObject* MetricRegistry_StopServing(MetricRegistryPyObject* self) {
 }
 
 static PyMethodDef MetricRegistryPyMethods[] = {
-	{"MakeCounter", (PyCFunction)MetricRegistry_MakeCounter, METH_NOARGS, "Creates and returns a new prometheus_module.Counter metric"},
+	{"MakeCounter", (PyCFunction)MetricRegistry_MakeCounter, METH_VARARGS, "Creates and returns a new prometheus_module.Counter metric"},
 
 	{"Serve", (PyCFunction)MetricRegistry_Serve, METH_O, "Start serving metrics at the specified [ip:]port. To serve multiple ports, use comma separation: [ip:]port,[ip:]port[,...]"},
 	{"StopServing", (PyCFunction)MetricRegistry_StopServing, METH_NOARGS, "Stop serving metrics"},
