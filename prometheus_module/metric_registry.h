@@ -7,7 +7,11 @@
 struct _object;
 typedef _object PyObject;
 
-class Counter;
+namespace prometheus_module {
+	class Counter;
+}
+
+namespace prometheus_module {
 
 class MetricRegistry {
 public:
@@ -27,6 +31,8 @@ private:
 	struct Private;
 	std::unique_ptr<Private> private_;
 };
+
+} //namespace prometheus_module
 
 #endif
 

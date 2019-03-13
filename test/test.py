@@ -6,7 +6,7 @@ metric_registry = prometheus_module.MetricRegistry()
 
 raw_input('Press enter to begin hosting at localhost:20800')
 
-metric_registry.Serve("20801")
+metric_registry.Serve("20800")
 
 #metric_registry.MakeCounter() # Error. MakeCounter requires a name parameter now
 metric_registry.MakeCounter("Counter with name only")

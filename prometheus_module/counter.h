@@ -8,6 +8,8 @@
 struct _object;
 typedef _object PyObject;
 
+namespace prometheus_module {
+
 class Counter {
 public:
 
@@ -24,5 +26,7 @@ private:
 	struct Private;
 	std::unique_ptr<Private> private_;
 };
+
+} //namespace prometheus_module
 
 #endif

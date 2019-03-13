@@ -13,6 +13,7 @@
 
 // Prometheus
 #include <prometheus/counter.h>
+using namespace prometheus_module;
 
 struct Counter::Private {
 	Private(prometheus::Counter& counter) :

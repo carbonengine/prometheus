@@ -17,6 +17,7 @@
 
 // prometheus_module
 #include "counter.h"
+using namespace prometheus_module;
 
 struct MetricRegistry::Private {
 	std::unique_ptr<prometheus::Exposer> exposer_;
