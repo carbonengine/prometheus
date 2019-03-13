@@ -17,6 +17,7 @@
 
 // prometheus_module
 #include "counter.h"
+#include "gauge.h"
 using namespace prometheus_module;
 
 struct MetricRegistry::Private {
@@ -37,6 +38,14 @@ Counter* MetricRegistry::MakeCounter(const char* name, const std::map<std::strin
 	prometheus::Counter& prometheus_counter = family.Add(private_->default_labels);
 
 	return new Counter(prometheus_counter);
+}
+
+Gauge* MetricRegistry::MakeGauge(const char* name, const std::map<std::string, std::string>& labels) {
+	auto& family = prometheus::BuildGauge().Name(name).Labels(labels).Register(*private_->registry);
+	prometheus::Gauge& prometheus_gauge = family.Add(private_->default_labels);
+
+	Gauge* x = new Gauge(prometheus_gauge);
+	return x;
 }
 
 void MetricRegistry::Serve(const char* bind_address) {
@@ -104,6 +113,39 @@ static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self, PyObje
 	return Py_BuildValue("O", Counter::CreatePythonObject(native_counter));
 }
 
+static PyObject* MetricRegistry_MakeGauge(MetricRegistryPyObject* self, PyObject* args) {
+	const char* arg_name = NULL;
+	PyObject* arg_labels = NULL;
+	if (!PyArg_ParseTuple(args, "s|O", &arg_name, &arg_labels)) {
+		Py_RETURN_NONE;
+	}
+
+	std::string name = "Unnamed Gauge";
+	if (arg_name != NULL) {
+		name = arg_name;
+	}
+
+	std::map<std::string, std::string> labels;
+	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
+		PyObject* py_key = NULL;
+		PyObject* py_value = NULL;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
+			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
+				continue;
+			}
+
+			const char* key = PyString_AsString(py_key);
+			const char* value = PyString_AsString(py_value);
+			labels.insert(std::make_pair(key, value));
+		}
+	}
+
+	Gauge* native_gauge = self->metric_registry->MakeGauge(name.c_str(), labels);
+	return Py_BuildValue("O", Gauge::CreatePythonObject(native_gauge));
+}
+
 static PyObject* MetricRegistry_Serve(MetricRegistryPyObject* self, PyObject* py_bind_address) {
 	// todo: failure modes for args here
 	char* bind_address = PyString_AsString(py_bind_address);
@@ -140,6 +182,7 @@ static PyObject* MetricRegistry_StopServing(MetricRegistryPyObject* self) {
 
 static PyMethodDef MetricRegistryPyMethods[] = {
 	{"MakeCounter", (PyCFunction)MetricRegistry_MakeCounter, METH_VARARGS, "Creates and returns a new prometheus_module.Counter metric"},
+	{"MakeGauge", (PyCFunction)MetricRegistry_MakeGauge, METH_VARARGS, "Creates and returns a new prometheus_module.Gauge metric"},
 
 	{"Serve", (PyCFunction)MetricRegistry_Serve, METH_O, "Start serving metrics at the specified [ip:]port. To serve multiple ports, use comma separation: [ip:]port,[ip:]port[,...]"},
 	{"StopServing", (PyCFunction)MetricRegistry_StopServing, METH_NOARGS, "Stop serving metrics"},

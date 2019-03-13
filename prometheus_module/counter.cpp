@@ -16,8 +16,8 @@
 using namespace prometheus_module;
 
 struct Counter::Private {
-	Private(prometheus::Counter& counter) :
-		counter(counter)
+	Private(prometheus::Counter& wrapped) :
+		counter(wrapped)
 	{
 	}
 
