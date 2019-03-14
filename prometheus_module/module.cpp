@@ -17,6 +17,7 @@
 #include "metric_registry.h"
 #include "counter.h"
 #include "gauge.h"
+#include "summary.h"
 using namespace prometheus_module;
 
 
@@ -34,5 +35,6 @@ PyMODINIT_FUNC initprometheus_module(void) {
 	MetricRegistry::RegisterPythonObject(m);
 	Counter::RegisterPythonObject(m);
 	Gauge::RegisterPythonObject(m);
+	Summary::RegisterPythonObject(m);
 }
 

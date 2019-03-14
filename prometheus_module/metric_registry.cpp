@@ -18,6 +18,7 @@
 // prometheus_module
 #include "counter.h"
 #include "gauge.h"
+#include "summary.h"
 using namespace prometheus_module;
 
 struct MetricRegistry::Private {
@@ -25,27 +26,43 @@ struct MetricRegistry::Private {
 	std::shared_ptr<prometheus::Registry> registry;
 
 	std::map<std::string, std::string> default_labels;
+	prometheus::Summary::Quantiles default_quantiles;
 };
 
 MetricRegistry::MetricRegistry() :
 	private_(std::make_unique<Private>())
 {
 	private_->registry = std::make_shared<prometheus::Registry>();
+
+	auto default_error = 0.05;
+	private_->default_quantiles = prometheus::Summary::Quantiles{ 
+		{0.01, default_error},
+		{0.1, default_error},
+		{0.5, default_error},
+		{0.9, default_error},
+		{0.99, default_error}
+	};
 }
 
 Counter* MetricRegistry::MakeCounter(const char* name, const std::map<std::string, std::string>& labels) {
 	auto& family = prometheus::BuildCounter().Name(name).Labels(labels).Register(*private_->registry);
 	prometheus::Counter& prometheus_counter = family.Add(private_->default_labels);
 
-	return new Counter(prometheus_counter);
+	return new prometheus_module::Counter(prometheus_counter);
 }
 
 Gauge* MetricRegistry::MakeGauge(const char* name, const std::map<std::string, std::string>& labels) {
 	auto& family = prometheus::BuildGauge().Name(name).Labels(labels).Register(*private_->registry);
 	prometheus::Gauge& prometheus_gauge = family.Add(private_->default_labels);
 
-	Gauge* x = new Gauge(prometheus_gauge);
-	return x;
+	return new prometheus_module::Gauge(prometheus_gauge);
+}
+
+Summary* MetricRegistry::MakeSummary(const char* name, const std::map <std::string, std::string>& labels) {
+	auto& family = prometheus::BuildSummary().Name(name).Labels(labels).Register(*private_->registry);
+	prometheus::Summary& prometheus_summary = family.Add(private_->default_labels, private_->default_quantiles);
+
+	return new prometheus_module::Summary(prometheus_summary);
 }
 
 void MetricRegistry::Serve(const char* bind_address) {
@@ -146,6 +163,39 @@ static PyObject* MetricRegistry_MakeGauge(MetricRegistryPyObject* self, PyObject
 	return Py_BuildValue("O", Gauge::CreatePythonObject(native_gauge));
 }
 
+static PyObject* MetricRegistry_MakeSummary(MetricRegistryPyObject* self, PyObject* args) {
+	const char* arg_name = NULL;
+	PyObject* arg_labels = NULL;
+	if (!PyArg_ParseTuple(args, "s|O", &arg_name, &arg_labels)) {
+		Py_RETURN_NONE;
+	}
+
+	std::string name = "Unnamed Summary";
+	if (arg_name != NULL) {
+		name = arg_name;
+	}
+
+	std::map<std::string, std::string> labels;
+	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
+		PyObject* py_key = NULL;
+		PyObject* py_value = NULL;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
+			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
+				continue;
+			}
+
+			const char* key = PyString_AsString(py_key);
+			const char* value = PyString_AsString(py_value);
+			labels.insert(std::make_pair(key, value));
+		}
+	}
+
+	Summary* native_summary = self->metric_registry->MakeSummary(name.c_str(), labels);
+	return Py_BuildValue("O", Summary::CreatePythonObject(native_summary));
+}
+
 static PyObject* MetricRegistry_Serve(MetricRegistryPyObject* self, PyObject* py_bind_address) {
 	// todo: failure modes for args here
 	char* bind_address = PyString_AsString(py_bind_address);
@@ -183,6 +233,7 @@ static PyObject* MetricRegistry_StopServing(MetricRegistryPyObject* self) {
 static PyMethodDef MetricRegistryPyMethods[] = {
 	{"MakeCounter", (PyCFunction)MetricRegistry_MakeCounter, METH_VARARGS, "Creates and returns a new prometheus_module.Counter metric"},
 	{"MakeGauge", (PyCFunction)MetricRegistry_MakeGauge, METH_VARARGS, "Creates and returns a new prometheus_module.Gauge metric"},
+	{"MakeSummary", (PyCFunction)MetricRegistry_MakeSummary, METH_VARARGS, "Creates and returns a new prometheus_module.Summary metric"},
 
 	{"Serve", (PyCFunction)MetricRegistry_Serve, METH_O, "Start serving metrics at the specified [ip:]port. To serve multiple ports, use comma separation: [ip:]port,[ip:]port[,...]"},
 	{"StopServing", (PyCFunction)MetricRegistry_StopServing, METH_NOARGS, "Stop serving metrics"},

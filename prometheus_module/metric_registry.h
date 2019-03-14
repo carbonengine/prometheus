@@ -10,6 +10,7 @@ typedef _object PyObject;
 namespace prometheus_module {
 	class Counter;
 	class Gauge;
+	class Summary;
 }
 
 namespace prometheus_module {
@@ -19,9 +20,9 @@ public:
 
 	MetricRegistry();
 
-	// MakeCounter, MakeGauge, etc
 	Counter* MakeCounter(const char* name, const std::map<std::string, std::string>& labels);
 	Gauge* MakeGauge(const char* name, const std::map<std::string, std::string>& labels);
+	Summary* MakeSummary(const char* name, const std::map <std::string, std::string>& labels);
 
 	void Serve(const char* bind_address);
 	void StopServing();
