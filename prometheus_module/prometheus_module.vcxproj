@@ -56,11 +56,13 @@
     <ClCompile Include="gauge.cpp" />
     <ClCompile Include="metric_registry.cpp" />
     <ClCompile Include="module.cpp" />
+    <ClCompile Include="summary.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="counter.h" />
     <ClInclude Include="gauge.h" />
     <ClInclude Include="metric_registry.h" />
+    <ClInclude Include="summary.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
