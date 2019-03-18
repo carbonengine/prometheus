@@ -18,6 +18,7 @@
 // prometheus_module
 #include "counter.h"
 #include "gauge.h"
+#include "histogram.h"
 #include "summary.h"
 using namespace prometheus_module;
 
@@ -26,7 +27,9 @@ struct MetricRegistry::Private {
 	std::shared_ptr<prometheus::Registry> registry;
 
 	std::map<std::string, std::string> default_labels;
+
 	prometheus::Summary::Quantiles default_quantiles;
+	std::vector<double> default_boundaries;
 };
 
 MetricRegistry::MetricRegistry() :
@@ -75,10 +78,31 @@ Summary* MetricRegistry::MakeSummary(const char* name, const std::map <std::stri
 		final_quantiles = &quantiles_converted;
 	}
 
+	// Create
 	auto& family = prometheus::BuildSummary().Name(name).Labels(private_->default_labels).Register(*private_->registry);
 	prometheus::Summary& prometheus_summary = family.Add(*final_labels, *final_quantiles);
 
 	return new prometheus_module::Summary(prometheus_summary);
+}
+
+Histogram* MetricRegistry::MakeHistogram(const char* name, const std::map <std::string, std::string>& labels, const std::vector<double>& boundaries) {
+	// Assign labels
+	const std::map<std::string, std::string>* final_labels = &private_->default_labels;
+	if (!labels.empty()) {
+		final_labels = &labels;
+	}
+
+	// Assign boundaries
+	const std::vector<double>* final_boundaries = &private_->default_boundaries;
+	if (!boundaries.empty()) {
+		final_boundaries = &boundaries;
+	}
+
+	// Create
+	auto& family = prometheus::BuildHistogram().Name(name).Labels(private_->default_labels).Register(*private_->registry);
+	prometheus::Histogram& prometheus_histogram = family.Add(*final_labels, *final_boundaries);
+
+	return new prometheus_module::Histogram(prometheus_histogram);
 }
 
 void MetricRegistry::Serve(const char* bind_address) {
@@ -177,6 +201,78 @@ static PyObject* MetricRegistry_MakeGauge(MetricRegistryPyObject* self, PyObject
 
 	Gauge* native_gauge = self->metric_registry->MakeGauge(name.c_str(), labels);
 	return Py_BuildValue("O", Gauge::CreatePythonObject(native_gauge));
+}
+
+static PyObject* MetricRegistry_MakeHistogram(MetricRegistryPyObject* self, PyObject* args, PyObject* keywords) {
+
+	// Parse parameters
+	const char* arg_name = NULL;
+	PyObject* arg_labels = NULL;
+	PyObject* arg_boundaries = NULL;
+
+	static char* keyword_list[] = { "name", "labels", "boundaries", NULL };
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|OO", keyword_list, &arg_name, &arg_labels, &arg_boundaries)) {
+		Py_RETURN_NONE;
+	}
+
+	// Convert name
+	std::string name = "Unnamed Histogram";
+	if (arg_name != NULL) {
+		name = arg_name;
+	}
+	std::cout << "name = " << name << std::endl;
+
+	// Convert labels
+	std::map<std::string, std::string> labels;
+	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
+		PyObject* py_key = NULL;
+		PyObject* py_value = NULL;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
+			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
+				continue;
+			}
+
+			const char* key = PyString_AsString(py_key);
+			const char* value = PyString_AsString(py_value);
+			labels.insert(std::make_pair(key, value));
+		}
+	}
+	std::cout << "labels = " << labels.size() << std::endl;
+
+	// Convert boundaries
+	std::vector<double> boundaries;
+	if (arg_boundaries == NULL) {
+		std::cout << "null arg_boundaries" << std::endl;
+	}
+	if (arg_boundaries != NULL && !PyList_Check(arg_boundaries)) {
+		std::cout << "arg_boundaries not a list" << std::endl;
+	}
+	if (arg_boundaries != NULL && PyList_Check(arg_boundaries)) {
+		auto num_elements = PyList_Size(arg_boundaries);
+		std::cout << "arg_boundaries " << num_elements << std::endl;
+		for (auto i = 0; i < num_elements; i++) {
+			PyObject* py_boundary = PyList_GetItem(arg_boundaries, i);
+			if (!PyFloat_Check(py_boundary)) {
+				std::cout << "not a float" << std::endl;
+				continue;
+			}
+
+			double boundary = PyFloat_AsDouble(py_boundary);
+			boundaries.push_back(boundary);
+		}
+	}
+
+	std::cout << "boundaries has " << boundaries.size() << " elements" << std::endl;
+	for (auto e : boundaries) {
+		std::cout << " " << e << std::endl;
+	}
+
+	// Create the Histogram
+	Histogram* native_histogram = self->metric_registry->MakeHistogram(name.c_str(), labels, boundaries);
+	return Py_BuildValue("O", Histogram::CreatePythonObject(native_histogram));
 }
 
 static PyObject* MetricRegistry_MakeSummary(MetricRegistryPyObject* self, PyObject* args, PyObject* keywords) {
@@ -285,6 +381,7 @@ static PyObject* MetricRegistry_StopServing(MetricRegistryPyObject* self) {
 static PyMethodDef MetricRegistryPyMethods[] = {
 	{"MakeCounter", (PyCFunction)MetricRegistry_MakeCounter, METH_VARARGS, "Creates and returns a new prometheus_module.Counter metric"},
 	{"MakeGauge", (PyCFunction)MetricRegistry_MakeGauge, METH_VARARGS, "Creates and returns a new prometheus_module.Gauge metric"},
+	{"MakeHistogram", (PyCFunction)MetricRegistry_MakeHistogram, METH_VARARGS | METH_KEYWORDS, "Creates and returns a new prometheus_module.Histogram metric"},
 	{"MakeSummary", (PyCFunction)MetricRegistry_MakeSummary, METH_VARARGS | METH_KEYWORDS, "Creates and returns a new prometheus_module.Summary metric"},
 
 	{"Serve", (PyCFunction)MetricRegistry_Serve, METH_O, "Start serving metrics at the specified [ip:]port. To serve multiple ports, use comma separation: [ip:]port,[ip:]port[,...]"},

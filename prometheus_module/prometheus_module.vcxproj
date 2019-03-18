@@ -54,6 +54,7 @@
   <ItemGroup>
     <ClCompile Include="counter.cpp" />
     <ClCompile Include="gauge.cpp" />
+    <ClCompile Include="histogram.cpp" />
     <ClCompile Include="metric_registry.cpp" />
     <ClCompile Include="module.cpp" />
     <ClCompile Include="summary.cpp" />
@@ -61,6 +62,7 @@
   <ItemGroup>
     <ClInclude Include="counter.h" />
     <ClInclude Include="gauge.h" />
+    <ClInclude Include="histogram.h" />
     <ClInclude Include="metric_registry.h" />
     <ClInclude Include="summary.h" />
   </ItemGroup>

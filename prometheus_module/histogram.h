@@ -1,24 +1,24 @@
-#ifndef SUMMARY_H
-#define SUMMARY_H
+#ifndef HISTOGRAM_H
+#define HISTOGRAM_H
 
 #include <memory>
 
-#include <prometheus/summary.h>
+#include <prometheus/histogram.h>
 
 struct _object;
 typedef _object PyObject;
 
 namespace prometheus_module {
 
-class Summary {
+class Histogram {
 public:
 
-	Summary(prometheus::Summary& summary);
+	Histogram(prometheus::Histogram& histogram);
 
 	void Observe(double value);
 
 	static void RegisterPythonObject(PyObject* module);
-	static PyObject* CreatePythonObject(Summary* wrapped);
+	static PyObject* CreatePythonObject(Histogram* wrapped);
 
 private:
 
