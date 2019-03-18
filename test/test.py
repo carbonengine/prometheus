@@ -16,7 +16,7 @@ gauge = metric_registry.MakeGauge("Gauge with name and labels", {"label1":"value
 gauge.Set(999.0)
 
 metric_registry.MakeSummary("Summary with name only")
-summary = metric_registry.MakeSummary("Summary with name and labels", {"label1":"value1","label2":"value2"})
+summary = metric_registry.MakeSummary("Summary with name and labels and quantiles", labels={"label1":"value1","label2":"value2"}, quantiles=[(0.1,0.05),(0.5,0.05),(0.9,0.05)])
 summary.Observe(0)
 
 print 'Modifying the metrics for 10 seconds...'
@@ -25,7 +25,8 @@ for x in range(10):
     counter.Increment()
     gauge.Decrement(x)
     summary.Observe(x/10.0)
-    print x+1
+    print x+1,
+print ''
 
 raw_input('Press enter to stop hosting')
 metric_registry.StopServing()

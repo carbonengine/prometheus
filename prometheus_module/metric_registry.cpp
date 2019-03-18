@@ -45,22 +45,38 @@ MetricRegistry::MetricRegistry() :
 }
 
 Counter* MetricRegistry::MakeCounter(const char* name, const std::map<std::string, std::string>& labels) {
-	auto& family = prometheus::BuildCounter().Name(name).Labels(labels).Register(*private_->registry);
-	prometheus::Counter& prometheus_counter = family.Add(private_->default_labels);
+	auto& family = prometheus::BuildCounter().Name(name).Labels(private_->default_labels).Register(*private_->registry);
+	prometheus::Counter& prometheus_counter = family.Add(labels);
 
 	return new prometheus_module::Counter(prometheus_counter);
 }
 
 Gauge* MetricRegistry::MakeGauge(const char* name, const std::map<std::string, std::string>& labels) {
-	auto& family = prometheus::BuildGauge().Name(name).Labels(labels).Register(*private_->registry);
-	prometheus::Gauge& prometheus_gauge = family.Add(private_->default_labels);
+	auto& family = prometheus::BuildGauge().Name(name).Labels(private_->default_labels).Register(*private_->registry);
+	prometheus::Gauge& prometheus_gauge = family.Add(labels);
 
 	return new prometheus_module::Gauge(prometheus_gauge);
 }
 
-Summary* MetricRegistry::MakeSummary(const char* name, const std::map <std::string, std::string>& labels) {
-	auto& family = prometheus::BuildSummary().Name(name).Labels(labels).Register(*private_->registry);
-	prometheus::Summary& prometheus_summary = family.Add(private_->default_labels, private_->default_quantiles);
+Summary* MetricRegistry::MakeSummary(const char* name, const std::map <std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles) {
+	// Assign labels
+	const std::map<std::string, std::string>* final_labels = &private_->default_labels;
+	if (!labels.empty()) {
+		final_labels = &labels;
+	}
+
+	// Convert and assign quantiles
+	prometheus::Summary::Quantiles* final_quantiles = &private_->default_quantiles;
+	prometheus::Summary::Quantiles quantiles_converted;
+	if (!quantiles.empty()) {
+		for (auto e : quantiles) {
+			quantiles_converted.push_back(prometheus::detail::CKMSQuantiles::Quantile(e.first, e.second));
+		}
+		final_quantiles = &quantiles_converted;
+	}
+
+	auto& family = prometheus::BuildSummary().Name(name).Labels(private_->default_labels).Register(*private_->registry);
+	prometheus::Summary& prometheus_summary = family.Add(*final_labels, *final_quantiles);
 
 	return new prometheus_module::Summary(prometheus_summary);
 }
@@ -163,18 +179,27 @@ static PyObject* MetricRegistry_MakeGauge(MetricRegistryPyObject* self, PyObject
 	return Py_BuildValue("O", Gauge::CreatePythonObject(native_gauge));
 }
 
-static PyObject* MetricRegistry_MakeSummary(MetricRegistryPyObject* self, PyObject* args) {
+static PyObject* MetricRegistry_MakeSummary(MetricRegistryPyObject* self, PyObject* args, PyObject* keywords) {
+
+	// Parse parameters
 	const char* arg_name = NULL;
 	PyObject* arg_labels = NULL;
-	if (!PyArg_ParseTuple(args, "s|O", &arg_name, &arg_labels)) {
+	PyObject* arg_quantiles = NULL;
+
+	static char* keyword_list[] = { "name", "labels", "quantiles", NULL };
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|OO", keyword_list, &arg_name, &arg_labels, &arg_quantiles)) {
 		Py_RETURN_NONE;
 	}
 
+
+	// Convert name
 	std::string name = "Unnamed Summary";
 	if (arg_name != NULL) {
 		name = arg_name;
 	}
 
+	// Convert labels
 	std::map<std::string, std::string> labels;
 	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
 		PyObject* py_key = NULL;
@@ -192,7 +217,34 @@ static PyObject* MetricRegistry_MakeSummary(MetricRegistryPyObject* self, PyObje
 		}
 	}
 
-	Summary* native_summary = self->metric_registry->MakeSummary(name.c_str(), labels);
+	// Convert quantiles
+	std::vector<std::pair<double, double> > quantiles;
+	if (arg_quantiles != NULL && PyList_Check(arg_quantiles)) {
+		auto num_elements = PyList_Size(arg_quantiles);
+		for (auto i = 0; i < num_elements; i++) {
+			PyObject* tuple = PyList_GetItem(arg_quantiles, i);
+			if (!PyTuple_Check(tuple)) {
+				continue;
+			}
+
+			if (PyTuple_Size(tuple) < 2) {
+				continue;
+			}
+
+			PyObject* py_quantile = PyTuple_GetItem(tuple, 0);
+			PyObject* py_error = PyTuple_GetItem(tuple, 1);
+			if (!PyFloat_Check(py_quantile) && !PyFloat_Check(py_error)) {
+				continue;
+			}
+
+			double quantile = PyFloat_AsDouble(py_quantile);
+			double error = PyFloat_AsDouble(py_error);
+			quantiles.push_back(std::make_pair(quantile, error));
+		}
+	}
+
+	// Create the Summary
+	Summary* native_summary = self->metric_registry->MakeSummary(name.c_str(), labels, quantiles);
 	return Py_BuildValue("O", Summary::CreatePythonObject(native_summary));
 }
 
@@ -233,7 +285,7 @@ static PyObject* MetricRegistry_StopServing(MetricRegistryPyObject* self) {
 static PyMethodDef MetricRegistryPyMethods[] = {
 	{"MakeCounter", (PyCFunction)MetricRegistry_MakeCounter, METH_VARARGS, "Creates and returns a new prometheus_module.Counter metric"},
 	{"MakeGauge", (PyCFunction)MetricRegistry_MakeGauge, METH_VARARGS, "Creates and returns a new prometheus_module.Gauge metric"},
-	{"MakeSummary", (PyCFunction)MetricRegistry_MakeSummary, METH_VARARGS, "Creates and returns a new prometheus_module.Summary metric"},
+	{"MakeSummary", (PyCFunction)MetricRegistry_MakeSummary, METH_VARARGS | METH_KEYWORDS, "Creates and returns a new prometheus_module.Summary metric"},
 
 	{"Serve", (PyCFunction)MetricRegistry_Serve, METH_O, "Start serving metrics at the specified [ip:]port. To serve multiple ports, use comma separation: [ip:]port,[ip:]port[,...]"},
 	{"StopServing", (PyCFunction)MetricRegistry_StopServing, METH_NOARGS, "Stop serving metrics"},

@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory>
+#include <vector>
 
 struct _object;
 typedef _object PyObject;
@@ -22,7 +23,7 @@ public:
 
 	Counter* MakeCounter(const char* name, const std::map<std::string, std::string>& labels);
 	Gauge* MakeGauge(const char* name, const std::map<std::string, std::string>& labels);
-	Summary* MakeSummary(const char* name, const std::map <std::string, std::string>& labels);
+	Summary* MakeSummary(const char* name, const std::map <std::string, std::string>& labels, const std::vector<std::pair<double,double> >& quantiles);
 
 	void Serve(const char* bind_address);
 	void StopServing();
