@@ -62,11 +62,12 @@ static void Summary_dealloc(SummaryPyObject* self) {
 }
 
 static PyObject* Summary_Observe(SummaryPyObject* self, PyObject* arg) {
-	if (!PyFloat_Check(arg)) {
+	PyObject* float_arg = PyNumber_Float(arg);
+	if (!PyFloat_Check(float_arg)) {
 		Py_RETURN_FALSE;
 	}
 
-	self->summary->Observe(PyFloat_AsDouble(arg));
+	self->summary->Observe(PyFloat_AsDouble(float_arg));
 
 	Py_RETURN_TRUE;
 }

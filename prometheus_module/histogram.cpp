@@ -62,11 +62,12 @@ static void Histogram_dealloc(HistogramPyObject* self) {
 }
 
 static PyObject* Histogram_Observe(HistogramPyObject* self, PyObject* arg) {
-	if (!PyFloat_Check(arg)) {
+	PyObject* float_arg = PyNumber_Float(arg);
+	if (float_arg == NULL || !PyFloat_Check(float_arg)) {
 		Py_RETURN_FALSE;
 	}
 
-	self->histogram->Observe(PyFloat_AsDouble(arg));
+	self->histogram->Observe(PyFloat_AsDouble(float_arg));
 
 	Py_RETURN_TRUE;
 }

@@ -114,11 +114,12 @@ static PyObject* Gauge_Decrement(GaugePyObject* self, PyObject* args) {
 }
 
 static PyObject* Gauge_Set(GaugePyObject* self, PyObject* arg) {
-	if (!PyFloat_Check(arg)) {
+	PyObject* float_arg = PyNumber_Float(arg);
+	if (float_arg == NULL || !PyFloat_Check(float_arg)) {
 		Py_RETURN_FALSE;
 	}
 
-	self->gauge->Set(PyFloat_AsDouble(arg));
+	self->gauge->Set(PyFloat_AsDouble(float_arg));
 
 	Py_RETURN_TRUE;
 }

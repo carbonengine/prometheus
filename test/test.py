@@ -20,7 +20,7 @@ summary = metric_registry.MakeSummary("Summary with name and labels and quantile
 summary.Observe(0)
 
 metric_registry.MakeHistogram("Histogram with name only")
-histogram = metric_registry.MakeHistogram("Histogram with name and labels and quantiles", labels={"label1":"value1","label2":"value2"}, boundaries=[1.0,3.0,7.0])
+histogram = metric_registry.MakeHistogram("Histogram with name and labels and buckets", labels={"label1":"value1","label2":"value2"}, boundaries=[1.0,3.0,7.0])
 histogram.Observe(0)
 
 print 'Modifying the metrics for 10 seconds...'
@@ -29,7 +29,7 @@ for x in range(10):
     counter.Increment()
     gauge.Decrement(x)
     summary.Observe(x/10.0)
-    histogram.Observe(x+1.0)
+    histogram.Observe(x+1)
     print x+1,
 print ''
 

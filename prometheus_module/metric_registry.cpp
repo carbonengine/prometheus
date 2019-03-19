@@ -221,7 +221,6 @@ static PyObject* MetricRegistry_MakeHistogram(MetricRegistryPyObject* self, PyOb
 	if (arg_name != NULL) {
 		name = arg_name;
 	}
-	std::cout << "name = " << name << std::endl;
 
 	// Convert labels
 	std::map<std::string, std::string> labels;
@@ -240,34 +239,20 @@ static PyObject* MetricRegistry_MakeHistogram(MetricRegistryPyObject* self, PyOb
 			labels.insert(std::make_pair(key, value));
 		}
 	}
-	std::cout << "labels = " << labels.size() << std::endl;
 
 	// Convert boundaries
 	std::vector<double> boundaries;
-	if (arg_boundaries == NULL) {
-		std::cout << "null arg_boundaries" << std::endl;
-	}
-	if (arg_boundaries != NULL && !PyList_Check(arg_boundaries)) {
-		std::cout << "arg_boundaries not a list" << std::endl;
-	}
 	if (arg_boundaries != NULL && PyList_Check(arg_boundaries)) {
 		auto num_elements = PyList_Size(arg_boundaries);
-		std::cout << "arg_boundaries " << num_elements << std::endl;
 		for (auto i = 0; i < num_elements; i++) {
-			PyObject* py_boundary = PyList_GetItem(arg_boundaries, i);
-			if (!PyFloat_Check(py_boundary)) {
-				std::cout << "not a float" << std::endl;
+			PyObject* py_boundary = PyNumber_Float(PyList_GetItem(arg_boundaries, i));
+			if (py_boundary == NULL || !PyFloat_Check(py_boundary)) {
 				continue;
 			}
 
 			double boundary = PyFloat_AsDouble(py_boundary);
 			boundaries.push_back(boundary);
 		}
-	}
-
-	std::cout << "boundaries has " << boundaries.size() << " elements" << std::endl;
-	for (auto e : boundaries) {
-		std::cout << " " << e << std::endl;
 	}
 
 	// Create the Histogram
@@ -327,9 +312,9 @@ static PyObject* MetricRegistry_MakeSummary(MetricRegistryPyObject* self, PyObje
 				continue;
 			}
 
-			PyObject* py_quantile = PyTuple_GetItem(tuple, 0);
-			PyObject* py_error = PyTuple_GetItem(tuple, 1);
-			if (!PyFloat_Check(py_quantile) && !PyFloat_Check(py_error)) {
+			PyObject* py_quantile = PyNumber_Float(PyTuple_GetItem(tuple, 0));
+			PyObject* py_error = PyNumber_Float(PyTuple_GetItem(tuple, 1));
+			if (py_quantile == NULL || !PyFloat_Check(py_quantile) || py_error == NULL || !PyFloat_Check(py_error)) {
 				continue;
 			}
 
