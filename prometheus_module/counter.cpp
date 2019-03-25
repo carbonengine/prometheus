@@ -65,7 +65,7 @@ static void Counter_dealloc(CounterPyObject* self) {
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-static PyObject* Counter_Increment(CounterPyObject* self, PyObject* args) {
+static PyObject* Counter_Increment(CounterPyObject* self, PyObject* args, PyObject* keywords) {
 	// value is optional.  If it is not passed in from Python, then Python won't touch the value
 	// That means we can do a direct comparison (no floating-point threshold shenanigans) to determine whether
 	//		or not a value was passed in.  Python doesn't reveal that information any other way.
@@ -73,18 +73,21 @@ static PyObject* Counter_Increment(CounterPyObject* self, PyObject* args) {
 	double sentinel = 0.0;
 	double value = sentinel;
 
-	if (PyArg_ParseTuple(args, "|d", &value) && value != sentinel) {
+	static char* keyword_list[] = {"value", NULL};
+
+	if (PyArg_ParseTupleAndKeywords(args, keywords, "|d", keyword_list, &value) && value != sentinel) {
 		self->counter->Increment(value);
 	}
 	else {
-		self->counter->Increment();
 	}
+
+	self->counter->Increment();
 
 	Py_RETURN_TRUE;
 }
 
 static PyMethodDef CounterPyMethods[] = {
-	{"Increment", (PyCFunction)Counter_Increment, METH_VARARGS, "Increment the counter. Optionally, specify a value to increment by (default 1.0). If a value is specified, it must be non-zero."},
+	{"Increment", (PyCFunction)Counter_Increment, METH_VARARGS | METH_KEYWORDS, "Increment the counter. Optionally, specify a value to increment by (default 1.0). If a value is specified, it must be non-zero."},
 
 	{NULL}  /* Sentinel */
 };

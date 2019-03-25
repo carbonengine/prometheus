@@ -137,10 +137,13 @@ static void MetricRegistry_dealloc(MetricRegistryPyObject* self) {
 }
 
 
-static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self, PyObject* args) {
+static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self, PyObject* args, PyObject* keywords) {
 	const char* arg_name = NULL;
 	PyObject* arg_labels = NULL;
-	if (!PyArg_ParseTuple(args, "s|O", &arg_name, &arg_labels)) {
+
+	static char* keyword_list[] = {"name", "labels", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|O", keyword_list, &arg_name, &arg_labels)) {
 		Py_RETURN_NONE;
 	}
 
@@ -170,10 +173,13 @@ static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self, PyObje
 	return Py_BuildValue("O", Counter::CreatePythonObject(native_counter));
 }
 
-static PyObject* MetricRegistry_MakeGauge(MetricRegistryPyObject* self, PyObject* args) {
+static PyObject* MetricRegistry_MakeGauge(MetricRegistryPyObject* self, PyObject* args, PyObject* keywords) {
 	const char* arg_name = NULL;
 	PyObject* arg_labels = NULL;
-	if (!PyArg_ParseTuple(args, "s|O", &arg_name, &arg_labels)) {
+
+	static char* keyword_list[] = {"name", "labels", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|O", keyword_list, &arg_name, &arg_labels)) {
 		Py_RETURN_NONE;
 	}
 
@@ -364,8 +370,8 @@ static PyObject* MetricRegistry_StopServing(MetricRegistryPyObject* self) {
 }
 
 static PyMethodDef MetricRegistryPyMethods[] = {
-	{"MakeCounter", (PyCFunction)MetricRegistry_MakeCounter, METH_VARARGS, "Creates and returns a new prometheus_module.Counter metric"},
-	{"MakeGauge", (PyCFunction)MetricRegistry_MakeGauge, METH_VARARGS, "Creates and returns a new prometheus_module.Gauge metric"},
+	{"MakeCounter", (PyCFunction)MetricRegistry_MakeCounter, METH_VARARGS | METH_KEYWORDS, "Creates and returns a new prometheus_module.Counter metric"},
+	{"MakeGauge", (PyCFunction)MetricRegistry_MakeGauge, METH_VARARGS | METH_KEYWORDS, "Creates and returns a new prometheus_module.Gauge metric"},
 	{"MakeHistogram", (PyCFunction)MetricRegistry_MakeHistogram, METH_VARARGS | METH_KEYWORDS, "Creates and returns a new prometheus_module.Histogram metric"},
 	{"MakeSummary", (PyCFunction)MetricRegistry_MakeSummary, METH_VARARGS | METH_KEYWORDS, "Creates and returns a new prometheus_module.Summary metric"},
 

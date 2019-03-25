@@ -77,7 +77,7 @@ static void Gauge_dealloc(GaugePyObject* self) {
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-static PyObject* Gauge_Increment(GaugePyObject* self, PyObject* args) {
+static PyObject* Gauge_Increment(GaugePyObject* self, PyObject* args, PyObject* keywords) {
 	// value is optional.  If it is not passed in from Python, then Python won't touch the value
 	// That means we can do a direct comparison (no floating-point threshold shenanigans) to determine whether
 	//		or not a value was passed in.  Python doesn't reveal that information any other way.
@@ -85,25 +85,27 @@ static PyObject* Gauge_Increment(GaugePyObject* self, PyObject* args) {
 	double sentinel = 0.0;
 	double value = sentinel;
 
-	if (PyArg_ParseTuple(args, "|d", &value) && value != sentinel) {
+	static char* keyword_list[] = {"value", NULL};
+
+	if (PyArg_ParseTupleAndKeywords(args, keywords, "|d", keyword_list, &value) && value != sentinel) {
 		self->gauge->Increment(value);
-	}
-	else {
+	} else {
 		self->gauge->Increment();
 	}
 
 	Py_RETURN_TRUE;
 }
 
-static PyObject* Gauge_Decrement(GaugePyObject* self, PyObject* args) {
+static PyObject* Gauge_Decrement(GaugePyObject* self, PyObject* args, PyObject* keywords) {
 	// value is optional.  If it is not passed in from Python, then Python won't touch the value
 	// That means we can do a direct comparison (no floating-point threshold shenanigans) to determine whether
 	//		or not a value was passed in.  Python doesn't reveal that information any other way.
 	// I chose zero for the sentinel since it would be a no-op, and therefore useless as a value.
 	double sentinel = 0.0;
 	double value = sentinel;
+	static char* keyword_list[] = {"value", NULL};
 
-	if (PyArg_ParseTuple(args, "|d", &value) && value != sentinel) {
+	if (PyArg_ParseTupleAndKeywords(args, keywords, "|d", keyword_list, &value) && value != sentinel) {
 		self->gauge->Decrement(value);
 	}
 	else {
@@ -125,8 +127,8 @@ static PyObject* Gauge_Set(GaugePyObject* self, PyObject* arg) {
 }
 
 static PyMethodDef GaugePyMethods[] = {
-	{"Increment", (PyCFunction)Gauge_Increment, METH_VARARGS, "Increment the gauge. Optionally, specify a value to increment by (default 1.0). If a value is specified, it must be non-zero."},
-	{"Decrement", (PyCFunction)Gauge_Decrement, METH_VARARGS, "Decrement the gauge. Optionally, specify a value to decrement by (default 1.0). If a value is specified, it must be non-zero."},
+	{"Increment", (PyCFunction)Gauge_Increment, METH_VARARGS | METH_KEYWORDS, "Increment the gauge. Optionally, specify a value to increment by (default 1.0). If a value is specified, it must be non-zero."},
+	{"Decrement", (PyCFunction)Gauge_Decrement, METH_VARARGS | METH_KEYWORDS, "Decrement the gauge. Optionally, specify a value to decrement by (default 1.0). If a value is specified, it must be non-zero."},
 	{"Set", (PyCFunction)Gauge_Set, METH_O, "Set the gauge to the specified value."},
 
 	{NULL}  /* Sentinel */
