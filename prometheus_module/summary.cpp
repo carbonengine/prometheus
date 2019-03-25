@@ -61,19 +61,21 @@ static void Summary_dealloc(SummaryPyObject* self) {
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-static PyObject* Summary_Observe(SummaryPyObject* self, PyObject* arg) {
-	PyObject* float_arg = PyNumber_Float(arg);
-	if (!PyFloat_Check(float_arg)) {
+static PyObject* Summary_Observe(SummaryPyObject* self, PyObject* args, PyObject* keywords) {
+	double value = 0.0;
+	static char* keyword_list[] = {"value", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "d", keyword_list, &value)) {
 		Py_RETURN_FALSE;
 	}
 
-	self->summary->Observe(PyFloat_AsDouble(float_arg));
+	self->summary->Observe(value);
 
 	Py_RETURN_TRUE;
 }
 
 static PyMethodDef SummaryPyMethods[] = {
-	{"Observe", (PyCFunction)Summary_Observe, METH_O, "Observe the specified value."},
+	{"Observe", (PyCFunction)Summary_Observe, METH_VARARGS | METH_KEYWORDS, "Observe the specified value."},
 
 	{NULL}  /* Sentinel */
 };

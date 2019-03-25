@@ -115,13 +115,15 @@ static PyObject* Gauge_Decrement(GaugePyObject* self, PyObject* args, PyObject* 
 	Py_RETURN_TRUE;
 }
 
-static PyObject* Gauge_Set(GaugePyObject* self, PyObject* arg) {
-	PyObject* float_arg = PyNumber_Float(arg);
-	if (float_arg == NULL || !PyFloat_Check(float_arg)) {
+static PyObject* Gauge_Set(GaugePyObject* self, PyObject* args, PyObject* keywords) {
+	double value = 0.0;
+	static char* keyword_list[] = {"value", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "d", keyword_list, &value)) {
 		Py_RETURN_FALSE;
 	}
 
-	self->gauge->Set(PyFloat_AsDouble(float_arg));
+	self->gauge->Set(value);
 
 	Py_RETURN_TRUE;
 }
@@ -129,7 +131,7 @@ static PyObject* Gauge_Set(GaugePyObject* self, PyObject* arg) {
 static PyMethodDef GaugePyMethods[] = {
 	{"Increment", (PyCFunction)Gauge_Increment, METH_VARARGS | METH_KEYWORDS, "Increment the gauge. Optionally, specify a value to increment by (default 1.0). If a value is specified, it must be non-zero."},
 	{"Decrement", (PyCFunction)Gauge_Decrement, METH_VARARGS | METH_KEYWORDS, "Decrement the gauge. Optionally, specify a value to decrement by (default 1.0). If a value is specified, it must be non-zero."},
-	{"Set", (PyCFunction)Gauge_Set, METH_O, "Set the gauge to the specified value."},
+	{"Set", (PyCFunction)Gauge_Set, METH_VARARGS | METH_KEYWORDS, "Set the gauge to the specified value."},
 
 	{NULL}  /* Sentinel */
 };

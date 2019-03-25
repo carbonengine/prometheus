@@ -61,19 +61,21 @@ static void Histogram_dealloc(HistogramPyObject* self) {
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-static PyObject* Histogram_Observe(HistogramPyObject* self, PyObject* arg) {
-	PyObject* float_arg = PyNumber_Float(arg);
-	if (float_arg == NULL || !PyFloat_Check(float_arg)) {
+static PyObject* Histogram_Observe(HistogramPyObject* self, PyObject* args, PyObject* keywords) {
+	double value = 0.0;
+	static char* keyword_list[] = {"value", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "d", keyword_list, &value)) {
 		Py_RETURN_FALSE;
 	}
 
-	self->histogram->Observe(PyFloat_AsDouble(float_arg));
+	self->histogram->Observe(value);
 
 	Py_RETURN_TRUE;
 }
 
 static PyMethodDef HistogramPyMethods[] = {
-	{"Observe", (PyCFunction)Histogram_Observe, METH_O, "Observe the specified value."},
+	{"Observe", (PyCFunction)Histogram_Observe, METH_VARARGS | METH_KEYWORDS, "Observe the specified value."},
 
 	{NULL}  /* Sentinel */
 };

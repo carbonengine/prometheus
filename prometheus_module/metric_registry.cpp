@@ -335,9 +335,15 @@ static PyObject* MetricRegistry_MakeSummary(MetricRegistryPyObject* self, PyObje
 	return Py_BuildValue("O", Summary::CreatePythonObject(native_summary));
 }
 
-static PyObject* MetricRegistry_Serve(MetricRegistryPyObject* self, PyObject* py_bind_address) {
+static PyObject* MetricRegistry_Serve(MetricRegistryPyObject* self, PyObject* args, PyObject* keywords) {
+	char* bind_address = NULL;
+	static char* keyword_list[] = {"bind_address", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s", keyword_list, &bind_address) || bind_address == NULL) {
+		Py_RETURN_FALSE;
+	}
+
 	// todo: failure modes for args here
-	char* bind_address = PyString_AsString(py_bind_address);
 	
 	// todo: validate bind_address
 	//		 prometheus-cpp is not well-behaved with strings like ":1234" or "localhost:1234"
@@ -375,7 +381,7 @@ static PyMethodDef MetricRegistryPyMethods[] = {
 	{"MakeHistogram", (PyCFunction)MetricRegistry_MakeHistogram, METH_VARARGS | METH_KEYWORDS, "Creates and returns a new prometheus_module.Histogram metric"},
 	{"MakeSummary", (PyCFunction)MetricRegistry_MakeSummary, METH_VARARGS | METH_KEYWORDS, "Creates and returns a new prometheus_module.Summary metric"},
 
-	{"Serve", (PyCFunction)MetricRegistry_Serve, METH_O, "Start serving metrics at the specified [ip:]port. To serve multiple ports, use comma separation: [ip:]port,[ip:]port[,...]"},
+	{"Serve", (PyCFunction)MetricRegistry_Serve, METH_VARARGS | METH_KEYWORDS, "Start serving metrics at the specified [ip:]port. To serve multiple ports, use comma separation: [ip:]port,[ip:]port[,...]"},
 	{"StopServing", (PyCFunction)MetricRegistry_StopServing, METH_NOARGS, "Stop serving metrics"},
 
 	{NULL}  /* Sentinel */
