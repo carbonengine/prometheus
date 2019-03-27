@@ -5,10 +5,8 @@ import urllib2
 
 import prometheus_module
 
-# Helpers
 
 class TestBase(unittest.TestCase):
-
     def setUp(self):
         self.port = '20800'
         self.registry = prometheus_module.MetricRegistry()
@@ -33,6 +31,10 @@ class TestBase(unittest.TestCase):
         except urllib2.URLError:
             return False
 
+    def RandomString(self, length=6):
+        return ''.join(random.choice(string.ascii_uppercase) for _ in range(length))
+
+
 class TestServing(TestBase):
     def test_server_start_stop(self):
         self.assertFalse(self.IsServerListening(), 'Server must not listen until Serve is called')
@@ -40,17 +42,25 @@ class TestServing(TestBase):
         self.assertTrue(self.IsServerListening(), 'Server must listen after Serve is called')
         self.registry.StopServing()
         self.assertFalse(self.IsServerListening(), 'Server must stop listening after StopServing is called')
+
+    def test_serve_port_in_use(self):
+        #todo. this crashes
+        self.assertTrue(False)
+        #self.assertFalse(self.IsServerListening('20800'))
+        #self.registry.Serve('20800')
+        #registry2 = prometheus_module.MetricRegistry()
+        #registry2.Serve('20800')
         
     def test_bad_port_formats(self):
-        self.assertTrue(False)
         # todo. these currently crash the program. not exceptions. just fire and burning.
+        self.assertTrue(False)
         #self.registry.Serve('http://localhost:20800')
         #self.registry.Serve(':20800')
         #self.registry.Serve('')
         #self.registry.Serve()
 
     def test_good_port_formats(self):
-        self.assertTrue(True)
+        self.assertTrue(False)
         # todo
 
 class TestCounter(TestBase):
@@ -61,9 +71,6 @@ class TestCounter(TestBase):
     def tearDown(self):
         TestBase.tearDown(self)
         self.registry.StopServing()
-
-    def RandomString(self, length=6):
-        return ''.join(random.choice(string.ascii_uppercase) for _ in range(length))
 
     def FetchCounter(self, name):
         line = self.FetchLine(name)
@@ -93,8 +100,9 @@ class TestCounter(TestBase):
         self.assertTrue(label_value in line)
 
     def test_MakeCounter_with_label_with_leading_number_fails(self):
-        #todo. this crashes.
+        #todo. this succeeds if NDEBUG is not set, but asserts if NDEBUG is set.
         self.assertTrue(False)
+        #self.registry.MakeCounter(self.RandomString(), {'123name':'value'})
 
     def test_counter_increment_succeeds(self):
         n = self.RandomString()
