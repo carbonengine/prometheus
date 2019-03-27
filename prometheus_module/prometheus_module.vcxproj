@@ -41,7 +41,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ConformanceMode>false</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)import\Python27\include;$(SolutionDir)import\Python27\include\stackless;$(SolutionDir)import\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>GRPC_MODULE_EXPORT;_WINDLL;_WIN32_WINNT=0x600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDLL;_WIN32_WINNT=0x600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
