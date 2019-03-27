@@ -79,9 +79,8 @@ static PyObject* Counter_Increment(CounterPyObject* self, PyObject* args, PyObje
 		self->counter->Increment(value);
 	}
 	else {
+		self->counter->Increment();
 	}
-
-	self->counter->Increment();
 
 	Py_RETURN_TRUE;
 }
