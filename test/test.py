@@ -27,6 +27,13 @@ class TestBase(unittest.TestCase):
                 return line.strip()
         return ''
 
+    def FetchLines(self, substr, port=''):
+        result = []
+        for line in self.Fetch(port).split('\n'):
+            if (substr in line) and not ('#' in line):
+                result.append(line)
+        return result
+
     def IsServerListening(self, port=''):
         try:
             content = self.Fetch(port)
@@ -201,6 +208,85 @@ class TestGauge(TestBase):
         self.assertEqual(self.FetchGauge(n), 0, 'Gauge must start at zero')
         c.Set(999)
         self.assertEqual(self.FetchGauge(n), 999, 'Gauge must set value to parameter value')
+
+
+#
+# Histogram
+#
+
+class TestHistogram(TestBase):
+    def setUp(self):
+        TestBase.setUp(self)
+        self.registry.Serve(self.port)
+
+    def tearDown(self):
+        TestBase.tearDown(self)
+        self.registry.StopServing()
+
+    def FetchHistogram(self, name):
+        lines = self.FetchLines(name)
+        if len(lines) == 0:
+            return 0
+
+        count = 0
+        sum = 0.0
+        buckets = []
+        for line in lines:
+            if '_count' in line:
+                count = int(line.split(' ')[-1])
+            if '_sum' in line:
+                sum = float(line.split(' ')[-1])
+            if '_bucket' in line:
+                buckets.append(int(line.split(' ')[-1]))
+
+        result = {}
+        result['count'] = count
+        result['sum'] = sum
+        result['buckets'] = buckets
+        return result
+
+    def test_MakeHistogram(self):
+        n = self.RandomString()
+        self.assertFalse(self.FetchLine(n))
+        self.registry.MakeHistogram(n)
+        self.assertTrue(self.FetchLine(n))
+
+    def test_MakeHistogram_with_labels(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_name2 = self.RandomString()
+        label_value2 = self.RandomString()
+
+        self.registry.MakeHistogram(n, {label_name:label_value, label_name2:label_value2})
+
+        line = self.FetchLine(n)
+        self.assertTrue(label_name in line)
+        self.assertTrue(label_value in line)
+        self.assertTrue(label_name2 in line)
+        self.assertTrue(label_value2 in line)
+
+    def test_histogram_observe(self):
+        n = self.RandomString()
+        h = self.registry.MakeHistogram(n, boundaries=[10,100,1000])
+        values = self.FetchHistogram(n)
+        self.assertEqual(values['count'], 0, 'Histogram must start with zero observations')
+        self.assertEqual(values['sum'], 0.0, 'Histogram must start with zero observations')
+        self.assertEqual(len(values['buckets']), 4, 'Histogram must have expected number of buckets from the specified boundaries')
+
+        h.Observe(1)
+        h.Observe(10)
+        h.Observe(100)
+        h.Observe(1000)
+        h.Observe(10000)
+        values = self.FetchHistogram(n)
+        self.assertEqual(values['count'], 5, 'Histogram_count must increment with observations')
+        self.assertEqual(values['sum'], 1.0+10.0+100.0+1000.0+10000.0, 'Histogram_sum must sum the observations')
+        buckets = values['buckets']
+        self.assertEqual(buckets[0], 2, 'Observed values must be recorded in their corresponding buckets')
+        self.assertEqual(buckets[1], 3, 'Observed values must be recorded in their corresponding buckets')
+        self.assertEqual(buckets[2], 4, 'Observed values must be recorded in their corresponding buckets')
+        self.assertEqual(buckets[3], 5, 'Observed values must be recorded in their corresponding buckets')
 
 
 #
