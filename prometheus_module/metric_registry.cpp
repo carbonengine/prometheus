@@ -105,11 +105,19 @@ Histogram* MetricRegistry::MakeHistogram(const char* name, const std::map <std::
 	return new prometheus_module::Histogram(prometheus_histogram);
 }
 
-void MetricRegistry::Serve(const char* bind_address) {
+bool MetricRegistry::Serve(const char* bind_address) {
 	StopServing();
 
-	private_->exposer = std::make_unique<prometheus::Exposer>(bind_address, "");
+	try {
+		private_->exposer = std::make_unique<prometheus::Exposer>(bind_address, "");
+	}
+	catch(...) {
+		return false;
+	}
+
 	private_->exposer->RegisterCollectable(private_->registry);
+
+	return true;
 }
 
 void MetricRegistry::StopServing() {
@@ -343,29 +351,9 @@ static PyObject* MetricRegistry_Serve(MetricRegistryPyObject* self, PyObject* ar
 		Py_RETURN_FALSE;
 	}
 
-	// todo: failure modes for args here
-	
-	// todo: validate bind_address
-	//		 prometheus-cpp is not well-behaved with strings like ":1234" or "localhost:1234"
-	//		 see following comment for valid string examples
-
-	// Port string spec from CivetWeb:
-	// https://github.com/civetweb/civetweb/blob/a714efa0a0f36607f70226f75269cd3f9361204b/src/civetweb.c#L14244
-	//	* Valid listening port specification is: [ip_address:]port[s]
-	//	* Examples for IPv4: 80, 443s, 127.0.0.1:3128, 192.0.2.3:8080s
-	//	* Examples for IPv6: [::]:80, [::1]:80,
-	//	*   [2001:0db8:7654:3210:FEDC:BA98:7654:3210]:443s
-	//	*   see https://tools.ietf.org/html/rfc3513#section-2.2
-	//	* In order to bind to both, IPv4 and IPv6, you can either add
-	//	* both ports using 8080,[::]:8080, or the short form +8080.
-	//	* Both forms differ in detail: 8080,[::]:8080 create two sockets,
-	//	* one only accepting IPv4 the other only IPv6. +8080 creates
-	//	* one socket accepting IPv4 and IPv6. Depending on the IPv6
-	//	* environment, they might work differently, or might not work
-	//	* at all - it must be tested what options work best in the
-	//	* relevant network environment.
-
-	self->metric_registry->Serve(bind_address);
+	if (!self->metric_registry->Serve(bind_address)) {
+		Py_RETURN_FALSE;
+	}
 
 	Py_RETURN_TRUE;
 }

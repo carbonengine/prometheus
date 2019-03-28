@@ -9,7 +9,6 @@ import prometheus_module
 #
 # Base
 #
-
 class TestBase(unittest.TestCase):
     def setUp(self):
         self.port = '20800'
@@ -49,40 +48,57 @@ class TestBase(unittest.TestCase):
 #
 # Server
 #
-
 class TestServing(TestBase):
+    def ExpectServeSuccess(self, port):
+        self.assertFalse(self.IsServerListening(port))
+        r = prometheus_module.MetricRegistry()
+        self.assertTrue(r.Serve(port))
+        r.StopServing()
+        self.assertFalse(self.IsServerListening(port))
+        r = None
+
+    def ExpectServeFailure(self, port):
+        r = prometheus_module.MetricRegistry()
+        self.assertFalse(r.Serve(port))
+        r.StopServing()
+        r = None
+
     def test_server_start_stop(self):
         self.assertFalse(self.IsServerListening(), 'Server must not listen until Serve is called')
-        self.registry.Serve(self.port)
+        self.assertTrue(self.registry.Serve(self.port))
         self.assertTrue(self.IsServerListening(), 'Server must listen after Serve is called')
         self.registry.StopServing()
         self.assertFalse(self.IsServerListening(), 'Server must stop listening after StopServing is called')
 
     def test_serve_port_in_use(self):
-        #todo. this crashes
-        self.assertTrue(False, 'todo')
-        #self.assertFalse(self.IsServerListening('20800'))
-        #self.registry.Serve('20800')
-        #registry2 = prometheus_module.MetricRegistry()
-        #registry2.Serve('20800')
+        self.assertFalse(self.IsServerListening('20800'))
+        self.assertTrue(self.registry.Serve('20800'))
+        self.assertTrue(self.IsServerListening('20800'))
+
+        registry2 = prometheus_module.MetricRegistry()
+        self.assertFalse(registry2.Serve('20800'), 'Serve() must return False if the requested port is already in use).')
+
+        self.registry.StopServing()
+
         
     def test_bad_port_formats(self):
-        # todo. these currently crash the program. not exceptions. just fire and burning.
-        self.assertTrue(False, 'todo')
-        #self.registry.Serve('http://localhost:20800')
-        #self.registry.Serve(':20800')
-        #self.registry.Serve('')
-        #self.registry.Serve()
+        self.ExpectServeFailure('invalid_string')
+        self.ExpectServeFailure('http://localhost:20800')
+        self.ExpectServeFailure(':20800')
+        self.ExpectServeFailure('')
 
     def test_good_port_formats(self):
-        self.assertTrue(False, 'todo')
-        # todo
+        self.ExpectServeSuccess('20800')
+        self.ExpectServeSuccess('127.0.0.1:20800')
+        self.ExpectServeSuccess('[::]:20800')
+        # todo: test ssl (specify port with a trailing 's', e.g. '443s')
+        # todo: test multiple ports in one string (separate ports with a comma, e.g. '20800,20801,[::]:20800', each gets its own socket)
+        # todo: test ipv4 and ipv6 in one socket (specify port with a leading '+', e.g. '+20800', one socket serves both)
 
 
 #
 # Counter
 #
-
 class TestCounter(TestBase):
     def setUp(self):
         TestBase.setUp(self)
@@ -121,11 +137,6 @@ class TestCounter(TestBase):
         self.assertTrue(label_name2 in line)
         self.assertTrue(label_value2 in line)
 
-    def test_MakeCounter_with_label_with_leading_number_fails(self):
-        #todo. this succeeds if NDEBUG is not set, but asserts if NDEBUG is set.
-        self.assertTrue(False, 'todo')
-        #self.registry.MakeCounter(self.RandomString(), {'123name':'value'})
-
     def test_counter_increment(self):
         n = self.RandomString()
         c = self.registry.MakeCounter(n)
@@ -145,7 +156,6 @@ class TestCounter(TestBase):
 #
 # Gauge
 #
-
 class TestGauge(TestBase):
     def setUp(self):
         TestBase.setUp(self)
@@ -213,7 +223,6 @@ class TestGauge(TestBase):
 #
 # Histogram
 #
-
 class TestHistogram(TestBase):
     def setUp(self):
         TestBase.setUp(self)
@@ -271,7 +280,7 @@ class TestHistogram(TestBase):
         b = [10,100,1000]
         self.registry.MakeHistogram(n, boundaries=b)
         values = self.FetchHistogram(n)
-        self.assertEqual(len(values['buckets']), len(b)+1, 'Number of buckets must equal number of boundaries plus one)')
+        self.assertEqual(len(values['buckets']), len(b) + 1, 'Number of buckets must equal number of boundaries plus one)')
 
     def test_histogram_observe(self):
         n = self.RandomString()
@@ -287,7 +296,7 @@ class TestHistogram(TestBase):
         h.Observe(10000)
         values = self.FetchHistogram(n)
         self.assertEqual(values['count'], 5, 'Histogram_count must increment with observations')
-        self.assertEqual(values['sum'], 1.0+10.0+100.0+1000.0+10000.0, 'Histogram_sum must sum the observations')
+        self.assertEqual(values['sum'], 1.0 + 10.0 + 100.0 + 1000.0 + 10000.0, 'Histogram_sum must sum the observations')
         buckets = values['buckets']
         self.assertEqual(buckets[0], 2, 'Observed values must be recorded in their corresponding buckets')
         self.assertEqual(buckets[1], 3, 'Observed values must be recorded in their corresponding buckets')
@@ -298,7 +307,6 @@ class TestHistogram(TestBase):
 #
 # Summary
 #
-
 class TestSummary(TestBase):
     def setUp(self):
         TestBase.setUp(self)
@@ -376,7 +384,7 @@ class TestSummary(TestBase):
 
         values = self.FetchSummary(n)
         self.assertEqual(values['count'], 5, 'Summary_count must increment with observations')
-        self.assertEqual(values['sum'], 1.0+10.0+100.0+1000.0+10000.0, 'Summary_sum must sum the observations')
+        self.assertEqual(values['sum'], 1.0 + 10.0 + 100.0 + 1000.0 + 10000.0, 'Summary_sum must sum the observations')
         quantiles = values['quantiles']
         self.assertEqual(quantiles[0], 1.0, 'Observed values must be recorded in their corresponding quantiles')
         self.assertEqual(quantiles[1], 10.0, 'Observed values must be recorded in their corresponding quantiles')
@@ -386,6 +394,5 @@ class TestSummary(TestBase):
 #
 # Main
 #
-
 if __name__ == '__main__':
     unittest.main()

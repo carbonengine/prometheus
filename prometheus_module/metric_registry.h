@@ -27,7 +27,7 @@ public:
 	Summary* MakeSummary(const char* name, const std::map <std::string, std::string>& labels, const std::vector<std::pair<double,double> >& quantiles);
 	Histogram* MakeHistogram(const char* name, const std::map <std::string, std::string>& labels, const std::vector<double>& boundaries);
 
-	void Serve(const char* bind_address);
+	bool Serve(const char* bind_address);
 	void StopServing();
 
 	static void RegisterPythonObject(PyObject* module);
