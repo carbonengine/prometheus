@@ -258,7 +258,7 @@ class TestHistogram(TestBase):
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
-        self.registry.MakeHistogram(n, {label_name:label_value, label_name2:label_value2})
+        self.registry.MakeHistogram(n, labels={label_name:label_value, label_name2:label_value2})
 
         line = self.FetchLine(n)
         self.assertTrue(label_name in line)
@@ -266,13 +266,19 @@ class TestHistogram(TestBase):
         self.assertTrue(label_name2 in line)
         self.assertTrue(label_value2 in line)
 
+    def test_MakeHistogram_with_boundaries(self):
+        n = self.RandomString()
+        b = [10,100,1000]
+        self.registry.MakeHistogram(n, boundaries=b)
+        values = self.FetchHistogram(n)
+        self.assertEqual(len(values['buckets']), len(b)+1, 'Number of buckets must equal number of boundaries plus one)')
+
     def test_histogram_observe(self):
         n = self.RandomString()
         h = self.registry.MakeHistogram(n, boundaries=[10,100,1000])
         values = self.FetchHistogram(n)
         self.assertEqual(values['count'], 0, 'Histogram must start with zero observations')
         self.assertEqual(values['sum'], 0.0, 'Histogram must start with zero observations')
-        self.assertEqual(len(values['buckets']), 4, 'Histogram must have expected number of buckets from the specified boundaries')
 
         h.Observe(1)
         h.Observe(10)
@@ -287,6 +293,94 @@ class TestHistogram(TestBase):
         self.assertEqual(buckets[1], 3, 'Observed values must be recorded in their corresponding buckets')
         self.assertEqual(buckets[2], 4, 'Observed values must be recorded in their corresponding buckets')
         self.assertEqual(buckets[3], 5, 'Observed values must be recorded in their corresponding buckets')
+
+
+#
+# Summary
+#
+
+class TestSummary(TestBase):
+    def setUp(self):
+        TestBase.setUp(self)
+        self.registry.Serve(self.port)
+
+    def tearDown(self):
+        TestBase.tearDown(self)
+        self.registry.StopServing()
+
+    def FetchSummary(self, name):
+        lines = self.FetchLines(name)
+        if len(lines) == 0:
+            return 0
+
+        count = 0
+        sum = 0.0
+        quantiles = []
+        for line in lines:
+            if '_count' in line:
+                count = int(line.split(' ')[-1])
+            if '_sum' in line:
+                sum = float(line.split(' ')[-1])
+            if 'quantile' in line:
+                quantiles.append(float(line.split(' ')[-1]))
+
+        result = {}
+        result['count'] = count
+        result['sum'] = sum
+        result['quantiles'] = quantiles
+        return result
+
+    def test_MakeSummary(self):
+        n = self.RandomString()
+        self.assertFalse(self.FetchLine(n))
+        self.registry.MakeSummary(n)
+        self.assertTrue(self.FetchLine(n))
+
+    def test_MakeSummary_with_labels(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_name2 = self.RandomString()
+        label_value2 = self.RandomString()
+
+        self.registry.MakeSummary(n, labels={label_name:label_value, label_name2:label_value2})
+
+        line = self.FetchLine(n)
+        self.assertTrue(label_name in line)
+        self.assertTrue(label_value in line)
+        self.assertTrue(label_name2 in line)
+        self.assertTrue(label_value2 in line)
+
+    def test_MakeSummary_with_quantiles(self):
+        n = self.RandomString()
+        q = [(0.1,0.05),(0.5,0.05),(0.9,0.05)]
+        self.registry.MakeSummary(n, quantiles=q)
+
+        values = self.FetchSummary(n)
+        self.assertEqual(len(values['quantiles']), len(q), 'Number of quantiles must match')
+
+    def test_summary_observe(self):
+        n = self.RandomString()
+        tolerance = 0.05
+        h = self.registry.MakeSummary(n, quantiles=[(0.1,tolerance),(0.5,tolerance),(0.9,tolerance)])
+        values = self.FetchSummary(n)
+        self.assertEqual(values['count'], 0, 'Summary must start with zero observations')
+        self.assertEqual(values['sum'], 0.0, 'Summary must start with zero observations')
+        self.assertEqual(len(values['quantiles']), 3, 'Summary must start with correct number of quantiles')
+
+        h.Observe(1)
+        h.Observe(10)
+        h.Observe(100)
+        h.Observe(1000)
+        h.Observe(10000)
+
+        values = self.FetchSummary(n)
+        self.assertEqual(values['count'], 5, 'Summary_count must increment with observations')
+        self.assertEqual(values['sum'], 1.0+10.0+100.0+1000.0+10000.0, 'Summary_sum must sum the observations')
+        quantiles = values['quantiles']
+        self.assertEqual(quantiles[0], 1.0, 'Observed values must be recorded in their corresponding quantiles')
+        self.assertEqual(quantiles[1], 10.0, 'Observed values must be recorded in their corresponding quantiles')
+        self.assertEqual(quantiles[2], 100.0, 'Observed values must be recorded in their corresponding quantiles')
 
 
 #
