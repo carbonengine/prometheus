@@ -4,6 +4,7 @@ import unittest
 import urllib2
 
 import prometheus_module
+import test_native
 
 
 #
@@ -389,6 +390,14 @@ class TestSummary(TestBase):
         self.assertEqual(quantiles[0], 1.0, 'Observed values must be recorded in their corresponding quantiles')
         self.assertEqual(quantiles[1], 10.0, 'Observed values must be recorded in their corresponding quantiles')
         self.assertEqual(quantiles[2], 100.0, 'Observed values must be recorded in their corresponding quantiles')
+
+
+#
+# Native
+#
+class TestNative(TestBase):
+    def test_native_tests(self):
+        test_native.RunTests()
 
 
 #
