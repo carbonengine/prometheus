@@ -106,19 +106,47 @@ Histogram* MetricRegistry::MakeHistogram(const char* name, const std::map <std::
 }
 
 CounterInterface* MetricRegistry::MakeCounter(const char* name, int num_labels, const char* label_keys[], const char* label_values[]) {
-	return nullptr;
+	std::map<std::string, std::string> labels;
+	for (auto i = 0; i < num_labels; i++) {
+		labels.insert(std::make_pair(label_keys[i], label_values[i]));
+	}
+	return MakeCounter(name, labels);
 }
 
 GaugeInterface* MetricRegistry::MakeGauge(const char* name, int num_labels, const char* label_keys[], const char* label_values[]) {
-	return nullptr;
+	std::map<std::string, std::string> labels;
+	for (auto i = 0; i < num_labels; i++) {
+		labels.insert(std::make_pair(label_keys[i], label_values[i]));
+	}
+	return MakeGauge(name, labels);
 }
 
 SummaryInterface* MetricRegistry::MakeSummary(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_quantiles, double quantile_values[], double quantile_tolerances[]) {
-	return nullptr;
+	std::map<std::string, std::string> labels;
+	for (auto i = 0; i < num_labels; i++) {
+		labels.insert(std::make_pair(label_keys[i], label_values[i]));
+	}
+
+	std::vector<std::pair<double, double> > quantiles;
+	for (auto i = 0; i < num_quantiles; i++) {
+		quantiles.push_back(std::make_pair(quantile_values[i], quantile_tolerances[i]));
+	}
+
+	return MakeSummary(name, labels, quantiles);
 }
 
-HistogramInterface* MetricRegistry::MakeHistogram(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_boundaries, double boundaries[]) {
-	return nullptr;
+HistogramInterface* MetricRegistry::MakeHistogram(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_boundaries, double boundary_values[]) {
+	std::map<std::string, std::string> labels;
+	for (auto i = 0; i < num_labels; i++) {
+		labels.insert(std::make_pair(label_keys[i], label_values[i]));
+	}
+
+	std::vector<double> boundaries;
+	for (auto i = 0; i < num_boundaries; i++) {
+		boundaries.push_back(boundary_values[i]);
+	}
+
+	return MakeHistogram(name, labels, boundaries);
 }
 
 bool MetricRegistry::Serve(const char* bind_address) {
@@ -142,8 +170,6 @@ void MetricRegistry::StopServing() {
 
 
 // Python linkage
-
-#include <Python.h>
 
 typedef struct {
 	PyObject_HEAD
