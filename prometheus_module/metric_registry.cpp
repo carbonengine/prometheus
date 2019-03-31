@@ -105,6 +105,22 @@ Histogram* MetricRegistry::MakeHistogram(const char* name, const std::map <std::
 	return new prometheus_module::Histogram(prometheus_histogram);
 }
 
+CounterInterface* MetricRegistry::MakeCounter(const char* name, int num_labels, const char* label_keys[], const char* label_values[]) {
+	return nullptr;
+}
+
+GaugeInterface* MetricRegistry::MakeGauge(const char* name, int num_labels, const char* label_keys[], const char* label_values[]) {
+	return nullptr;
+}
+
+SummaryInterface* MetricRegistry::MakeSummary(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_quantiles, double quantile_values[], double quantile_tolerances[]) {
+	return nullptr;
+}
+
+HistogramInterface* MetricRegistry::MakeHistogram(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_boundaries, double boundaries[]) {
+	return nullptr;
+}
+
 bool MetricRegistry::Serve(const char* bind_address) {
 	StopServing();
 

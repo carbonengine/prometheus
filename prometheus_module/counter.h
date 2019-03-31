@@ -5,18 +5,20 @@
 
 #include <prometheus/counter.h>
 
+#include "counter_interface.h"
+
 struct _object;
 typedef _object PyObject;
 
 namespace prometheus_module {
 
-class Counter {
+class Counter : public CounterInterface {
 public:
 
 	Counter(prometheus::Counter& counter);
 
-	void Increment();
-	void Increment(double value);
+	void Increment() override;
+	void Increment(double value) override;
 
 	static void RegisterPythonObject(PyObject* module);
 	static PyObject* CreatePythonObject(Counter* wrapped);

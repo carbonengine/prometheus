@@ -39,7 +39,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)import\Python27\include;$(SolutionDir)import\Python27\include\stackless;$(SolutionDir)import\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)import\Python27\include;$(SolutionDir)import\Python27\include\stackless;$(SolutionDir)import\vcpkg\installed\x64-windows\include;$(SolutionDir)prometheus_module</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;_WINDLL;_WIN32_WINNT=0x600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>

@@ -5,17 +5,19 @@
 
 #include <prometheus/summary.h>
 
+#include "summary_interface.h"
+
 struct _object;
 typedef _object PyObject;
 
 namespace prometheus_module {
 
-class Summary {
+class Summary : public SummaryInterface {
 public:
 
 	Summary(prometheus::Summary& summary);
 
-	void Observe(double value);
+	void Observe(double value) override;
 
 	static void RegisterPythonObject(PyObject* module);
 	static PyObject* CreatePythonObject(Summary* wrapped);

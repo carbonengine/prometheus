@@ -61,10 +61,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="counter.h" />
+    <ClInclude Include="counter_interface.h" />
     <ClInclude Include="gauge.h" />
+    <ClInclude Include="gauge_interface.h" />
     <ClInclude Include="histogram.h" />
+    <ClInclude Include="histogram_interface.h" />
+    <ClInclude Include="metric_registry_interface.h" />
     <ClInclude Include="metric_registry.h" />
     <ClInclude Include="summary.h" />
+    <ClInclude Include="summary_interface.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -5,23 +5,25 @@
 
 #include <prometheus/gauge.h>
 
+#include "gauge_interface.h"
+
 struct _object;
 typedef _object PyObject;
 
 namespace prometheus_module {
 
-class Gauge {
+class Gauge : public GaugeInterface {
 public:
 
 	Gauge(prometheus::Gauge& gauge);
 
-	void Increment();
-	void Increment(double value);
+	void Increment() override;
+	void Increment(double value) override;
 
-	void Decrement();
-	void Decrement(double value);
+	void Decrement() override;
+	void Decrement(double value) override;
 
-	void Set(double value);
+	void Set(double value) override;
 
 	static void RegisterPythonObject(PyObject* module);
 	static PyObject* CreatePythonObject(Gauge* wrapped);

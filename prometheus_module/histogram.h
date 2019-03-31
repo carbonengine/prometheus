@@ -5,17 +5,19 @@
 
 #include <prometheus/histogram.h>
 
+#include "histogram_interface.h"
+
 struct _object;
 typedef _object PyObject;
 
 namespace prometheus_module {
 
-class Histogram {
+class Histogram : public HistogramInterface {
 public:
 
 	Histogram(prometheus::Histogram& histogram);
 
-	void Observe(double value);
+	void Observe(double value) override;
 
 	static void RegisterPythonObject(PyObject* module);
 	static PyObject* CreatePythonObject(Histogram* wrapped);

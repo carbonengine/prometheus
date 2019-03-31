@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+#include "metric_registry_interface.h"
+
 struct _object;
 typedef _object PyObject;
 
@@ -13,24 +15,38 @@ namespace prometheus_module {
 	class Gauge;
 	class Histogram;
 	class Summary;
+
+	class CounterInterface;
+	class GaugeInterface;
+	class HistogramInterface;
+	class SummaryInterface;
 }
 
 namespace prometheus_module {
 
-class MetricRegistry {
+class MetricRegistry : public MetricRegistryInterface {
 public:
 
 	MetricRegistry();
+
+	static void RegisterPythonObject(PyObject* module);
 
 	Counter* MakeCounter(const char* name, const std::map<std::string, std::string>& labels);
 	Gauge* MakeGauge(const char* name, const std::map<std::string, std::string>& labels);
 	Summary* MakeSummary(const char* name, const std::map <std::string, std::string>& labels, const std::vector<std::pair<double,double> >& quantiles);
 	Histogram* MakeHistogram(const char* name, const std::map <std::string, std::string>& labels, const std::vector<double>& boundaries);
 
-	bool Serve(const char* bind_address);
-	void StopServing();
 
-	static void RegisterPythonObject(PyObject* module);
+	// MetricRegistryInterface implementation
+
+	CounterInterface* MakeCounter(const char* name, int num_labels, const char* label_keys[], const char* label_values[]);
+	GaugeInterface* MakeGauge(const char* name, int num_labels, const char* label_keys[], const char* label_values[]);
+	SummaryInterface* MakeSummary(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_quantiles, double quantile_values[], double quantile_tolerances[]);
+	HistogramInterface* MakeHistogram(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_boundaries, double boundaries[]);
+
+	bool Serve(const char* bind_address) override;
+	void StopServing() override;
+
 
 private:
 
