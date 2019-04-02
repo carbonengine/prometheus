@@ -405,6 +405,12 @@ static PyObject* MetricRegistry_StopServing(MetricRegistryPyObject* self) {
 	Py_RETURN_TRUE;
 }
 
+static PyObject* MetricRegistry_GetCapsule(MetricRegistryPyObject* self) {
+	MetricRegistryInterface* registry_interface = (MetricRegistryInterface*)self->metric_registry.get();
+	PyObject* capsule = PyCapsule_New((void*)registry_interface, NULL, NULL);
+	return capsule;
+}
+
 static PyMethodDef MetricRegistryPyMethods[] = {
 	{"MakeCounter", (PyCFunction)MetricRegistry_MakeCounter, METH_VARARGS | METH_KEYWORDS, "Creates and returns a new prometheus_module.Counter metric"},
 	{"MakeGauge", (PyCFunction)MetricRegistry_MakeGauge, METH_VARARGS | METH_KEYWORDS, "Creates and returns a new prometheus_module.Gauge metric"},
@@ -413,6 +419,8 @@ static PyMethodDef MetricRegistryPyMethods[] = {
 
 	{"Serve", (PyCFunction)MetricRegistry_Serve, METH_VARARGS | METH_KEYWORDS, "Start serving metrics at the specified [ip:]port. To serve multiple ports, use comma separation: [ip:]port,[ip:]port[,...]"},
 	{"StopServing", (PyCFunction)MetricRegistry_StopServing, METH_NOARGS, "Stop serving metrics"},
+
+	{"GetCapsule", (PyCFunction)MetricRegistry_GetCapsule, METH_NOARGS, "Returns a capsule containing a pointer to the native MetricRegistryInterface for this instance"},
 
 	{NULL}  /* Sentinel */
 };
