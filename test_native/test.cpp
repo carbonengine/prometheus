@@ -13,14 +13,15 @@ using namespace prometheus_module;
 
 #include "test.h"
 
+prometheus_module::MetricRegistryInterface* MetricTestFixture::registry = nullptr;
+
 void MetricTestFixture::SetUp() {
+	std::cout << "MetricTestFixture::SetUp" << std::endl;
 	ASSERT_NE(registry, nullptr);
 }
 
-void MetricTestFixture::TearDown() {
-}
-
 TEST_F(MetricTestFixture, SomeTest) {
+	std::cout << "MetricTestFixture::SomeTest" << std::endl;
 	EXPECT_EQ(1, 1);
 }
 

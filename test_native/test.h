@@ -7,12 +7,13 @@
 using namespace prometheus_module;
 
 class MetricTestFixture : public ::testing::Test {
+public:
+
+	static prometheus_module::MetricRegistryInterface* registry;
+
 protected:
 
 	void SetUp() override;
-	void TearDown() override;
-
-	static prometheus_module::MetricRegistryInterface* registry;
 };
 
 #endif

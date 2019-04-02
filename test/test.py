@@ -397,7 +397,7 @@ class TestSummary(TestBase):
 #
 class TestNative(TestBase):
     def test_native_tests(self):
-        test_native.RunTests()
+        self.assertTrue(test_native.RunTests(), 'Native tests must pass')
 
 
 #
