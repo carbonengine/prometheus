@@ -20,10 +20,15 @@ protected:
 
 	static prometheus_module::MetricRegistryInterface* registry;
 	static CURL* curl;
+	static std::string default_port;
 
 	void SetUp() override;
 
 	std::string Fetch(std::string port);
+	std::string FetchLine(std::string substr, std::string port="");
+	std::vector<std::string> FetchLines(std::string substr, std::string port="");
+	bool IsServerListening(std::string port = "");
+	std::string RandomString(int length = 6);
 };
 
 #endif
