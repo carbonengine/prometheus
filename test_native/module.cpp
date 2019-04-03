@@ -24,14 +24,17 @@ static PyObject* RunTests(PyObject *self, PyObject *args, PyObject *kwds) {
 		Py_RETURN_FALSE;
 
 	prometheus_module::MetricRegistryInterface* registry = (MetricRegistryInterface*)PyCapsule_GetPointer(capsule, NULL);
-	MetricTestFixture::registry = registry;
+	TestBase::StaticInitialize(registry);
 
 	int argc = 1;
 	char* argv[] = {"nothing.exe"};	//< gtest falsely accuses us of not calling InitGoogleTest if this is empty
 	::testing::InitGoogleTest(&argc, (char**)argv);
 
 	auto num_failures = RUN_ALL_TESTS();
+
 	std::cout << "RUN_ALL_TESTS returned " << num_failures << std::endl;
+	TestBase::StaticShutdown();
+
 	if (num_failures) {
 		Py_RETURN_FALSE;
 	}
