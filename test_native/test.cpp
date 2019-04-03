@@ -236,3 +236,81 @@ TEST_F(TestCounter, DecrementFails) {
 	c->Increment(-1);
 	EXPECT_EQ(FetchCounter(n), 0);
 }
+
+
+//
+// Gauge
+//
+
+class TestGauge : public TestBase {
+protected:
+
+	void SetUp() {
+		TestBase::SetUp();
+		registry->Serve(default_port.c_str());
+	}
+
+	void TearDown() {
+		TestBase::TearDown();
+		registry->StopServing();
+	}
+
+	float FetchGauge(std::string name) {
+		std::string line = FetchLine(name);
+		auto split = string_split(line, ' ');
+		if (line.empty() || split.empty()) {
+			return 0;
+		}
+		const std::string& string_value = split[split.size() - 1];
+		return std::stof(string_value);
+	}
+};
+
+TEST_F(TestGauge, MakeGauge) {
+	auto n = RandomString();
+	EXPECT_TRUE(FetchLines(n).empty());
+	registry->MakeGauge(n.c_str(), 0, nullptr, nullptr);
+	EXPECT_FALSE(FetchLines(n).empty());
+}
+
+TEST_F(TestGauge, MakeGaugeWithLabels) {
+	auto n = RandomString();
+	const char* label_names[] = { RandomString().c_str(), RandomString().c_str() };
+	const char* label_values[] = { RandomString().c_str(), RandomString().c_str() };
+	registry->MakeGauge(n.c_str(), 2, label_names, label_values);
+
+	auto line = FetchLine(n);
+	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
+	EXPECT_TRUE(line.find(label_names[1]) != std::string::npos);
+	EXPECT_TRUE(line.find(label_values[0]) != std::string::npos);
+	EXPECT_TRUE(line.find(label_values[1]) != std::string::npos);
+}
+
+TEST_F(TestGauge, Increment) {
+	auto n = RandomString();
+	auto g = registry->MakeGauge(n.c_str(), 0, nullptr, nullptr);
+	EXPECT_EQ(FetchGauge(n), 0);
+	g->Increment();
+	EXPECT_EQ(FetchGauge(n), 1);
+	g->Increment(10);
+	EXPECT_EQ(FetchGauge(n), 11);
+}
+
+TEST_F(TestGauge, Decrement) {
+	auto n = RandomString();
+	auto g = registry->MakeGauge(n.c_str(), 0, nullptr, nullptr);
+	EXPECT_EQ(FetchGauge(n), 0);
+	g->Decrement();
+	EXPECT_EQ(FetchGauge(n), -1);
+	g->Decrement(10);
+	EXPECT_EQ(FetchGauge(n), -11);
+}
+
+TEST_F(TestGauge, Set) {
+	auto n = RandomString();
+	auto g = registry->MakeGauge(n.c_str(), 0, nullptr, nullptr);
+	EXPECT_EQ(FetchGauge(n), 0);
+	g->Set(999);
+	EXPECT_EQ(FetchGauge(n), 999);
+}
+
