@@ -30,12 +30,11 @@ static PyObject* RunTests(PyObject *self, PyObject *args, PyObject *kwds) {
 	char* argv[] = {"nothing.exe"};	//< gtest falsely accuses us of not calling InitGoogleTest if this is empty
 	::testing::InitGoogleTest(&argc, (char**)argv);
 
-	auto num_failures = RUN_ALL_TESTS();
+	auto has_failures = RUN_ALL_TESTS();
 
-	std::cout << "RUN_ALL_TESTS returned " << num_failures << std::endl;
 	TestBase::StaticShutdown();
 
-	if (num_failures) {
+	if (has_failures) {
 		Py_RETURN_FALSE;
 	}
 

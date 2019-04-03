@@ -194,8 +194,7 @@ protected:
 		if (line.empty() || split.empty()) {
 			return 0;
 		}
-		const std::string& string_value = split[split.size() - 1];
-		return std::stoi(string_value);
+		return std::stoi(split.back());
 	}
 };
 
@@ -261,8 +260,7 @@ protected:
 		if (line.empty() || split.empty()) {
 			return 0;
 		}
-		const std::string& string_value = split[split.size() - 1];
-		return std::stof(string_value);
+		return std::stof(split.back());
 	}
 };
 
@@ -314,3 +312,115 @@ TEST_F(TestGauge, Set) {
 	EXPECT_EQ(FetchGauge(n), 999);
 }
 
+TEST_F(TestGauge, SetFloat) {
+	auto n = RandomString();
+	auto g = registry->MakeGauge(n.c_str(), 0, nullptr, nullptr);
+	EXPECT_EQ(FetchGauge(n), 0);
+	g->Set(999.9);
+	EXPECT_FLOAT_EQ(FetchGauge(n), 999.9f);
+}
+
+
+//
+// Histogram
+//
+
+class TestHistogram : public TestBase {
+protected:
+
+	struct Histogram {
+		int count;
+		float sum;
+		std::vector<int> buckets;
+
+		Histogram() {
+			count = 0;
+			sum = 0.f;
+		}
+	};
+
+	void SetUp() {
+		TestBase::SetUp();
+		registry->Serve(default_port.c_str());
+	}
+
+	void TearDown() {
+		TestBase::TearDown();
+		registry->StopServing();
+	}
+
+	Histogram FetchHistogram(std::string name) {
+		Histogram res;
+
+		auto lines = FetchLines(name);
+		if (lines.empty()) {
+			return res;
+		}
+
+		for (auto line : lines) {
+			if (line.find("_count") != std::string::npos) {
+				res.count = std::stoi(string_split(line, ' ').back());
+			}
+			if (line.find("_sum") != std::string::npos) {
+				res.sum = std::stof(string_split(line, ' ').back());
+			}
+			if (line.find("_bucket") != std::string::npos) {
+				res.buckets.push_back(std::stoi(string_split(line, ' ').back()));
+			}
+		}
+
+		return res;
+	}
+};
+
+TEST_F(TestHistogram, MakeHistogram) {
+	auto n = RandomString();
+	EXPECT_TRUE(FetchLines(n).empty());
+	registry->MakeHistogram(n.c_str(), 0, nullptr, nullptr, 0, nullptr);
+	EXPECT_FALSE(FetchLines(n).empty());
+}
+
+TEST_F(TestHistogram, MakeHistogramWithLabels) {
+	auto n = RandomString();
+	const char* label_names[] = { RandomString().c_str(), RandomString().c_str() };
+	const char* label_values[] = { RandomString().c_str(), RandomString().c_str() };
+	registry->MakeHistogram(n.c_str(), 2, label_names, label_values, 0, nullptr);
+
+	auto line = FetchLine(n);
+	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
+	EXPECT_TRUE(line.find(label_names[1]) != std::string::npos);
+	EXPECT_TRUE(line.find(label_values[0]) != std::string::npos);
+	EXPECT_TRUE(line.find(label_values[1]) != std::string::npos);
+}
+
+TEST_F(TestHistogram, MakeHistogramWithBoundaries) {
+	auto n = RandomString();
+	double boundaries[] = { 10.0, 100.0, 1000.0 };
+	auto h = registry->MakeHistogram(n.c_str(), 0, nullptr, nullptr, 3, boundaries);
+
+	auto values = FetchHistogram(n);
+	EXPECT_EQ(values.count, 0);
+	EXPECT_FLOAT_EQ(values.sum, 0.f);
+	EXPECT_EQ(values.buckets.size(), 4); // (-Inf, 10], (10, 100], (100, 1000], (1000, +Inf)
+}
+
+TEST_F(TestHistogram, Observe) {
+	auto n = RandomString();
+	double boundaries[] = { 10.0, 100.0, 1000.0 };
+	auto h = registry->MakeHistogram(n.c_str(), 0, nullptr, nullptr, 3, boundaries);
+
+	h->Observe(1.0);
+	h->Observe(10.0);
+	h->Observe(100.0);
+	h->Observe(1000.0);
+	h->Observe(10000.0);
+
+	auto values = FetchHistogram(n);
+	EXPECT_EQ(values.count, 5);
+	EXPECT_FLOAT_EQ(values.sum, 1.0 + 10.0 + 100.0 + 1000.0 + 10000.0);
+	ASSERT_EQ(values.buckets.size(), 4);
+	EXPECT_EQ(values.buckets[0], 2);
+	EXPECT_EQ(values.buckets[1], 3);
+	EXPECT_EQ(values.buckets[2], 4);
+	EXPECT_EQ(values.buckets[3], 5);
+}
