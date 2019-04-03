@@ -1,3 +1,4 @@
+#include <array>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -21,6 +22,16 @@ using namespace prometheus_module;
 prometheus_module::MetricRegistryInterface* TestBase::registry = nullptr;
 CURL* TestBase::curl = nullptr;
 std::string TestBase::default_port = "20800";
+
+std::vector<std::string> string_split(std::string str, char delimiter) {
+	std::stringstream ss(str);
+	std::string line;
+	std::vector<std::string> lines;
+	while (std::getline(ss, line, delimiter)) {
+		lines.push_back(std::move(line));
+	}
+	return lines;
+}
 
 void TestBase::StaticInitialize(MetricRegistryInterface* r) {
 	registry = r;
@@ -81,17 +92,16 @@ std::vector<std::string> TestBase::FetchLines(std::string substr, std::string po
 	}
 
 	std::string page = Fetch(port);
+	auto page_lines = string_split(page, '\n');
 
-	std::stringstream ss(page);
-	std::string line;
-	std::vector<std::string> lines;
-	while (std::getline(ss, line, '\n')) {
+	std::vector<std::string> result;
+	for (auto line : page_lines) {
 		if (substr.empty() || ((line.find(substr) != std::string::npos) && (line.find("#") == std::string::npos))) {
-			lines.push_back(std::move(line));
+			result.push_back(std::move(line));
 		}
 	}
 
-	return lines;
+	return result;
 }
 
 bool TestBase::IsServerListening(std::string port) {
@@ -120,6 +130,7 @@ std::string TestBase::RandomString(int length) {
 //
 // Serving
 //
+
 class TestServing : public TestBase {
 protected:
 
@@ -160,3 +171,68 @@ TEST_F(TestServing, GoodPortFormats) {
 	// todo: test ipv4 and ipv6 in one socket (specify port with a leading '+', e.g. '+20800', one socket serves both)
 }
 
+
+//
+// Counter
+//
+class TestCounter : public TestBase {
+protected:
+
+	void SetUp() {
+		TestBase::SetUp();
+		registry->Serve(default_port.c_str());
+	}
+
+	void TearDown() {
+		TestBase::TearDown();
+		registry->StopServing();
+	}
+
+	int FetchCounter(std::string name) {
+		std::string line = FetchLine(name);
+		auto split = string_split(line, ' ');
+		if (line.empty() || split.empty()) {
+			return 0;
+		}
+		const std::string& string_value = split[split.size() - 1];
+		return std::stoi(string_value);
+	}
+};
+
+TEST_F(TestCounter, MakeCounter) {
+	auto n = RandomString();
+	EXPECT_TRUE(FetchLines(n).empty());
+	registry->MakeCounter(n.c_str(), 0, nullptr, nullptr);
+	EXPECT_FALSE(FetchLines(n).empty());
+}
+
+TEST_F(TestCounter, MakeCounterWithLabels) {
+	auto n = RandomString();
+	const char* label_names[] = { RandomString().c_str(), RandomString().c_str() };
+	const char* label_values[] = { RandomString().c_str(), RandomString().c_str() };
+	registry->MakeCounter(n.c_str(), 2, label_names, label_values);
+
+	auto line = FetchLine(n);
+	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
+	EXPECT_TRUE(line.find(label_names[1]) != std::string::npos);
+	EXPECT_TRUE(line.find(label_values[0]) != std::string::npos);
+	EXPECT_TRUE(line.find(label_values[1]) != std::string::npos);
+}
+
+TEST_F(TestCounter, Increment) {
+	auto n = RandomString();
+	auto c = registry->MakeCounter(n.c_str(), 0, nullptr, nullptr);
+	EXPECT_EQ(FetchCounter(n), 0);
+	c->Increment();
+	EXPECT_EQ(FetchCounter(n), 1);
+	c->Increment(10);
+	EXPECT_EQ(FetchCounter(n), 11);
+}
+
+TEST_F(TestCounter, DecrementFails) {
+	auto n = RandomString();
+	auto c = registry->MakeCounter(n.c_str(), 0, nullptr, nullptr);
+	EXPECT_EQ(FetchCounter(n), 0);
+	c->Increment(-1);
+	EXPECT_EQ(FetchCounter(n), 0);
+}
