@@ -424,3 +424,109 @@ TEST_F(TestHistogram, Observe) {
 	EXPECT_EQ(values.buckets[2], 4);
 	EXPECT_EQ(values.buckets[3], 5);
 }
+
+
+//
+// Summary
+//
+
+class TestSummary : public TestBase {
+protected:
+
+	struct Summary {
+		int count;
+		float sum;
+		std::vector<float> quantiles;
+
+		Summary() {
+			count = 0;
+			sum = 0.f;
+		}
+	};
+
+	void SetUp() {
+		TestBase::SetUp();
+		registry->Serve(default_port.c_str());
+	}
+
+	void TearDown() {
+		TestBase::TearDown();
+		registry->StopServing();
+	}
+
+	Summary FetchSummary(std::string name) {
+		Summary res;
+
+		auto lines = FetchLines(name);
+		if (lines.empty()) {
+			return res;
+		}
+
+		for (auto line : lines) {
+			if (line.find("_count") != std::string::npos) {
+				res.count = std::stoi(string_split(line, ' ').back());
+			}
+			if (line.find("_sum") != std::string::npos) {
+				res.sum = std::stof(string_split(line, ' ').back());
+			}
+			if (line.find("quantile") != std::string::npos) {
+				res.quantiles.push_back(std::stof(string_split(line, ' ').back()));
+			}
+		}
+
+		return res;
+	}
+};
+
+TEST_F(TestSummary, MakeSummary) {
+	auto n = RandomString();
+	EXPECT_TRUE(FetchLines(n).empty());
+	registry->MakeSummary(n.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+	EXPECT_FALSE(FetchLines(n).empty());
+}
+
+TEST_F(TestSummary, MakeSummaryWithLabels) {
+	auto n = RandomString();
+	const char* label_names[] = { RandomString().c_str(), RandomString().c_str() };
+	const char* label_values[] = { RandomString().c_str(), RandomString().c_str() };
+	registry->MakeSummary(n.c_str(), 2, label_names, label_values, 0, nullptr, nullptr);
+
+	auto line = FetchLine(n);
+	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
+	EXPECT_TRUE(line.find(label_names[1]) != std::string::npos);
+	EXPECT_TRUE(line.find(label_values[0]) != std::string::npos);
+	EXPECT_TRUE(line.find(label_values[1]) != std::string::npos);
+}
+
+TEST_F(TestSummary, MakeSummaryWithQuantiles) {
+	auto n = RandomString();
+	double quantiles[] = { 0.1, 0.5, 0.9 };
+	double tolerances[] = { 0.05, 0.05, 0.05 };
+	registry->MakeSummary(n.c_str(), 0, nullptr, nullptr, 3, quantiles, tolerances);
+
+	auto values = FetchSummary(n);
+	EXPECT_EQ(values.count, 0);
+	EXPECT_FLOAT_EQ(values.sum, 0.f);
+	EXPECT_EQ(values.quantiles.size(), 3);
+}
+
+TEST_F(TestSummary, Observe) {
+	auto n = RandomString();
+	double quantiles[] = { 0.1, 0.5, 0.9 };
+	double tolerances[] = { 0.05, 0.05, 0.05 };
+	auto s = registry->MakeSummary(n.c_str(), 0, nullptr, nullptr, 3, quantiles, tolerances);
+
+	s->Observe(1.0);
+	s->Observe(10.0);
+	s->Observe(100.0);
+	s->Observe(1000.0);
+	s->Observe(10000.0);
+
+	auto values = FetchSummary(n);
+	EXPECT_EQ(values.count, 5);
+	EXPECT_FLOAT_EQ(values.sum, 1.0 + 10.0 + 100.0 + 1000.0 + 10000.0);
+	ASSERT_EQ(values.quantiles.size(), 3);
+	EXPECT_FLOAT_EQ(values.quantiles[0], 1.f);
+	EXPECT_FLOAT_EQ(values.quantiles[1], 10.f);
+	EXPECT_FLOAT_EQ(values.quantiles[2], 100.f);
+}
