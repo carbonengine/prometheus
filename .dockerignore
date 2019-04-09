@@ -1,0 +1,29 @@
+# Visual Studio artifacts
+Debug
+Release
+x64
+ipch
+*.user
+*.suo
+*.sdf
+*.opensdf
+Backup
+UpgradeLog.htm
+
+# IDE Settings
+.vs
+.vscode
+
+# Git
+.git
+.gitignore
+
+# Docker
+.dockerignore
+builder.Dockerfile
+
+# Imports are generated in builder.Dockerfile
+import
+
+# Exports are the result of running the build script
+export

@@ -17,8 +17,9 @@ UpgradeLog.htm
 # Imports
 # This includes:
 # [Python27] Stackless Python from here: http://www.stackless.com/binaries/python-2.7.15150.amd64-stackless.msi
-# [vcpkg] With prometheus-cpp:x64-windows and gtest:x64-windows
+# [vcpkg] With prometheus-cpp:x64-windows, gtest:x64-windows, curl:x64-windows
 import
+export
 *.dll
 
 # Binaries
