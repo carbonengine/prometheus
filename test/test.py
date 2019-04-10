@@ -153,6 +153,15 @@ class TestCounter(TestBase):
         c.Increment(-1)
         self.assertEqual(self.FetchCounter(n), 0, 'Counter must not decrement')
 
+    def test_counter_increment_by_zero_increments_by_one(self):
+        # This sounds like a conflict, but is a technical necessity because the underlying native module
+        # cannot differentiate between the absence of a value and the actual zero value.
+        # In any case, the API only allows calling Increment with positive values.  Calling Increment(0) is technically an error.
+        n = self.RandomString()
+        c = self.registry.MakeCounter(n)
+        c.Increment(0)
+        self.assertEqual(self.FetchCounter(n), 1, 'Incrementing counter by zero must increment by one')
+
 
 #
 # Gauge
@@ -203,6 +212,10 @@ class TestGauge(TestBase):
         self.assertEqual(self.FetchGauge(n), 1, 'Gauge must increment by one by default')
         g.Increment(10)
         self.assertEqual(self.FetchGauge(n), 11, 'Gauge must increment by parameter value')
+        g.Increment(-5)
+        self.assertEqual(self.FetchGauge(n), 11, 'Gauge must not increment by negative values')
+        g.Increment(0)
+        self.assertEqual(self.FetchGauge(n), 12, 'Increment by zero must increment by one')
 
     def test_gauge_decrement(self):
         n = self.RandomString()
@@ -212,6 +225,10 @@ class TestGauge(TestBase):
         self.assertEqual(self.FetchGauge(n), -1, 'Gauge must decrement by one by default')
         g.Decrement(10)
         self.assertEqual(self.FetchGauge(n), -11, 'Gauge must decrement by parameter value')
+        g.Decrement(-1)
+        self.assertEqual(self.FetchGauge(n), -11, 'Gauge must not decrement by negative values')
+        g.Decrement(0)
+        self.assertEqual(self.FetchGauge(n), -12, 'Decrement by zero must decrement by one')
 
     def test_gauge_set(self):
         n = self.RandomString()
