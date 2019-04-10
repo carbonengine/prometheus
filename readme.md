@@ -4,6 +4,10 @@ Prometheus module for monolith.
 
 This wraps the native [prometheus-cpp](https://github.com/jupp0r/prometheus-cpp) client and exposes it to Python as a native module (PYD).
 
+## Metric types
+
+This library supports the Counter, Gauge, Histogram, and Summary metric types.  See the [prometheus docs](https://prometheus.io/docs/concepts/metric_types/) for a detailed explanation of each type.
+
 ## Python Usage
 
 See `.\test\test.py` for detailed examples
@@ -58,7 +62,7 @@ counter.Increment(10)
 
 ### Gauge
 
-Gauges are for values that can increase, decrease, or be set to an arbitrary value.  Generally, they are used to record observations of a variable like queue size or memory utilization.
+Gauges are for values that can increase, decrease, or be set to an arbitrary value.  Generally, they are used to record observations of a variable like queue size, memory utilization, or number of processes.
 
 ```python
 # Name is required
@@ -81,15 +85,50 @@ gauge.Decrement(10) # Can decrement by an arbitrary value
 gauge.Set(999)
 ```
 
+### Histogram
+
+Histograms are used to record samples of a value and count them in buckets.  Generally, these are used to record things like request sizes or durations.  The bucket sizes are configurable.
+
+```python
+# Name is required
+# labels are optional
+# boundaries specify the buckets. A bucket represents all values less than or equal to its boundary
+histogram = registry.MakeHistogram('MyHistogram', labels={'my_label':'my_value'}, boundaries=[10,100,1000])
+
+# Observe() records a sample, incrementing all buckets greater than or equal to the sample value.
+# Given the boundaries [10,100,1000],
+histogram.Observe(1) # Increments all buckets
+histogram.Observe(11) # Increments the second and third buckets
+histogram.Observe(101) # Increments the third bucket
+histogram.Observe(1001) # Increments the (automatically-provided) infinity bucket
+```
+
+### Summary
+
+See the [prometheus docs](https://prometheus.io/docs/practices/histograms/#quantiles) for a proper explanation of summaries.
+
+Summaries are similar to Histograms, but they sort samples into φ-quantiles (basically percentiles) rather than buckets, and are used to represent a sliding window of time (as opposed to histograms which store their samples permanently).  Generally, these are used for the same types of data as histograms (request sizes and durations), but provide a different view due to their sliding window property, and are calculated on the client side (whereas histograms can be used to calculate quantiles on the server side).
+
+```python
+# Name is required
+# labels are optional
+# quantiles specify the percentile and error values of the quantile "buckets". The following example will calculate the 10th, 50th, and 90th percentile observations (first parameter of each tuple) with a 5% error tolerance (second parameter of each tuple).
+# The sliding window size is currently fixed at 5 minutes.
+summary = registry.MakeSummary('MySummary', labels={'my_label':'my_value'}, quantiles=[(0.1, 0.05), (0.5, 0.05), (0.9, 0.05)])
+
+# Observe() records a sample value at the current time.
+summary.Observe(1)
+```
+
 ## Building
 
-### Docker
+### via Docker
 
 * Install [Docker for Windows](https://docs.docker.com/docker-for-windows/install/)
 * Run `build.bat` (or `build.bat -test` if you want to run tests as well)
 * Resulting artifacts will appear in `.\export`
 
-### Manual
+### via Visual Studio
 
 * Install VS2017 if you don't have it already
 * Install [Windows 10 SDK 10.0.17763.132](https://go.microsoft.com/fwlink/p/?LinkID=2033908) or newer if you don't have it already
@@ -111,8 +150,11 @@ gauge.Set(999)
 
 ### Manual
 
-* After building the solution,
-* `cd test`
-* `copy ..\x64\release\*.pyd`
-* `copy ..\import\vcpkg\x64-windows\bin\*.dll`
-* `python test.py`
+* Build and run prometheus_module.sln with Visual Studio (press Ctrl+F5).
+* Alternately, use the command line:
+```DOS .bat
+cd test
+copy ..\x64\release\*.pyd
+copy ..\import\vcpkg\x64-windows\bin\*.dll
+python test.py
+```
