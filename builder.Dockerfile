@@ -26,6 +26,7 @@ RUN C:\TEMP\vs_buildtools.exe --quiet --wait --norestart --nocache `
 RUN md C:\import
 WORKDIR C:/import
 
+# Install Stackless
 SHELL ["powershell", "-Command"]
 RUN wget http://www.stackless.com/binaries/python-2.7.15150.amd64-stackless.msi -Outfile C:\stackless.msi
 RUN Start-Process -filepath C:\stackless.msi -ArgumentList "/qn", "targetdir=C:\import\python27" -PassThru | Wait-Process
