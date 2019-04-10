@@ -156,5 +156,7 @@ summary.Observe(1)
 cd test
 copy ..\x64\release\*.pyd
 copy ..\import\vcpkg\x64-windows\bin\*.dll
+
 python test.py
 ```
+* For verbose output, use `python -m unittest discover -v -p test.py` in place of the last line above

@@ -22,6 +22,9 @@ UpgradeLog.htm
 .dockerignore
 builder.Dockerfile
 
+# Python artifacts
+*.pyc
+
 # Imports are generated in builder.Dockerfile
 import
 

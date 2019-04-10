@@ -35,7 +35,7 @@ copy C:\build\import\vcpkg\installed\x64-windows\bin\libcurl.dll C:\export\tests
 @rem Run tests if requested
 if not "%~1"=="-test" goto skiptests
 cd C:\export\tests
-C:\build\import\python27\python.exe test.py
+C:\build\import\python27\python.exe -m unittest discover -v -p test.py
 :skiptests
 
 @rem Done
