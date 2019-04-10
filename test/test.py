@@ -1,5 +1,7 @@
+import math
 import string
 import random
+import time
 import unittest
 import urllib2
 
@@ -388,17 +390,17 @@ class TestSummary(TestBase):
     def test_summary_observe(self):
         n = self.RandomString()
         tolerance = 0.05
-        h = self.registry.MakeSummary(n, quantiles=[(0.1,tolerance),(0.5,tolerance),(0.9,tolerance)])
+        s = self.registry.MakeSummary(n, quantiles=[(0.1,tolerance),(0.5,tolerance),(0.9,tolerance)])
         values = self.FetchSummary(n)
         self.assertEqual(values['count'], 0, 'Summary must start with zero observations')
         self.assertEqual(values['sum'], 0.0, 'Summary must start with zero observations')
         self.assertEqual(len(values['quantiles']), 3, 'Summary must start with correct number of quantiles')
 
-        h.Observe(1)
-        h.Observe(10)
-        h.Observe(100)
-        h.Observe(1000)
-        h.Observe(10000)
+        s.Observe(1)
+        s.Observe(10)
+        s.Observe(100)
+        s.Observe(1000)
+        s.Observe(10000)
 
         values = self.FetchSummary(n)
         self.assertEqual(values['count'], 5, 'Summary_count must increment with observations')
@@ -407,6 +409,33 @@ class TestSummary(TestBase):
         self.assertEqual(quantiles[0], 1.0, 'Observed values must be recorded in their corresponding quantiles')
         self.assertEqual(quantiles[1], 10.0, 'Observed values must be recorded in their corresponding quantiles')
         self.assertEqual(quantiles[2], 100.0, 'Observed values must be recorded in their corresponding quantiles')
+
+    def test_summary_window(self):
+        n = self.RandomString()
+
+        # Make an 8-second window, split into 2 partitions, giving us 4 seconds per partition
+        s = self.registry.MakeSummary(n, quantiles=[(0.5,0.0)], window_size_seconds=10, window_partitions=2)
+
+        # Observe a sample, this is time t
+        s.Observe(1)
+
+        # Now, at t+0s, the sample should be there
+        quantiles = self.FetchSummary(n)['quantiles']
+        self.assertEqual(quantiles[0], 1, 'Sample must be present at t+0s')
+
+        # Wait a second
+        time.sleep(1)
+
+        # Now, at t+1s, the sample should still be there
+        quantiles = self.FetchSummary(n)['quantiles']
+        self.assertEqual(quantiles[0], 1, 'Sample must be present at t+1s')
+
+        # Wait until the 4-second mark
+        time.sleep(3)
+
+        # Now, at t+4s, the sample should be gone
+        quantiles = self.FetchSummary(n)['quantiles']
+        self.assertTrue(math.isnan(quantiles[0]), 'Sample must be absent at t+4s')
 
 
 #
