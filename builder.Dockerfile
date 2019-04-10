@@ -23,13 +23,13 @@ RUN C:\TEMP\vs_buildtools.exe --quiet --wait --norestart --nocache `
     --add Microsoft.VisualStudio.Component.Windows10SDK.17763 `
  || IF "%ERRORLEVEL%"=="3010" EXIT 0
 
-RUN md C:\import
-WORKDIR C:/import
+RUN md C:\build\import
+WORKDIR C:/build/import
 
 # Install Stackless
 SHELL ["powershell", "-Command"]
 RUN wget http://www.stackless.com/binaries/python-2.7.15150.amd64-stackless.msi -Outfile C:\stackless.msi
-RUN Start-Process -filepath C:\stackless.msi -ArgumentList "/qn", "targetdir=C:\import\python27" -PassThru | Wait-Process
+RUN Start-Process -filepath C:\stackless.msi -ArgumentList "/qn", "targetdir=C:\build\import\python27" -PassThru | Wait-Process
 
 # Install Chocolatey and Git for vcpkg
 SHELL ["powershell", "-Command"]
@@ -38,11 +38,11 @@ RUN choco install --yes --no-progress --limit-output git.install --params "'/Git
 
 # Install vcpkg
 SHELL ["cmd", "/S", "/C"]
-WORKDIR C:/import
+WORKDIR C:/build/import
 RUN git clone https://github.com/Microsoft/vcpkg.git && cd vcpkg && .\bootstrap-vcpkg.bat
 
 # Install vcpkg-based dependencies
-WORKDIR C:/import/vcpkg
+WORKDIR C:/build/import/vcpkg
 RUN vcpkg.exe install prometheus-cpp:x64-windows
 RUN vcpkg.exe install gtest:x64-windows
 RUN vcpkg.exe install curl:x64-windows

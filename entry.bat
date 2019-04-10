@@ -1,11 +1,10 @@
-@rem Set up build directory
-md C:\build
+@rem Copy sources into the build directory
+@rem This is done because we don't want to pollute the mounted source volume with build artifacts
+@rem This also gives us a clean rebuild every time
 
 @rem /e=all directories
-@rem /xo=don't overwrite newer files
 @rem /NFL /NDL /NJH /NJS /nc /ns /np = be silent
 robocopy C:\source C:\build /e /NFL /NDL /NJH /NJS /nc /ns /np
-robocopy C:\import C:\build\import /e /xo /NFL /NDL /NJH /NJS /nc /ns /np
 
 @rem Build the source
 cd C:\build
