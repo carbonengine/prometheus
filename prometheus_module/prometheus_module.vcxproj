@@ -53,7 +53,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="counter.cpp" />
+    <ClCompile Include="exposer.cpp" />
     <ClCompile Include="gauge.cpp" />
+    <ClCompile Include="handler.cpp" />
     <ClCompile Include="histogram.cpp" />
     <ClCompile Include="metric_registry.cpp" />
     <ClCompile Include="module.cpp" />
@@ -62,8 +64,10 @@
   <ItemGroup>
     <ClInclude Include="counter.h" />
     <ClInclude Include="counter_interface.h" />
+    <ClInclude Include="exposer.h" />
     <ClInclude Include="gauge.h" />
     <ClInclude Include="gauge_interface.h" />
+    <ClInclude Include="handler.h" />
     <ClInclude Include="histogram.h" />
     <ClInclude Include="histogram_interface.h" />
     <ClInclude Include="metric_registry_interface.h" />

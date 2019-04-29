@@ -12,8 +12,11 @@
 #include <Python.h>
 
 // Prometheus
-#include <prometheus/exposer.h>
+//#include <prometheus/exposer.h>
 #include <prometheus/registry.h>
+
+// prometheus-cpp-custom
+#include "exposer.h"
 
 // prometheus_module
 #include "counter.h"
@@ -23,7 +26,7 @@
 using namespace prometheus_module;
 
 struct MetricRegistry::Private {
-	std::unique_ptr<prometheus::Exposer> exposer;
+	std::unique_ptr<prometheus_module::Exposer> exposer;
 	std::shared_ptr<prometheus::Registry> registry;
 
 	std::map<std::string, std::string> default_labels;
@@ -163,7 +166,7 @@ bool MetricRegistry::Serve(const char* bind_address) {
 	StopServing();
 
 	try {
-		private_->exposer = std::make_unique<prometheus::Exposer>(bind_address, "");
+		private_->exposer = std::make_unique<prometheus_module::Exposer>(bind_address, "");
 	}
 	catch(...) {
 		return false;

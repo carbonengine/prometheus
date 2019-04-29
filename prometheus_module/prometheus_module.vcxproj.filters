@@ -12,6 +12,9 @@
     <Filter Include="Public Interface">
       <UniqueIdentifier>{2aef3bd6-b47c-4877-b5d9-011e5a1538d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="prometheus-cpp-custom">
+      <UniqueIdentifier>{73dcbce3-ba84-4fa1-92cf-fb97e1243ebb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="module.cpp">
@@ -31,6 +34,12 @@
     </ClCompile>
     <ClCompile Include="histogram.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="exposer.cpp">
+      <Filter>prometheus-cpp-custom</Filter>
+    </ClCompile>
+    <ClCompile Include="handler.cpp">
+      <Filter>prometheus-cpp-custom</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -63,6 +72,12 @@
     </ClInclude>
     <ClInclude Include="summary_interface.h">
       <Filter>Public Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="exposer.h">
+      <Filter>prometheus-cpp-custom</Filter>
+    </ClInclude>
+    <ClInclude Include="handler.h">
+      <Filter>prometheus-cpp-custom</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

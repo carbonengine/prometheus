@@ -108,8 +108,8 @@ class TestCounter(TestBase):
         self.registry.Serve(self.port)
 
     def tearDown(self):
-        TestBase.tearDown(self)
         self.registry.StopServing()
+        TestBase.tearDown(self)
 
     def FetchCounter(self, name):
         line = self.FetchLine(name)
@@ -174,8 +174,8 @@ class TestGauge(TestBase):
         self.registry.Serve(self.port)
 
     def tearDown(self):
-        TestBase.tearDown(self)
         self.registry.StopServing()
+        TestBase.tearDown(self)
 
     def FetchGauge(self, name):
         line = self.FetchLine(name)
@@ -249,8 +249,8 @@ class TestHistogram(TestBase):
         self.registry.Serve(self.port)
 
     def tearDown(self):
-        TestBase.tearDown(self)
         self.registry.StopServing()
+        TestBase.tearDown(self)
 
     def FetchHistogram(self, name):
         lines = self.FetchLines(name)
@@ -333,8 +333,8 @@ class TestSummary(TestBase):
         self.registry.Serve(self.port)
 
     def tearDown(self):
-        TestBase.tearDown(self)
         self.registry.StopServing()
+        TestBase.tearDown(self)
 
     def FetchSummary(self, name):
         lines = self.FetchLines(name)
