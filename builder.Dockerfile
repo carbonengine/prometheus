@@ -41,7 +41,15 @@ SHELL ["cmd", "/S", "/C"]
 WORKDIR C:/build/import
 RUN git clone https://github.com/Microsoft/vcpkg.git && cd vcpkg && .\bootstrap-vcpkg.bat
 
+# Install pip for pytest
+ADD https://bootstrap.pypa.io/get-pip.py C:\get-pip.py
+RUN C:\build\import\python27\python.exe C:\get-pip.py
+
+# Install pytest
+RUN C:\build\import\python27\Scripts\pip.exe install -U pytest
+
 # Install vcpkg-based dependencies
+SHELL ["cmd", "/S", "/C"]
 WORKDIR C:/build/import/vcpkg
 RUN vcpkg.exe install prometheus-cpp:x64-windows
 RUN vcpkg.exe install gtest:x64-windows
