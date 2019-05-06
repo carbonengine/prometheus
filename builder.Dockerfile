@@ -28,7 +28,7 @@ WORKDIR C:/build/import
 
 # Install Stackless
 SHELL ["powershell", "-Command"]
-RUN wget http://www.stackless.com/binaries/python-2.7.15150.amd64-stackless.msi -Outfile C:\stackless.msi
+ADD http://www.stackless.com/binaries/python-2.7.15150.amd64-stackless.msi C:\stackless.msi
 RUN Start-Process -filepath C:\stackless.msi -ArgumentList "/qn", "targetdir=C:\build\import\python27" -PassThru | Wait-Process
 
 # Install Chocolatey and Git for vcpkg
@@ -51,9 +51,9 @@ RUN C:\build\import\python27\Scripts\pip.exe install -U pytest
 # Install vcpkg-based dependencies
 SHELL ["cmd", "/S", "/C"]
 WORKDIR C:/build/import/vcpkg
-RUN vcpkg.exe install prometheus-cpp:x64-windows
-RUN vcpkg.exe install gtest:x64-windows
-RUN vcpkg.exe install curl:x64-windows
+RUN vcpkg.exe install prometheus-cpp:x64-windows-static
+RUN vcpkg.exe install gtest:x64-windows-static
+RUN vcpkg.exe install curl:x64-windows-static
 
 COPY entry.bat C:/source/entry.bat
 
