@@ -36,6 +36,13 @@ class TestBase(unittest.TestCase):
                 result.append(line)
         return result
 
+    def FetchLinesWithComments(self, substr, port=''):
+        result = []
+        for line in self.Fetch(port).split('\n'):
+            if (substr in line):
+                result.append(line)
+        return result
+
     def IsServerListening(self, port=''):
         try:
             content = self.Fetch(port)
@@ -163,6 +170,19 @@ class TestCounter(TestBase):
         c = self.registry.MakeCounter(n)
         c.Increment(0)
         self.assertEqual(self.FetchCounter(n), 1, 'Incrementing counter by zero must increment by one')
+
+    def test_counters_with_different_label_values_share_one_type_definition(self):
+        # The page pulled by prometheus contains a TYPE definition for each metric like this:
+        #   '# TYPE my_counter_name counter'
+        # When there are multiple metrics with the same name but different label values, they should share one definition
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = label_value + '-2'
+        self.registry.MakeCounter(n, {label_name:label_value})
+        self.registry.MakeCounter(n, {label_name:label_value2})
+        lines = self.FetchLinesWithComments('TYPE ' + n)
+        self.assertEqual(len(lines), 1)
 
 
 #
