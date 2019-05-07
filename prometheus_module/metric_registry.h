@@ -31,7 +31,7 @@ public:
 
 	static void RegisterPythonObject(PyObject* module);
 
-	Counter* MakeCounter(const char* name, const std::map<std::string, std::string>& labels);
+	Counter* MakeCounter(const char* name, const std::vector<std::string>& labels);
 	Gauge* MakeGauge(const char* name, const std::map<std::string, std::string>& labels);
 	Summary* MakeSummary(const char* name, const std::map <std::string, std::string>& labels, const std::vector<std::pair<double,double> >& quantiles, int total_window_size_seconds, int window_partitions);
 	Histogram* MakeHistogram(const char* name, const std::map <std::string, std::string>& labels, const std::vector<double>& boundaries);
@@ -39,7 +39,7 @@ public:
 
 	// MetricRegistryInterface implementation
 
-	CounterInterface* MakeCounter(const char* name, int num_labels, const char* label_keys[], const char* label_values[]);
+	CounterInterface* MakeCounter(const char* name, int num_labels, const char* label_keys[]);
 	GaugeInterface* MakeGauge(const char* name, int num_labels, const char* label_keys[], const char* label_values[]);
 	SummaryInterface* MakeSummary(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_quantiles, double quantile_values[], double quantile_tolerances[], int total_window_size_seconds, int window_partitions);
 	HistogramInterface* MakeHistogram(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_boundaries, double boundaries[]);

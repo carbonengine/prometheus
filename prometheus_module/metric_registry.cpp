@@ -50,7 +50,8 @@ MetricRegistry::MetricRegistry() :
 	};
 }
 
-Counter* MetricRegistry::MakeCounter(const char* name, const std::map<std::string, std::string>& labels) {
+Counter* MetricRegistry::MakeCounter(const char* name, const std::vector<std::string>& labels) {
+
 	auto& family = prometheus::BuildCounter().Name(name).Labels(private_->default_labels).Register(*private_->registry);
 	prometheus::Counter& prometheus_counter = family.Add(labels);
 
