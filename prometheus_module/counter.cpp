@@ -15,19 +15,30 @@
 #include <prometheus/counter.h>
 using namespace prometheus_module;
 
+// prometheus_module
+#include "metric_factory.h"
+
 struct Counter::Private {
-	Private(prometheus::Counter& wrapped) :
-		counter(wrapped)
+	Private(prometheus::Counter& wrapped, prometheus_module::MetricFactory& factory) :
+		counter(wrapped),
+		factory(factory)
 	{
 	}
 
 	prometheus::Counter& counter;
+	prometheus_module::MetricFactory& factory;
+	std::string name;
+	std::vector<std::string> labels;
 };
 
-Counter::Counter(prometheus::Counter& counter) :
-	private_(std::make_unique<Private>(counter))
+Counter::Counter(prometheus::Counter& counter, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels) :
+	private_(std::make_unique<Private>(counter, factory))
 {
+	private_->name = name;
+	private_->labels = labels;
 }
+
+Counter::~Counter() = default;
 
 void Counter::Increment() {
 	private_->counter.Increment();
@@ -35,6 +46,28 @@ void Counter::Increment() {
 
 void Counter::Increment(double value) {
 	private_->counter.Increment(value);
+}
+
+CounterInterface* Counter::WithLabelValues(const char* values[], int num_values) {
+	std::vector<std::string> values_vec;
+	for (auto i = 0; i < num_values; i++) {
+		values_vec.push_back(values[i]);
+	}
+	return WithLabelValues(values_vec);
+}
+
+Counter* Counter::WithLabelValues(std::vector<std::string> values) {
+	if (values.size() != private_->labels.size()) {
+		return nullptr;
+	}
+
+	std::map<std::string, std::string> labels;
+	for (auto i = 0; i < private_->labels.size(); i++) {
+		labels.insert(std::make_pair(private_->labels[i], values[i]));
+	}
+
+	Counter& counter = private_->factory.MakeCounter(private_->name, labels);
+	return &counter;
 }
 
 

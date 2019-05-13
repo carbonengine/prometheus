@@ -75,7 +75,11 @@ Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std:
 
 	// Create the metric
 	auto& prometheus_counter = family->Add(labels);
-	std::unique_ptr<prometheus_module::Counter> ptr = std::make_unique<prometheus_module::Counter>(prometheus_counter, *this);
+	std::vector<std::string> label_names_vec;
+	for (auto& label_names_iter : label_names) {
+		label_names_vec.push_back(label_names_iter.first);
+	}
+	std::unique_ptr<prometheus_module::Counter> ptr = std::make_unique<prometheus_module::Counter>(prometheus_counter, *this, name, label_names_vec);
 
 	// Store it
 	auto result_iter = private_->counters.insert(std::make_pair(metric_hash, std::move(ptr))).first;

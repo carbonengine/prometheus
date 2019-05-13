@@ -141,7 +141,7 @@ class TestCounter(TestBase):
 
         self.registry.MakeCounter(n, {label_name:label_value, label_name2:label_value2})
 
-        line = self.FetchLine(n)
+        line = self.FetchLines(n)[1]
         self.assertTrue(label_name in line)
         self.assertTrue(label_value in line)
         self.assertTrue(label_name2 in line)

@@ -19,6 +19,7 @@
 #include "exposer.h"
 
 // prometheus_module
+#include "metric_factory.h"
 #include "counter.h"
 #include "gauge.h"
 #include "histogram.h"
@@ -28,6 +29,8 @@ using namespace prometheus_module;
 struct MetricRegistry::Private {
 	std::unique_ptr<prometheus_module::Exposer> exposer;
 	std::shared_ptr<prometheus::Registry> registry;
+
+	std::unique_ptr<prometheus_module::MetricFactory> factory;
 
 	std::map<std::string, std::string> default_labels;
 
@@ -40,6 +43,8 @@ MetricRegistry::MetricRegistry() :
 {
 	private_->registry = std::make_shared<prometheus::Registry>();
 
+	private_->factory = std::make_unique<prometheus_module::MetricFactory>(private_->registry);
+
 	auto default_error = 0.05;
 	private_->default_quantiles = prometheus::Summary::Quantiles{ 
 		{0.01, default_error},
@@ -50,12 +55,14 @@ MetricRegistry::MetricRegistry() :
 	};
 }
 
-Counter* MetricRegistry::MakeCounter(const char* name, const std::vector<std::string>& labels) {
+Counter* MetricRegistry::MakeCounter(const char* name, const std::vector<std::string>& label_names) {
+	std::map<std::string, std::string> labels;
+	for (auto name : label_names) {
+		labels.insert(std::make_pair(name, ""));
+	}
 
-	auto& family = prometheus::BuildCounter().Name(name).Labels(private_->default_labels).Register(*private_->registry);
-	prometheus::Counter& prometheus_counter = family.Add(labels);
-
-	return new prometheus_module::Counter(prometheus_counter);
+	auto& result = private_->factory->MakeCounter(name, labels);
+	return &result;
 }
 
 Gauge* MetricRegistry::MakeGauge(const char* name, const std::map<std::string, std::string>& labels) {
@@ -119,12 +126,12 @@ Histogram* MetricRegistry::MakeHistogram(const char* name, const std::map <std::
 	return new prometheus_module::Histogram(prometheus_histogram);
 }
 
-CounterInterface* MetricRegistry::MakeCounter(const char* name, int num_labels, const char* label_keys[], const char* label_values[]) {
-	std::map<std::string, std::string> labels;
-	for (auto i = 0; i < num_labels; i++) {
-		labels.insert(std::make_pair(label_keys[i], label_values[i]));
+CounterInterface* MetricRegistry::MakeCounter(const char* name, int num_labels, const char* label_keys[]) {
+	std::vector<std::string> label_names;
+	for (int i = 0; i < num_labels; i++) {
+		label_names.push_back(label_keys[i]);
 	}
-	return MakeCounter(name, labels);
+	return MakeCounter(name, label_names);
 }
 
 GaugeInterface* MetricRegistry::MakeGauge(const char* name, int num_labels, const char* label_keys[], const char* label_values[]) {
@@ -216,7 +223,8 @@ static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self, PyObje
 		name = arg_name;
 	}
 
-	std::map<std::string, std::string> labels;
+	std::vector<std::string> label_names;
+	std::vector<std::string> label_values;
 	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
 		PyObject* py_key = NULL;
 		PyObject* py_value = NULL;
@@ -228,12 +236,15 @@ static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self, PyObje
 			}
 
 			const char* key = PyString_AsString(py_key);
+			label_names.push_back(key);
+
 			const char* value = PyString_AsString(py_value);
-			labels.insert(std::make_pair(key, value));
+			label_values.push_back(value);
 		}
 	}
 
-	Counter* native_counter = self->metric_registry->MakeCounter(name.c_str(), labels);
+	Counter* counter_family = self->metric_registry->MakeCounter(name.c_str(), label_names);
+	Counter* native_counter = counter_family->WithLabelValues(label_values);
 	return Py_BuildValue("O", Counter::CreatePythonObject(native_counter));
 }
 

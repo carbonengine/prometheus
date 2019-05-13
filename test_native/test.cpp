@@ -201,17 +201,21 @@ protected:
 TEST_F(TestCounter, MakeCounter) {
 	auto n = RandomString();
 	EXPECT_TRUE(FetchLines(n).empty());
-	registry->MakeCounter(n.c_str(), 0, nullptr, nullptr);
+	registry->MakeCounter(n.c_str(), 0, nullptr);
 	EXPECT_FALSE(FetchLines(n).empty());
 }
 
 TEST_F(TestCounter, MakeCounterWithLabels) {
 	auto n = RandomString();
-	const char* label_names[] = { RandomString().c_str(), RandomString().c_str() };
-	const char* label_values[] = { RandomString().c_str(), RandomString().c_str() };
-	registry->MakeCounter(n.c_str(), 2, label_names, label_values);
+	std::string label_names[] = { RandomString(), RandomString() };
+	std::string label_values[] = { RandomString(), RandomString() };
+	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
+	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
+	CounterInterface* family = registry->MakeCounter(n.c_str(), 2, label_names_c);
+	CounterInterface* counter = family->WithLabelValues(label_values_c, 2);
 
-	auto line = FetchLine(n);
+	auto line = FetchLines(n)[1];
+	std::cout << line << std::endl;
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_names[1]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_values[0]) != std::string::npos);
@@ -220,7 +224,7 @@ TEST_F(TestCounter, MakeCounterWithLabels) {
 
 TEST_F(TestCounter, Increment) {
 	auto n = RandomString();
-	auto c = registry->MakeCounter(n.c_str(), 0, nullptr, nullptr);
+	auto c = registry->MakeCounter(n.c_str(), 0, nullptr);
 	EXPECT_EQ(FetchCounter(n), 0);
 	c->Increment();
 	EXPECT_EQ(FetchCounter(n), 1);
@@ -230,7 +234,7 @@ TEST_F(TestCounter, Increment) {
 
 TEST_F(TestCounter, DecrementFails) {
 	auto n = RandomString();
-	auto c = registry->MakeCounter(n.c_str(), 0, nullptr, nullptr);
+	auto c = registry->MakeCounter(n.c_str(), 0, nullptr);
 	EXPECT_EQ(FetchCounter(n), 0);
 	c->Increment(-1);
 	EXPECT_EQ(FetchCounter(n), 0);
@@ -273,9 +277,11 @@ TEST_F(TestGauge, MakeGauge) {
 
 TEST_F(TestGauge, MakeGaugeWithLabels) {
 	auto n = RandomString();
-	const char* label_names[] = { RandomString().c_str(), RandomString().c_str() };
-	const char* label_values[] = { RandomString().c_str(), RandomString().c_str() };
-	registry->MakeGauge(n.c_str(), 2, label_names, label_values);
+	std::string label_names[] = { RandomString(), RandomString() };
+	std::string label_values[] = { RandomString(), RandomString() };
+	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
+	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
+	registry->MakeGauge(n.c_str(), 2, label_names_c, label_values_c);
 
 	auto line = FetchLine(n);
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
@@ -382,9 +388,11 @@ TEST_F(TestHistogram, MakeHistogram) {
 
 TEST_F(TestHistogram, MakeHistogramWithLabels) {
 	auto n = RandomString();
-	const char* label_names[] = { RandomString().c_str(), RandomString().c_str() };
-	const char* label_values[] = { RandomString().c_str(), RandomString().c_str() };
-	registry->MakeHistogram(n.c_str(), 2, label_names, label_values, 0, nullptr);
+	std::string label_names[] = { RandomString(), RandomString() };
+	std::string label_values[] = { RandomString(), RandomString() };
+	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
+	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
+	registry->MakeHistogram(n.c_str(), 2, label_names_c, label_values_c, 0, nullptr);
 
 	auto line = FetchLine(n);
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
@@ -487,9 +495,11 @@ TEST_F(TestSummary, MakeSummary) {
 
 TEST_F(TestSummary, MakeSummaryWithLabels) {
 	auto n = RandomString();
-	const char* label_names[] = { RandomString().c_str(), RandomString().c_str() };
-	const char* label_values[] = { RandomString().c_str(), RandomString().c_str() };
-	registry->MakeSummary(n.c_str(), 2, label_names, label_values, 0, nullptr, nullptr, 0, 0);
+	std::string label_names[] = { RandomString(), RandomString() };
+	std::string label_values[] = { RandomString(), RandomString() };
+	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
+	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
+	registry->MakeSummary(n.c_str(), 2, label_names_c, label_values_c, 0, nullptr, nullptr, 0, 0);
 
 	auto line = FetchLine(n);
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);

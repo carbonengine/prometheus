@@ -11,14 +11,22 @@ struct _object;
 typedef _object PyObject;
 
 namespace prometheus_module {
+	class MetricFactory;
+} //namespace prometheus_module
+
+namespace prometheus_module {
 
 class Counter : public CounterInterface {
 public:
 
-	Counter(prometheus::Counter& counter);
+	Counter(prometheus::Counter& counter, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels);
+	~Counter();
 
 	void Increment() override;
 	void Increment(double value) override;
+
+	CounterInterface* WithLabelValues(const char* values[], int num_values) override;
+	Counter* WithLabelValues(std::vector<std::string> values);
 
 	static void RegisterPythonObject(PyObject* module);
 	static PyObject* CreatePythonObject(Counter* wrapped);
