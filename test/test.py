@@ -139,9 +139,10 @@ class TestCounter(TestBase):
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
-        self.registry.MakeCounter(n, {label_name:label_value, label_name2:label_value2})
+        counter_family = self.registry.MakeCounter(n, [label_name, label_name2])
+        counter = counter_family.WithLabelValues({label_name:label_value, label_name2:label_value2}) 
 
-        line = self.FetchLines(n)[1]
+        line = self.FetchLine(label_value)
         self.assertTrue(label_name in line)
         self.assertTrue(label_value in line)
         self.assertTrue(label_name2 in line)
@@ -155,6 +156,29 @@ class TestCounter(TestBase):
         self.assertEqual(self.FetchCounter(n), 1, 'Counter must increment by one by default')
         c.Increment(10)
         self.assertEqual(self.FetchCounter(n), 11, 'Counter must increment by parameter value')
+
+    def test_counter_increment_with_labels(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_name2 = self.RandomString() 
+        # label_name2 exists to show that only providing label_name (omitting label_value2) in WithLabelValues still works
+        f = self.registry.MakeCounter(n, [label_name, label_name2])
+
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+        c = f.WithLabelValues({label_name:label_value})
+        c2 = f.WithLabelValues({label_name:label_value2})
+
+        self.assertEqual(self.FetchCounter(label_value), 0, 'Counter with labels must start at zero')
+        c.Increment()
+        self.assertEqual(self.FetchCounter(label_value), 1, 'Counter with labels must increment by one by default')
+
+        f.WithLabelValues({label_name:label_value}).Increment(10)
+        self.assertEqual(self.FetchCounter(label_value), 11, 'Counter with labels must increment by parameter value')
+
+        f.WithLabelValues({label_name:label_value2}).Increment(1)
+        self.assertEqual(self.FetchCounter(label_value), 11, 'Counters with distinct label values must represent their own time series')
+        self.assertEqual(self.FetchCounter(label_value2), 1, 'Counters with distinct label values must represent their own time series')
 
     def test_counter_decrement_fails(self):
         n = self.RandomString()

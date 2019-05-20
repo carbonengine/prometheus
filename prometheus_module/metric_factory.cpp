@@ -27,6 +27,9 @@ std::string MetricFactory::Private::GetHashKey(const std::string& name, const st
 	std::stringstream ss;
 	ss << name;
 
+	// STL map is already ordered, so there's no need to sort the labels
+	// We will get consistent keys regardless.
+
 	for (auto& elem : labels) {
 		ss << "|";
 		ss << elem.first;
@@ -69,7 +72,16 @@ Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std:
 	auto family = family_iter->second;
 	if (family_iter == private_->counter_families.end()) {
 		// If not, then create it
-		family = &prometheus::BuildCounter().Name(name).Labels(label_names).Register(*private_->registry.get());
+
+		// label_names is used in the family_hash so we get one family per distinct set of label keys,
+		// but when we actually create the family in prometheus-cpp, we need to do it with an empty label set.
+		// Each "family" in prometheus-cpp is actually a set of shared key+value pairs, so we would end up
+		// with duplicate label keys with empty values in every metric belonging to this family if we used label_names here.
+		// For example, a family with labels ["my_label"] and a metric with {"my_label"="my_value"} would end up looking like:
+		// my_metric{my_label="",my_label="my_value"}
+		// if we used label_names instead of empty_labels.
+		std::map<std::string, std::string> empty_labels;
+		family = &prometheus::BuildCounter().Name(name).Labels(empty_labels).Register(*private_->registry.get());
 		private_->counter_families.insert(std::make_pair(family_hash, family));
 	}
 

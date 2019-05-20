@@ -224,28 +224,20 @@ static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self, PyObje
 	}
 
 	std::vector<std::string> label_names;
-	std::vector<std::string> label_values;
-	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
-		PyObject* py_key = NULL;
-		PyObject* py_value = NULL;
-		Py_ssize_t pos = 0;
-
-		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
-			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
+	if (arg_labels != NULL && PyList_Check(arg_labels)) {
+		auto num_elements = PyList_Size(arg_labels);
+		for (auto i = 0; i < num_elements; i++) {
+			char* label = PyString_AsString(PyList_GetItem(arg_labels, i));
+			if (label == NULL) {
 				continue;
 			}
 
-			const char* key = PyString_AsString(py_key);
-			label_names.push_back(key);
-
-			const char* value = PyString_AsString(py_value);
-			label_values.push_back(value);
+			label_names.push_back(label);
 		}
 	}
 
-	Counter* counter_family = self->metric_registry->MakeCounter(name.c_str(), label_names);
-	Counter* native_counter = counter_family->WithLabelValues(label_values);
-	return Py_BuildValue("O", Counter::CreatePythonObject(native_counter));
+	Counter* result = self->metric_registry->MakeCounter(name.c_str(), label_names);
+	return Py_BuildValue("O", Counter::CreatePythonObject(result));
 }
 
 static PyObject* MetricRegistry_MakeGauge(MetricRegistryPyObject* self, PyObject* args, PyObject* keywords) {

@@ -70,6 +70,14 @@ Counter* Counter::WithLabelValues(std::vector<std::string> values) {
 	return &counter;
 }
 
+const std::string& Counter::name() {
+	return private_->name;
+}
+
+const std::vector<std::string>& Counter::label_names() {
+	return private_->labels;
+}
+
 
 // Python linkage
 
@@ -90,12 +98,59 @@ static int Counter_init(CounterPyObject *self, PyObject *args, PyObject *kwds) {
 
 	Counter* wrapped = (Counter*)PyCapsule_GetPointer(capsule, NULL);
 	self->counter.reset(wrapped);
+
 	return 0;
 }
 
 static void Counter_dealloc(CounterPyObject* self) {
 	self->counter.reset(nullptr);
 	Py_TYPE(self)->tp_free((PyObject*)self);
+}
+
+static PyObject* Counter_WithLabelValues(CounterPyObject* self, PyObject* args, PyObject* keywords) {
+	PyObject* arg_labels = NULL;
+
+	static char* keyword_list[] = {"labels", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "|O", keyword_list, &arg_labels)) {
+		return Py_BuildValue("O", self);
+	}
+
+	std::map<std::string, std::string> labels;
+	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
+		PyObject* py_key = NULL;
+		PyObject* py_value = NULL;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
+			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
+				continue;
+			}
+
+			const char* key = PyString_AsString(py_key);
+			const char* value = PyString_AsString(py_value);
+			labels.insert(std::make_pair(key, value));
+		}
+	}
+
+	auto& valid_label_names = self->counter->label_names();
+	std::vector<std::string> final_labels;
+	for (auto& name : valid_label_names) {
+		auto&& iter = labels.find(name);
+		if (iter != labels.end()) {
+			final_labels.push_back(iter->second);
+		}
+		else {
+			final_labels.push_back("");
+		}
+	}
+
+	prometheus_module::Counter* native_counter = self->counter->WithLabelValues(final_labels);
+	if (native_counter == nullptr) {
+		return Py_BuildValue("O", self);
+	}
+
+	return Py_BuildValue("O", prometheus_module::Counter::CreatePythonObject(native_counter));
 }
 
 static PyObject* Counter_Increment(CounterPyObject* self, PyObject* args, PyObject* keywords) {
@@ -119,6 +174,7 @@ static PyObject* Counter_Increment(CounterPyObject* self, PyObject* args, PyObje
 }
 
 static PyMethodDef CounterPyMethods[] = {
+	{"WithLabelValues", (PyCFunction)Counter_WithLabelValues, METH_VARARGS | METH_KEYWORDS, "Returns the counter with the specified label values."},
 	{"Increment", (PyCFunction)Counter_Increment, METH_VARARGS | METH_KEYWORDS, "Increment the counter. Optionally, specify a value to increment by (default 1.0). If a value is specified, it must be non-zero."},
 
 	{NULL}  /* Sentinel */
