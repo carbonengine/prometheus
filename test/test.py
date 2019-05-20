@@ -161,7 +161,8 @@ class TestCounter(TestBase):
         n = self.RandomString()
         label_name = self.RandomString()
         label_name2 = self.RandomString() 
-        # label_name2 exists to show that only providing label_name (omitting label_value2) in WithLabelValues still works
+        # label_name2 exists to show that only providing label_name (omitting label_name2) in WithLabelValues still works
+        # WithLabelValues({label_name:whatever}) (omitting label_name2) is the same as WithLabelValues({label_name:whatever,label_name2:''})
         f = self.registry.MakeCounter(n, [label_name, label_name2])
 
         label_value = self.RandomString()
@@ -179,6 +180,20 @@ class TestCounter(TestBase):
         f.WithLabelValues({label_name:label_value2}).Increment(1)
         self.assertEqual(self.FetchCounter(label_value), 11, 'Counters with distinct label values must represent their own time series')
         self.assertEqual(self.FetchCounter(label_value2), 1, 'Counters with distinct label values must represent their own time series')
+
+    def test_counter_with_labels_reuses_objects(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+
+        f = self.registry.MakeCounter(n, [label_name])
+        c = f.WithLabels({label_name:label_value})
+        c_same = f.WithLabels({label_name:label_value})
+        c_different = f.WithLabels({label_name:label_value2})
+
+        self.assertTrue(c is c_same, 'Counters with identical name and label values must re-use the object')
+        self.assertFalse(c is c_different, 'Counters with different name or label values must use distinct objects')
 
     def test_counter_decrement_fails(self):
         n = self.RandomString()
