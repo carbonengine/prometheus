@@ -188,9 +188,9 @@ class TestCounter(TestBase):
         label_value2 = self.RandomString()
 
         f = self.registry.MakeCounter(n, [label_name])
-        c = f.WithLabels({label_name:label_value})
-        c_same = f.WithLabels({label_name:label_value})
-        c_different = f.WithLabels({label_name:label_value2})
+        c = f.WithLabelValues({label_name:label_value})
+        c_same = f.WithLabelValues({label_name:label_value})
+        c_different = f.WithLabelValues({label_name:label_value2})
 
         self.assertTrue(c is c_same, 'Counters with identical name and label values must re-use the object')
         self.assertFalse(c is c_different, 'Counters with different name or label values must use distinct objects')

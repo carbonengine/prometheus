@@ -32,7 +32,7 @@ public:
 	const std::vector<std::string>& label_names();
 
 	static void RegisterPythonObject(PyObject* module);
-	static PyObject* CreatePythonObject(Counter* wrapped);
+	static PyObject* CreatePythonObject(Counter* wrapped, PyObject* family=nullptr);
 
 private:
 
