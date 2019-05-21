@@ -11,11 +11,16 @@ struct _object;
 typedef _object PyObject;
 
 namespace prometheus_module {
+	class MetricFactory;
+} //namespace prometheus_module
+
+namespace prometheus_module {
 
 class Gauge : public GaugeInterface {
 public:
 
-	Gauge(prometheus::Gauge& gauge);
+	Gauge(prometheus::Gauge& gauge, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels);
+	~Gauge();
 
 	void Increment() override;
 	void Increment(double value) override;

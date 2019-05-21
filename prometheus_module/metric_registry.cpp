@@ -69,7 +69,9 @@ Gauge* MetricRegistry::MakeGauge(const char* name, const std::map<std::string, s
 	auto& family = prometheus::BuildGauge().Name(name).Labels(private_->default_labels).Register(*private_->registry);
 	prometheus::Gauge& prometheus_gauge = family.Add(labels);
 
-	return new prometheus_module::Gauge(prometheus_gauge);
+	//todo: continue updating Gauge from here
+	std::vector<std::string> tmp;
+	return new prometheus_module::Gauge(prometheus_gauge, *private_->factory.get(), name, tmp);
 }
 
 Summary* MetricRegistry::MakeSummary(const char* name, const std::map <std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions) {

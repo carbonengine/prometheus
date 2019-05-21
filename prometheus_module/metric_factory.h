@@ -25,7 +25,7 @@ public:
 	~MetricFactory();
 
 	Counter& MakeCounter(const std::string& name, const std::map<std::string, std::string>& labels);
-	//Gauge& MakeGauge(/*stuff*/);
+	Gauge& MakeGauge(const std::string& name, const std::map<std::string, std::string>& labels);
 	//Histogram& MakeHistogram(/*stuff*/);
 	//Summary& MakeSummary(/*stuff*/);
 

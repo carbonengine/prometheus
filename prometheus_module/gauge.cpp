@@ -15,6 +15,9 @@
 #include <prometheus/gauge.h>
 using namespace prometheus_module;
 
+// prometheus_module
+#include "metric_factory.h"
+
 struct Gauge::Private {
 	Private(prometheus::Gauge& wrapped) :
 		gauge(wrapped)
@@ -24,10 +27,12 @@ struct Gauge::Private {
 	prometheus::Gauge& gauge;
 };
 
-Gauge::Gauge(prometheus::Gauge& gauge) :
+Gauge::Gauge(prometheus::Gauge& gauge, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels) :
 	private_(std::make_unique<Private>(gauge))
 {
 }
+
+Gauge::~Gauge() = default;
 
 void Gauge::Increment() {
 	private_->gauge.Increment();
