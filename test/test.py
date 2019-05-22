@@ -257,9 +257,10 @@ class TestGauge(TestBase):
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
-        self.registry.MakeGauge(n, {label_name:label_value, label_name2:label_value2})
+        gauge_family = self.registry.MakeGauge(n, [label_name, label_name2])
+        gauge = gauge_family.WithLabelValues({label_name:label_value, label_name2:label_value2})
 
-        line = self.FetchLine(n)
+        line = self.FetchLine(label_value)
         self.assertTrue(label_name in line)
         self.assertTrue(label_value in line)
         self.assertTrue(label_name2 in line)
@@ -293,10 +294,59 @@ class TestGauge(TestBase):
 
     def test_gauge_set(self):
         n = self.RandomString()
-        c = self.registry.MakeGauge(n)
+        m = self.registry.MakeGauge(n)
         self.assertEqual(self.FetchGauge(n), 0, 'Gauge must start at zero')
-        c.Set(999)
+        m.Set(999)
         self.assertEqual(self.FetchGauge(n), 999, 'Gauge must set value to parameter value')
+
+    def test_gauge_set_with_labels(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_name2 = self.RandomString() 
+        # label_name2 exists to show that only providing label_name (omitting label_name2) in WithLabelValues still works
+        # WithLabelValues({label_name:whatever}) (omitting label_name2) is the same as WithLabelValues({label_name:whatever,label_name2:''})
+        f = self.registry.MakeGauge(n, [label_name, label_name2])
+
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+        m = f.WithLabelValues({label_name:label_value})
+        m2 = f.WithLabelValues({label_name:label_value2})
+
+        self.assertEqual(self.FetchGauge(label_value), 0, 'Gauge with labels must start at zero')
+        m.Set(999)
+        self.assertEqual(self.FetchGauge(label_value), 999, 'Gauge must set value to parameter value')
+
+        f.WithLabelValues({label_name:label_value}).Set(10)
+        self.assertEqual(self.FetchGauge(label_value), 10, 'Gauge with labels must set value to parameter value')
+
+        f.WithLabelValues({label_name:label_value2}).Set(1)
+        self.assertEqual(self.FetchGauge(label_value), 10, 'Metrics with distinct label values must represent their own time series')
+        self.assertEqual(self.FetchGauge(label_value2), 1, 'Metrics with distinct label values must represent their own time series')
+
+    def test_gauge_with_labels_reuses_objects(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+
+        f = self.registry.MakeGauge(n, [label_name])
+        m = f.WithLabelValues({label_name:label_value})
+        m_same = f.WithLabelValues({label_name:label_value})
+        m_different = f.WithLabelValues({label_name:label_value2})
+
+    def test_gauges_with_different_label_values_share_one_type_definition(self):
+        # The page pulled by prometheus contains a TYPE definition for each metric like this:
+        #   '# TYPE my_metric_name gauge'
+        # When there are multiple metrics with the same name but different label values, they should share one definition
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = label_value + '-2'
+        family = self.registry.MakeGauge(n, [label_name])
+        gauge1 = family.WithLabelValues({label_name:label_value})
+        gauge2 = family.WithLabelValues({label_name:label_value2})
+        lines = self.FetchLinesWithComments('TYPE ' + n)
+        self.assertEqual(len(lines), 1)
 
 
 #
