@@ -15,22 +15,65 @@
 #include <prometheus/histogram.h>
 using namespace prometheus_module;
 
+// prometheus_module
+#include "metric_factory.h"
+
 struct Histogram::Private {
-	Private(prometheus::Histogram& wrapped) :
-		histogram(wrapped)
+	Private(prometheus::Histogram& wrapped, prometheus_module::MetricFactory& factory) :
+		histogram(wrapped),
+		factory(factory)
 	{
 	}
 
 	prometheus::Histogram& histogram;
+	prometheus_module::MetricFactory& factory;
+	std::string name;
+	std::vector<std::string> labels;
+	std::vector<double> boundaries;
 };
 
-Histogram::Histogram(prometheus::Histogram& histogram) :
-	private_(std::make_unique<Private>(histogram))
+Histogram::Histogram(prometheus::Histogram& histogram, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels, const std::vector<double>& boundaries) :
+	private_(std::make_unique<Private>(histogram, factory))
 {
+	private_->name = name;
+	private_->labels = labels;
+	private_->boundaries = boundaries;
 }
+
+Histogram::~Histogram() = default;
 
 void Histogram::Observe(double value) {
 	private_->histogram.Observe(value);
+}
+
+HistogramInterface* Histogram::WithLabelValues(const char* values[], int num_values) {
+	std::vector<std::string> values_vec;
+	for (auto i = 0; i < num_values; i++) {
+		values_vec.push_back(values[i]);
+	}
+	return WithLabelValues(values_vec);
+}
+
+Histogram* Histogram::WithLabelValues(std::vector<std::string> values) {
+	if (values.size() != private_->labels.size()) {
+		return nullptr;
+	}
+
+	std::map<std::string, std::string> labels;
+	for (auto i = 0; i < private_->labels.size(); i++) {
+		labels.insert(std::make_pair(private_->labels[i], values[i]));
+	}
+
+	Histogram& result = private_->factory.MakeHistogram(private_->name, labels, private_->boundaries);
+	return &result;
+}
+
+const std::string& Histogram::name() {
+	return private_->name;
+}
+
+const std::vector<std::string>& Histogram::label_names() {
+	return private_->labels;
 }
 
 
@@ -131,9 +174,14 @@ void Histogram::RegisterPythonObject(PyObject* module) {
 	PyModule_AddObject(module, "Histogram", (PyObject *)&HistogramPyType);
 }
 
-PyObject* Histogram::CreatePythonObject(Histogram* wrapped) {
+PyObject* Histogram::CreatePythonObject(Histogram* wrapped, PyObject* family) {
 	PyObject* capsule = PyCapsule_New((void*)wrapped, NULL, NULL);
-	PyObject* obj = PyObject_CallObject((PyObject*)&HistogramPyType, Py_BuildValue("(O)", capsule));
+	PyObject* obj = nullptr;
+	if (family != nullptr) {
+		obj = PyObject_Call((PyObject*)&HistogramPyType, Py_BuildValue("(O)", capsule), Py_BuildValue("{s:O}", "family", family));
+	}
+	else {
+		obj = PyObject_CallObject((PyObject*)&HistogramPyType, Py_BuildValue("(O)", capsule));
+	}
 	return obj;
 }
-

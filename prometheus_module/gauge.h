@@ -37,7 +37,7 @@ public:
 	const std::vector<std::string>& label_names();
 
 	static void RegisterPythonObject(PyObject* module);
-	static PyObject* Gauge::CreatePythonObject(Gauge* wrapped, PyObject* family=nullptr);
+	static PyObject* CreatePythonObject(Gauge* wrapped, PyObject* family=nullptr);
 
 private:
 

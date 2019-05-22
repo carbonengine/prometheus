@@ -34,7 +34,7 @@ public:
 	Counter* MakeCounter(const char* name, const std::vector<std::string>& labels);
 	Gauge* MakeGauge(const char* name, const std::vector<std::string>& labels);
 	Summary* MakeSummary(const char* name, const std::map <std::string, std::string>& labels, const std::vector<std::pair<double,double> >& quantiles, int total_window_size_seconds, int window_partitions);
-	Histogram* MakeHistogram(const char* name, const std::map <std::string, std::string>& labels, const std::vector<double>& boundaries);
+	Histogram* MakeHistogram(const char* name, const std::vector<std::string>& labels, const std::vector<double>& boundaries);
 
 
 	// MetricRegistryInterface implementation
@@ -42,7 +42,7 @@ public:
 	CounterInterface* MakeCounter(const char* name, int num_labels, const char* label_keys[]) override;
 	GaugeInterface* MakeGauge(const char* name, int num_labels, const char* label_keys[]) override;
 	SummaryInterface* MakeSummary(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_quantiles, double quantile_values[], double quantile_tolerances[], int total_window_size_seconds, int window_partitions) override;
-	HistogramInterface* MakeHistogram(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_boundaries, double boundaries[]) override;
+	HistogramInterface* MakeHistogram(const char* name, int num_labels, const char* label_keys[], int num_boundaries, double boundaries[]) override;
 
 	bool Serve(const char* bind_address) override;
 	void StopServing() override;

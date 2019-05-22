@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace prometheus {
 	class Registry;
@@ -26,7 +27,7 @@ public:
 
 	Counter& MakeCounter(const std::string& name, const std::map<std::string, std::string>& labels);
 	Gauge& MakeGauge(const std::string& name, const std::map<std::string, std::string>& labels);
-	//Histogram& MakeHistogram(/*stuff*/);
+	Histogram& MakeHistogram(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries);
 	//Summary& MakeSummary(/*stuff*/);
 
 private:

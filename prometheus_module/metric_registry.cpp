@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <vector>
 
 // Python
 #include <Python.h>
@@ -109,24 +110,14 @@ Summary* MetricRegistry::MakeSummary(const char* name, const std::map <std::stri
 	return new prometheus_module::Summary(prometheus_summary);
 }
 
-Histogram* MetricRegistry::MakeHistogram(const char* name, const std::map <std::string, std::string>& labels, const std::vector<double>& boundaries) {
-	// Assign labels
-	const std::map<std::string, std::string>* final_labels = &private_->default_labels;
-	if (!labels.empty()) {
-		final_labels = &labels;
+Histogram* MetricRegistry::MakeHistogram(const char* name, const std::vector<std::string>& label_names, const std::vector<double>& boundaries) {
+	std::map<std::string, std::string> labels;
+	for (auto name : label_names) {
+		labels.insert(std::make_pair(name, ""));
 	}
 
-	// Assign boundaries
-	const std::vector<double>* final_boundaries = &private_->default_boundaries;
-	if (!boundaries.empty()) {
-		final_boundaries = &boundaries;
-	}
-
-	// Create
-	auto& family = prometheus::BuildHistogram().Name(name).Labels(private_->default_labels).Register(*private_->registry);
-	prometheus::Histogram& prometheus_histogram = family.Add(*final_labels, *final_boundaries);
-
-	return new prometheus_module::Histogram(prometheus_histogram);
+	auto& result = private_->factory->MakeHistogram(name, labels, boundaries);
+	return &result;
 }
 
 CounterInterface* MetricRegistry::MakeCounter(const char* name, int num_labels, const char* label_keys[]) {
@@ -159,10 +150,10 @@ SummaryInterface* MetricRegistry::MakeSummary(const char* name, int num_labels, 
 	return MakeSummary(name, labels, quantiles, total_window_size_seconds, window_partitions);
 }
 
-HistogramInterface* MetricRegistry::MakeHistogram(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_boundaries, double boundary_values[]) {
-	std::map<std::string, std::string> labels;
-	for (auto i = 0; i < num_labels; i++) {
-		labels.insert(std::make_pair(label_keys[i], label_values[i]));
+HistogramInterface* MetricRegistry::MakeHistogram(const char* name, int num_labels, const char* label_keys[], int num_boundaries, double boundary_values[]) {
+	std::vector<std::string> label_names;
+	for (int i = 0; i < num_labels; i++) {
+		label_names.push_back(label_keys[i]);
 	}
 
 	std::vector<double> boundaries;
@@ -170,7 +161,7 @@ HistogramInterface* MetricRegistry::MakeHistogram(const char* name, int num_labe
 		boundaries.push_back(boundary_values[i]);
 	}
 
-	return MakeHistogram(name, labels, boundaries);
+	return MakeHistogram(name, label_names, boundaries);
 }
 
 bool MetricRegistry::Serve(const char* bind_address) {
@@ -295,20 +286,16 @@ static PyObject* MetricRegistry_MakeHistogram(MetricRegistryPyObject* self, PyOb
 	}
 
 	// Convert labels
-	std::map<std::string, std::string> labels;
-	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
-		PyObject* py_key = NULL;
-		PyObject* py_value = NULL;
-		Py_ssize_t pos = 0;
-
-		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
-			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
+	std::vector<std::string> label_names;
+	if (arg_labels != NULL && PyList_Check(arg_labels)) {
+		auto num_elements = PyList_Size(arg_labels);
+		for (auto i = 0; i < num_elements; i++) {
+			char* label = PyString_AsString(PyList_GetItem(arg_labels, i));
+			if (label == NULL) {
 				continue;
 			}
 
-			const char* key = PyString_AsString(py_key);
-			const char* value = PyString_AsString(py_value);
-			labels.insert(std::make_pair(key, value));
+			label_names.push_back(label);
 		}
 	}
 
@@ -328,7 +315,7 @@ static PyObject* MetricRegistry_MakeHistogram(MetricRegistryPyObject* self, PyOb
 	}
 
 	// Create the Histogram
-	Histogram* native_histogram = self->metric_registry->MakeHistogram(name.c_str(), labels, boundaries);
+	Histogram* native_histogram = self->metric_registry->MakeHistogram(name.c_str(), label_names, boundaries);
 	return Py_BuildValue("O", Histogram::CreatePythonObject(native_histogram));
 }
 

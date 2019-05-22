@@ -9,10 +9,12 @@ using namespace prometheus_module;
 #include <prometheus/counter.h>
 #include <prometheus/family.h>
 #include <prometheus/gauge.h>
+#include <prometheus/histogram.h>
 #include <prometheus/registry.h>
 
 #include "counter.h"
 #include "gauge.h"
+#include "histogram.h"
 
 struct MetricFactory::Private {
 	static std::string GetHashKey(const std::string& name, const std::map<std::string, std::string>& labels);
@@ -27,6 +29,10 @@ struct MetricFactory::Private {
 	typedef prometheus::Family<prometheus::Gauge> GaugeFamily;
 	std::unordered_map<std::string, GaugeFamily*> gauge_families;
 	std::unordered_map<std::string, std::unique_ptr<prometheus_module::Gauge> > gauges;
+
+	typedef prometheus::Family<prometheus::Histogram> HistogramFamily;
+	std::unordered_map<std::string, HistogramFamily*> histogram_families;
+	std::unordered_map<std::string, std::unique_ptr<prometheus_module::Histogram> > histograms;
 };
 
 std::string MetricFactory::Private::GetHashKey(const std::string& name, const std::map<std::string, std::string>& labels) {
@@ -141,5 +147,42 @@ Gauge& MetricFactory::MakeGauge(const std::string& name, const std::map<std::str
 
 	// Return it
 	prometheus_module::Gauge* result = result_iter->second.get();
+	return *result;
+}
+
+Histogram& MetricFactory::MakeHistogram(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries) {
+	// If this metric already exists, then return it
+	auto metric_hash = private_->GetHashKey(name, labels);
+	auto histogram_iter = private_->histograms.find(metric_hash);
+	if (histogram_iter != private_->histograms.end()) {
+		prometheus_module::Histogram *result = histogram_iter->second.get();
+		return *result;
+	}
+
+	// The metric doesn't exist yet, so see if its family does
+	auto label_names = private_->GetLabelNames(labels);
+	auto family_hash = private_->GetHashKey(name, label_names);
+	auto family_iter = private_->histogram_families.find(family_hash);
+	auto family = family_iter->second;
+	if (family_iter == private_->histogram_families.end()) {
+		// If not, then create it
+		std::map<std::string, std::string> empty_labels; ///< See MetricFactory::MakeCounter for an explanation of empty_labels
+		family = &prometheus::BuildHistogram().Name(name).Labels(empty_labels).Register(*private_->registry.get());
+		private_->histogram_families.insert(std::make_pair(family_hash, family));
+	}
+
+	// Create the metric
+	auto& prometheus_metric = family->Add(labels, boundaries);
+	std::vector<std::string> label_names_vec;
+	for (auto& label_names_iter : label_names) {
+		label_names_vec.push_back(label_names_iter.first);
+	}
+	std::unique_ptr<prometheus_module::Histogram> ptr = std::make_unique<prometheus_module::Histogram>(prometheus_metric, *this, name, label_names_vec, boundaries);
+
+	// Store it
+	auto result_iter = private_->histograms.insert(std::make_pair(metric_hash, std::move(ptr))).first;
+
+	// Return it
+	prometheus_module::Histogram* result = result_iter->second.get();
 	return *result;
 }

@@ -215,7 +215,6 @@ TEST_F(TestCounter, MakeCounterWithLabels) {
 	CounterInterface* counter = family->WithLabelValues(label_values_c, 2);
 
 	auto line = FetchLines(n)[1];
-	std::cout << line << std::endl;
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_names[1]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_values[0]) != std::string::npos);
@@ -383,7 +382,7 @@ protected:
 TEST_F(TestHistogram, MakeHistogram) {
 	auto n = RandomString();
 	EXPECT_TRUE(FetchLines(n).empty());
-	registry->MakeHistogram(n.c_str(), 0, nullptr, nullptr, 0, nullptr);
+	registry->MakeHistogram(n.c_str(), 0, nullptr, 0, nullptr);
 	EXPECT_FALSE(FetchLines(n).empty());
 }
 
@@ -393,9 +392,10 @@ TEST_F(TestHistogram, MakeHistogramWithLabels) {
 	std::string label_values[] = { RandomString(), RandomString() };
 	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
 	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
-	registry->MakeHistogram(n.c_str(), 2, label_names_c, label_values_c, 0, nullptr);
+	auto family = registry->MakeHistogram(n.c_str(), 2, label_names_c, 0, nullptr);
+	HistogramInterface* histogram = family->WithLabelValues(label_values_c, 2);
 
-	auto line = FetchLine(n);
+	auto line = FetchLine(label_values[0]);
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_names[1]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_values[0]) != std::string::npos);
@@ -405,7 +405,7 @@ TEST_F(TestHistogram, MakeHistogramWithLabels) {
 TEST_F(TestHistogram, MakeHistogramWithBoundaries) {
 	auto n = RandomString();
 	double boundaries[] = { 10.0, 100.0, 1000.0 };
-	auto h = registry->MakeHistogram(n.c_str(), 0, nullptr, nullptr, 3, boundaries);
+	auto h = registry->MakeHistogram(n.c_str(), 0, nullptr, 3, boundaries);
 
 	auto values = FetchHistogram(n);
 	EXPECT_EQ(values.count, 0);
@@ -413,10 +413,25 @@ TEST_F(TestHistogram, MakeHistogramWithBoundaries) {
 	EXPECT_EQ(values.buckets.size(), 4); // (-Inf, 10], (10, 100], (100, 1000], (1000, +Inf)
 }
 
+TEST_F(TestHistogram, MakeHistogramWithNewBoundariesFails) {
+	auto n = RandomString();
+	std::string label_names[] = { RandomString(), RandomString() };
+	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
+	double boundaries[] = { 10.0, 100.0, 1000.0 };
+	auto metric = registry->MakeHistogram(n.c_str(), 2, label_names_c, 3, boundaries);
+
+	double new_boundaries[] = { 1.0, 2.0, 3.0 };
+	auto new_metric = registry->MakeHistogram(n.c_str(), 2, label_names_c, 3, new_boundaries);
+
+	// If the metric name and label names match, then MakeHistogram will return the existing metric.
+	// The new boundaries have no effect, and do NOT replace the existing metric's boundaries.
+	EXPECT_EQ(metric, new_metric);
+}
+
 TEST_F(TestHistogram, Observe) {
 	auto n = RandomString();
 	double boundaries[] = { 10.0, 100.0, 1000.0 };
-	auto h = registry->MakeHistogram(n.c_str(), 0, nullptr, nullptr, 3, boundaries);
+	auto h = registry->MakeHistogram(n.c_str(), 0, nullptr, 3, boundaries);
 
 	h->Observe(1.0);
 	h->Observe(10.0);
