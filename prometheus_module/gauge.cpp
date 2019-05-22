@@ -19,17 +19,23 @@ using namespace prometheus_module;
 #include "metric_factory.h"
 
 struct Gauge::Private {
-	Private(prometheus::Gauge& wrapped) :
-		gauge(wrapped)
+	Private(prometheus::Gauge& wrapped, prometheus_module::MetricFactory& factory) :
+		gauge(wrapped),
+		factory(factory)
 	{
 	}
 
 	prometheus::Gauge& gauge;
+	prometheus_module::MetricFactory& factory;
+	std::string name;
+	std::vector<std::string> labels;
 };
 
 Gauge::Gauge(prometheus::Gauge& gauge, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels) :
-	private_(std::make_unique<Private>(gauge))
+	private_(std::make_unique<Private>(gauge, factory))
 {
+	private_->name = name;
+	private_->labels = labels;
 }
 
 Gauge::~Gauge() = default;
@@ -52,6 +58,36 @@ void Gauge::Decrement(double value) {
 
 void Gauge::Set(double value) {
 	private_->gauge.Set(value);
+}
+
+GaugeInterface* Gauge::WithLabelValues(const char* values[], int num_values) {
+	std::vector<std::string> values_vec;
+	for (auto i = 0; i < num_values; i++) {
+		values_vec.push_back(values[i]);
+	}
+	return WithLabelValues(values_vec);
+}
+
+Gauge* Gauge::WithLabelValues(std::vector<std::string> values) {
+	if (values.size() != private_->labels.size()) {
+		return nullptr;
+	}
+
+	std::map<std::string, std::string> labels;
+	for (auto i = 0; i < private_->labels.size(); i++) {
+		labels.insert(std::make_pair(private_->labels[i], values[i]));
+	}
+
+	Gauge& result = private_->factory.MakeGauge(private_->name, labels);
+	return &result;
+}
+
+const std::string& Gauge::name() {
+	return private_->name;
+}
+
+const std::vector<std::string>& Gauge::label_names() {
+	return private_->labels;
 }
 
 

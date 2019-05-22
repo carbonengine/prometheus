@@ -65,13 +65,14 @@ Counter* MetricRegistry::MakeCounter(const char* name, const std::vector<std::st
 	return &result;
 }
 
-Gauge* MetricRegistry::MakeGauge(const char* name, const std::map<std::string, std::string>& labels) {
-	auto& family = prometheus::BuildGauge().Name(name).Labels(private_->default_labels).Register(*private_->registry);
-	prometheus::Gauge& prometheus_gauge = family.Add(labels);
+Gauge* MetricRegistry::MakeGauge(const char* name, const std::vector<std::string>& label_names) {
+	std::map<std::string, std::string> labels;
+	for (auto name : label_names) {
+		labels.insert(std::make_pair(name, ""));
+	}
 
-	//todo: continue updating Gauge from here
-	std::vector<std::string> tmp;
-	return new prometheus_module::Gauge(prometheus_gauge, *private_->factory.get(), name, tmp);
+	auto& result = private_->factory->MakeGauge(name, labels);
+	return &result;
 }
 
 Summary* MetricRegistry::MakeSummary(const char* name, const std::map <std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions) {
@@ -136,12 +137,12 @@ CounterInterface* MetricRegistry::MakeCounter(const char* name, int num_labels, 
 	return MakeCounter(name, label_names);
 }
 
-GaugeInterface* MetricRegistry::MakeGauge(const char* name, int num_labels, const char* label_keys[], const char* label_values[]) {
-	std::map<std::string, std::string> labels;
-	for (auto i = 0; i < num_labels; i++) {
-		labels.insert(std::make_pair(label_keys[i], label_values[i]));
+GaugeInterface* MetricRegistry::MakeGauge(const char* name, int num_labels, const char* label_keys[]) {
+	std::vector<std::string> label_names;
+	for (int i = 0; i < num_labels; i++) {
+		label_names.push_back(label_keys[i]);
 	}
-	return MakeGauge(name, labels);
+	return MakeGauge(name, label_names);
 }
 
 SummaryInterface* MetricRegistry::MakeSummary(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_quantiles, double quantile_values[], double quantile_tolerances[], int total_window_size_seconds, int window_partitions) {
@@ -257,25 +258,21 @@ static PyObject* MetricRegistry_MakeGauge(MetricRegistryPyObject* self, PyObject
 		name = arg_name;
 	}
 
-	std::map<std::string, std::string> labels;
-	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
-		PyObject* py_key = NULL;
-		PyObject* py_value = NULL;
-		Py_ssize_t pos = 0;
-
-		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
-			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
+	std::vector<std::string> label_names;
+	if (arg_labels != NULL && PyList_Check(arg_labels)) {
+		auto num_elements = PyList_Size(arg_labels);
+		for (auto i = 0; i < num_elements; i++) {
+			char* label = PyString_AsString(PyList_GetItem(arg_labels, i));
+			if (label == NULL) {
 				continue;
 			}
 
-			const char* key = PyString_AsString(py_key);
-			const char* value = PyString_AsString(py_value);
-			labels.insert(std::make_pair(key, value));
+			label_names.push_back(label);
 		}
 	}
 
-	Gauge* native_gauge = self->metric_registry->MakeGauge(name.c_str(), labels);
-	return Py_BuildValue("O", Gauge::CreatePythonObject(native_gauge));
+	Gauge* result = self->metric_registry->MakeGauge(name.c_str(), label_names);
+	return Py_BuildValue("O", Gauge::CreatePythonObject(result));
 }
 
 static PyObject* MetricRegistry_MakeHistogram(MetricRegistryPyObject* self, PyObject* args, PyObject* keywords) {

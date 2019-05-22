@@ -271,7 +271,7 @@ protected:
 TEST_F(TestGauge, MakeGauge) {
 	auto n = RandomString();
 	EXPECT_TRUE(FetchLines(n).empty());
-	registry->MakeGauge(n.c_str(), 0, nullptr, nullptr);
+	registry->MakeGauge(n.c_str(), 0, nullptr);
 	EXPECT_FALSE(FetchLines(n).empty());
 }
 
@@ -281,9 +281,10 @@ TEST_F(TestGauge, MakeGaugeWithLabels) {
 	std::string label_values[] = { RandomString(), RandomString() };
 	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
 	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
-	registry->MakeGauge(n.c_str(), 2, label_names_c, label_values_c);
+	GaugeInterface* default_gauge = registry->MakeGauge(n.c_str(), 2, label_names_c);
+	GaugeInterface* labelled_gauge = default_gauge->WithLabelValues(label_values_c, 2);
 
-	auto line = FetchLine(n);
+	auto line = FetchLine(label_values[0]);
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_names[1]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_values[0]) != std::string::npos);
@@ -292,7 +293,7 @@ TEST_F(TestGauge, MakeGaugeWithLabels) {
 
 TEST_F(TestGauge, Increment) {
 	auto n = RandomString();
-	auto g = registry->MakeGauge(n.c_str(), 0, nullptr, nullptr);
+	auto g = registry->MakeGauge(n.c_str(), 0, nullptr);
 	EXPECT_EQ(FetchGauge(n), 0);
 	g->Increment();
 	EXPECT_EQ(FetchGauge(n), 1);
@@ -302,7 +303,7 @@ TEST_F(TestGauge, Increment) {
 
 TEST_F(TestGauge, Decrement) {
 	auto n = RandomString();
-	auto g = registry->MakeGauge(n.c_str(), 0, nullptr, nullptr);
+	auto g = registry->MakeGauge(n.c_str(), 0, nullptr);
 	EXPECT_EQ(FetchGauge(n), 0);
 	g->Decrement();
 	EXPECT_EQ(FetchGauge(n), -1);
@@ -312,7 +313,7 @@ TEST_F(TestGauge, Decrement) {
 
 TEST_F(TestGauge, Set) {
 	auto n = RandomString();
-	auto g = registry->MakeGauge(n.c_str(), 0, nullptr, nullptr);
+	auto g = registry->MakeGauge(n.c_str(), 0, nullptr);
 	EXPECT_EQ(FetchGauge(n), 0);
 	g->Set(999);
 	EXPECT_EQ(FetchGauge(n), 999);
@@ -320,7 +321,7 @@ TEST_F(TestGauge, Set) {
 
 TEST_F(TestGauge, SetFloat) {
 	auto n = RandomString();
-	auto g = registry->MakeGauge(n.c_str(), 0, nullptr, nullptr);
+	auto g = registry->MakeGauge(n.c_str(), 0, nullptr);
 	EXPECT_EQ(FetchGauge(n), 0);
 	g->Set(999.9);
 	EXPECT_FLOAT_EQ(FetchGauge(n), 999.9f);

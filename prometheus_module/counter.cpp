@@ -68,8 +68,8 @@ Counter* Counter::WithLabelValues(std::vector<std::string> values) {
 		labels.insert(std::make_pair(private_->labels[i], values[i]));
 	}
 
-	Counter& counter = private_->factory.MakeCounter(private_->name, labels);
-	return &counter;
+	Counter& result = private_->factory.MakeCounter(private_->name, labels);
+	return &result;
 }
 
 const std::string& Counter::name() {

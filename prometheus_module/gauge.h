@@ -30,6 +30,12 @@ public:
 
 	void Set(double value) override;
 
+	GaugeInterface* WithLabelValues(const char* values[], int num_values) override;
+
+	Gauge* WithLabelValues(std::vector<std::string> values);
+	const std::string& name();
+	const std::vector<std::string>& label_names();
+
 	static void RegisterPythonObject(PyObject* module);
 	static PyObject* CreatePythonObject(Gauge* wrapped);
 
