@@ -192,8 +192,8 @@ class TestCounter(TestBase):
         c_same = f.WithLabelValues({label_name:label_value})
         c_different = f.WithLabelValues({label_name:label_value2})
 
-        self.assertTrue(c is c_same, 'Counters with identical name and label values must re-use the object')
-        self.assertFalse(c is c_different, 'Counters with different name or label values must use distinct objects')
+        self.assertTrue(c is c_same, 'Metrics with identical name and label values must re-use the object')
+        self.assertFalse(c is c_different, 'Metrics with different name or label values must use distinct objects')
 
     def test_counter_decrement_fails(self):
         n = self.RandomString()
@@ -334,6 +334,9 @@ class TestGauge(TestBase):
         m_same = f.WithLabelValues({label_name:label_value})
         m_different = f.WithLabelValues({label_name:label_value2})
 
+        self.assertTrue(m is m_same, 'Metrics with identical name and label values must re-use the object')
+        self.assertFalse(m is m_different, 'Metrics with different name or label values must use distinct objects')
+
     def test_gauges_with_different_label_values_share_one_type_definition(self):
         # The page pulled by prometheus contains a TYPE definition for each metric like this:
         #   '# TYPE my_metric_name gauge'
@@ -396,9 +399,10 @@ class TestHistogram(TestBase):
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
-        self.registry.MakeHistogram(n, labels={label_name:label_value, label_name2:label_value2})
+        f = self.registry.MakeHistogram(n, labels=[label_name, label_name2])
+        f.WithLabelValues({label_name:label_value, label_name2:label_value2})
 
-        line = self.FetchLine(n)
+        line = self.FetchLine(label_value)
         self.assertTrue(label_name in line)
         self.assertTrue(label_value in line)
         self.assertTrue(label_name2 in line)
@@ -431,6 +435,64 @@ class TestHistogram(TestBase):
         self.assertEqual(buckets[1], 3, 'Observed values must be recorded in their corresponding buckets')
         self.assertEqual(buckets[2], 4, 'Observed values must be recorded in their corresponding buckets')
         self.assertEqual(buckets[3], 5, 'Observed values must be recorded in their corresponding buckets')
+
+    def test_histogram_observe_with_labels(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_name2 = self.RandomString() 
+        # label_name2 exists to show that only providing label_name (omitting label_name2) in WithLabelValues still works
+        # WithLabelValues({label_name:whatever}) (omitting label_name2) is the same as WithLabelValues({label_name:whatever,label_name2:''})
+        f = self.registry.MakeHistogram(n, [label_name, label_name2])
+
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+        m = f.WithLabelValues({label_name:label_value})
+        m2 = f.WithLabelValues({label_name:label_value2})
+
+        values = self.FetchHistogram(label_value)
+        self.assertEqual(values['count'], 0, 'Histogram must start with zero observations')
+
+        m.Observe(1)
+        values = self.FetchHistogram(label_value)
+        self.assertEqual(values['count'], 1, 'Histogram_count must increment with observations')
+
+        f.WithLabelValues({label_name:label_value}).Observe(10)
+        values = self.FetchHistogram(label_value)
+        self.assertEqual(values['count'], 2, 'Histogram_count must increment with observations')
+
+        f.WithLabelValues({label_name:label_value2}).Observe(1)
+        values = self.FetchHistogram(label_value)
+        values2 = self.FetchHistogram(label_value2)
+        self.assertEqual(values['count'], 2, 'Metrics with distinct label values must represent their own time series')
+        self.assertEqual(values2['count'], 1, 'Metrics with distinct label values must represent their own time series')
+
+    def test_histogram_with_labels_reuses_objects(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+
+        f = self.registry.MakeHistogram(n, [label_name])
+        m = f.WithLabelValues({label_name:label_value})
+        m_same = f.WithLabelValues({label_name:label_value})
+        m_different = f.WithLabelValues({label_name:label_value2})
+
+        self.assertTrue(m is m_same, 'Metrics with identical name and label values must re-use the object')
+        self.assertFalse(m is m_different, 'Metrics with different name or label values must use distinct objects')
+
+    def test_histograms_with_different_label_values_share_one_type_definition(self):
+        # The page pulled by prometheus contains a TYPE definition for each metric like this:
+        #   '# TYPE my_metric_name gauge'
+        # When there are multiple metrics with the same name but different label values, they should share one definition
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = label_value + '-2'
+        family = self.registry.MakeHistogram(n, [label_name])
+        metric1 = family.WithLabelValues({label_name:label_value})
+        metric2 = family.WithLabelValues({label_name:label_value2})
+        lines = self.FetchLinesWithComments('TYPE ' + n)
+        self.assertEqual(len(lines), 1)
 
 
 #

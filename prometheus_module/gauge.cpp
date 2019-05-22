@@ -239,7 +239,7 @@ static PyObject* Gauge_WithLabelValues(GaugePyObject* self, PyObject* args, PyOb
 	}
 	
 	std::stringstream ss;
-	ss << "c|";
+	ss << "g|";
 	ss << self->gauge->name();
 	for (auto&& iter : final_labels_with_values) {
 		ss << "|" << iter.first << "=" << iter.second;
