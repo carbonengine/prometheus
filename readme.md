@@ -26,7 +26,7 @@ registry.Serve('8080')
 # At this point, localhost:8080 is live, but without any metric data.
 
 # Create a Counter metric. name is required. labels are optional.
-counter = registry.MakeCounter('MyCounter', labels={'my_label':'my_value', 'another_label':'another_value'})
+counter = registry.MakeCounter('MyCounter', labels=['my_label', 'another_label'])
 
 # At this point, MyCounter should be visible on localhost:8080 with value 0
 
@@ -45,7 +45,7 @@ Counters are for values that can only increase. Generally, they are used to reco
 ```python
 # Name is required.
 # labels are optional.
-counter = registry.MakeCounter('MyCounter', labels={'my_label':'my_value', 'another_label':'another_value'})
+counter = registry.MakeCounter('MyCounter', labels=['my_label', 'another_label'])
 
 # Increments by one by default
 counter.Increment()
@@ -67,7 +67,7 @@ Gauges are for values that can increase, decrease, or be set to an arbitrary val
 ```python
 # Name is required
 # labels are optional
-gauge = registry.MakeGauge('MyGauge', labels={'my_label','my_value', 'another_label':'another_value'})
+gauge = registry.MakeGauge('MyGauge', labels=['my_label', 'another_label'])
 
 # Can increment like a Counter
 gauge.Increment() # Increments by one by default
@@ -93,7 +93,7 @@ Histograms are used to record samples of a value and count them in buckets.  Gen
 # Name is required
 # labels are optional
 # boundaries specify the buckets. A bucket represents all values less than or equal to its boundary
-histogram = registry.MakeHistogram('MyHistogram', labels={'my_label':'my_value'}, boundaries=[10,100,1000])
+histogram = registry.MakeHistogram('MyHistogram', labels=['my_label'], boundaries=[10,100,1000])
 
 # Observe() records a sample, incrementing all buckets greater than or equal to the sample value.
 # Given the boundaries [10,100,1000],
@@ -114,10 +114,42 @@ Summaries are similar to Histograms, but they sort samples into φ-quantiles (ba
 # labels are optional
 # quantiles specify the percentile and error values of the quantile "buckets". The following example will calculate the 10th, 50th, and 90th percentile observations (first parameter of each tuple) with a 5% error tolerance (second parameter of each tuple).
 # The sliding window size is currently fixed at 5 minutes.
-summary = registry.MakeSummary('MySummary', labels={'my_label':'my_value'}, quantiles=[(0.1, 0.05), (0.5, 0.05), (0.9, 0.05)])
+summary = registry.MakeSummary('MySummary', labels=['my_label'], quantiles=[(0.1, 0.05), (0.5, 0.05), (0.9, 0.05)])
 
 # Observe() records a sample value at the current time.
 summary.Observe(1)
+```
+
+### Labels
+
+See the [prometheus docs](https://prometheus.io/docs/practices/instrumentation/#use-labels) for a proper explanation of labels.
+
+Labels allow you to group related metrics that differ along one or more dimensions.  Rather than programmatically generating metric names, you can instead use labels to differentiate them.  A common example is for http response codes.  Rather than making an http_response_200_total metric and an http_response_404 metric, you would instead make a single http_response_total metric with response_code as a label to differentiate the 200 and 404 response measurements.  Each distinct set of label values represents a standalone time-series.
+
+```python
+http_response_total = registry.MakeCounter('http_response_total', labels=['response_code'])
+
+# Record a 200 result
+http_response_total.WithLabelValues({'response_code':'200'}).Increment()
+
+# Record a 404 result
+http_response_total.WithLabelValues({'response_code':'404'}).Increment()
+
+# For better performance, you can save a reference to the metric for a given set of labels
+http_response_total_200 = http_response_total.WithLabelValues({'response_code':'200'})
+http_response_total_200.Increment()
+
+# Metrics are stored and can be looked up at will. If given the same label values, WithLabelValues() will return the
+# same metric object
+assert(http_response_total_200 is http_response_total.WithLabelValues({'response_code':'200'}))
+
+# Which allows you to refer to the metric either way. If http_response_total_200 has a value of zero, then:
+http_response_total_200.Increment()
+http_response_total.WithLabelValues({'response_code':'200'}).Increment()
+# Will result in http_response_total_200 having a value of 2
+
+# If the metric returned by MakeCounter() is used directly, it uses empty strings for its label values
+assert(http_response_total is http_response_total.WithLabelValues({'response_code':''}))
 ```
 
 ## Building
