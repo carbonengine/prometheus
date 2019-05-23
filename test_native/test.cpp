@@ -515,9 +515,11 @@ TEST_F(TestSummary, MakeSummaryWithLabels) {
 	std::string label_values[] = { RandomString(), RandomString() };
 	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
 	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
-	registry->MakeSummary(n.c_str(), 2, label_names_c, 0, nullptr, nullptr, 0, 0);
 
-	auto line = FetchLine(n);
+	auto family = registry->MakeSummary(n.c_str(), 2, label_names_c, 0, nullptr, nullptr, 0, 0);
+	SummaryInterface* summary = family->WithLabelValues(label_values_c, 2);
+
+	auto line = FetchLine(label_values[0]);
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_names[1]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_values[0]) != std::string::npos);

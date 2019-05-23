@@ -222,6 +222,15 @@ Summary& MetricFactory::MakeSummary(const std::string& name, const std::map<std:
 		}
 	}
 
+	// If the window is invalid or unspecified, default to a 5-minute window, split into 5 partitions (of 1 minute each)
+	if (total_window_size_seconds <= 0) {
+		total_window_size_seconds = 300;
+	}
+
+	if (window_partitions <= 0) {
+		window_partitions = 5;
+	}
+
 	// Create the metric
 	auto& prometheus_metric = family->Add(labels, quantiles_converted, std::chrono::seconds{ total_window_size_seconds / window_partitions }, window_partitions);
 	std::vector<std::string> label_names_vec;

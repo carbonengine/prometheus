@@ -90,23 +90,44 @@ const std::vector<std::string>& Summary::label_names() {
 typedef struct {
 	PyObject_HEAD
 	std::unique_ptr<Summary> summary;
+	PyObject* family;
+	std::unordered_map<std::string, PyObject*>* cache;
 } SummaryPyObject;
 
 static int Summary_init(SummaryPyObject *self, PyObject *args, PyObject *kwds) {
 	PyObject* capsule = NULL;
+	PyObject* family = NULL;
 
-	static char *kwlist[] = { "capsule", NULL };
+	static char *kwlist[] = { "capsule", "family", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &capsule))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist, &capsule, &family))
 		return -1;
 
 	Summary* wrapped = (Summary*)PyCapsule_GetPointer(capsule, NULL);
 	self->summary.reset(wrapped);
+
+	if (family != NULL) {
+		self->family = family;
+		Py_IncRef(family);
+		self->cache = nullptr;
+	}
+	else {
+		self->family = reinterpret_cast<PyObject*>(self);
+		self->cache = new std::unordered_map<std::string, PyObject*>();
+	}
+
 	return 0;
 }
 
 static void Summary_dealloc(SummaryPyObject* self) {
 	self->summary.reset(nullptr);
+
+	if (self->family != reinterpret_cast<PyObject*>(self)) {
+		Py_DecRef(self->family);
+	}
+
+	delete self->family;
+
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
@@ -123,8 +144,88 @@ static PyObject* Summary_Observe(SummaryPyObject* self, PyObject* args, PyObject
 	Py_RETURN_TRUE;
 }
 
+static PyObject* Summary_WithLabelValues(SummaryPyObject* self, PyObject* args, PyObject* keywords) {
+	PyObject* arg_labels = NULL;
+
+	static char* keyword_list[] = { "labels", NULL };
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "|O", keyword_list, &arg_labels)) {
+		return Py_BuildValue("O", self);
+	}
+
+	// Convert labels dictionary to map
+	std::map<std::string, std::string> labels;
+	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
+		PyObject* py_key = NULL;
+		PyObject* py_value = NULL;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
+			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
+				continue;
+			}
+
+			const char* key = PyString_AsString(py_key);
+			const char* value = PyString_AsString(py_value);
+			labels.insert(std::make_pair(key, value));
+		}
+	}
+
+	// Strip invalid label names
+	auto& valid_label_names = self->summary->label_names();
+	std::vector<std::string> final_labels;
+	for (auto& name : valid_label_names) {
+		auto&& iter = labels.find(name);
+		if (iter != labels.end()) {
+			final_labels.push_back(iter->second);
+		}
+		else {
+			final_labels.push_back("");
+		}
+	}
+
+	// Build cache key
+	std::map<std::string, std::string> final_labels_with_values;
+	for (auto&& label_name : final_labels) {
+		final_labels_with_values.insert(std::make_pair(label_name, labels[label_name]));
+	}
+
+	std::stringstream ss;
+	ss << "s|";
+	ss << self->summary->name();
+	for (auto&& iter : final_labels_with_values) {
+		ss << "|" << iter.first << "=" << iter.second;
+	}
+	std::string cache_key = ss.str();
+
+	// Check cache for the metric
+	SummaryPyObject* family = reinterpret_cast<SummaryPyObject*>(self->family);
+	auto&& family_iter = family->cache->find(cache_key);
+	if (family_iter != family->cache->end()) {
+		PyObject* result = family_iter->second;
+		Py_IncRef(result);
+		return Py_BuildValue("O", result);
+	}
+
+	// Not in cache, so create a new metric
+	auto native_metric = self->summary->WithLabelValues(final_labels);
+	if (native_metric == nullptr) {
+		return Py_BuildValue("O", self);
+	}
+
+	// Cache it
+	PyObject* python_metric = prometheus_module::Summary::CreatePythonObject(native_metric, reinterpret_cast<PyObject*>(family));
+	Py_IncRef(python_metric);
+	family->cache->insert(std::make_pair(cache_key, python_metric));
+
+	// And done
+	return Py_BuildValue("O", python_metric);
+}
+
 static PyMethodDef SummaryPyMethods[] = {
 	{"Observe", (PyCFunction)Summary_Observe, METH_VARARGS | METH_KEYWORDS, "Observe the specified value."},
+
+	{"WithLabelValues", (PyCFunction)Summary_WithLabelValues, METH_VARARGS | METH_KEYWORDS, "Returns the summary with the specified label values."},
 
 	{NULL}  /* Sentinel */
 };
