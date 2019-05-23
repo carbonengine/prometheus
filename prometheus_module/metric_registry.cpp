@@ -76,40 +76,6 @@ Gauge* MetricRegistry::MakeGauge(const char* name, const std::vector<std::string
 	return &result;
 }
 
-Summary* MetricRegistry::MakeSummary(const char* name, const std::map <std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions) {
-	// Assign labels
-	const std::map<std::string, std::string>* final_labels = &private_->default_labels;
-	if (!labels.empty()) {
-		final_labels = &labels;
-	}
-
-	// Convert and assign quantiles
-	prometheus::Summary::Quantiles* final_quantiles = &private_->default_quantiles;
-	prometheus::Summary::Quantiles quantiles_converted;
-	if (!quantiles.empty()) {
-		for (auto e : quantiles) {
-			quantiles_converted.push_back(prometheus::detail::CKMSQuantiles::Quantile(e.first, e.second));
-		}
-		final_quantiles = &quantiles_converted;
-	}
-
-	// If the window is invalid or unspecified, default to a 5-minute window, split into 5 partitions (of 1 minute each)
-	if (total_window_size_seconds <= 0) {
-		total_window_size_seconds = 300;
-	}
-
-	if (window_partitions <= 0) {
-		window_partitions = 5;
-	}
-
-
-	// Create
-	auto& family = prometheus::BuildSummary().Name(name).Labels(private_->default_labels).Register(*private_->registry);
-	prometheus::Summary& prometheus_summary = family.Add(*final_labels, *final_quantiles, std::chrono::seconds{ total_window_size_seconds / window_partitions }, window_partitions);
-
-	return new prometheus_module::Summary(prometheus_summary);
-}
-
 Histogram* MetricRegistry::MakeHistogram(const char* name, const std::vector<std::string>& label_names, const std::vector<double>& boundaries) {
 	std::map<std::string, std::string> labels;
 	for (auto name : label_names) {
@@ -117,6 +83,16 @@ Histogram* MetricRegistry::MakeHistogram(const char* name, const std::vector<std
 	}
 
 	auto& result = private_->factory->MakeHistogram(name, labels, boundaries);
+	return &result;
+}
+
+Summary* MetricRegistry::MakeSummary(const char* name, const std::vector<std::string>& label_names, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions) {
+	std::map<std::string, std::string> labels;
+	for (auto name : label_names) {
+		labels.insert(std::make_pair(name, ""));
+	}
+
+	auto& result = private_->factory->MakeSummary(name, labels, quantiles, total_window_size_seconds, window_partitions);
 	return &result;
 }
 
@@ -136,20 +112,6 @@ GaugeInterface* MetricRegistry::MakeGauge(const char* name, int num_labels, cons
 	return MakeGauge(name, label_names);
 }
 
-SummaryInterface* MetricRegistry::MakeSummary(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_quantiles, double quantile_values[], double quantile_tolerances[], int total_window_size_seconds, int window_partitions) {
-	std::map<std::string, std::string> labels;
-	for (auto i = 0; i < num_labels; i++) {
-		labels.insert(std::make_pair(label_keys[i], label_values[i]));
-	}
-
-	std::vector<std::pair<double, double> > quantiles;
-	for (auto i = 0; i < num_quantiles; i++) {
-		quantiles.push_back(std::make_pair(quantile_values[i], quantile_tolerances[i]));
-	}
-
-	return MakeSummary(name, labels, quantiles, total_window_size_seconds, window_partitions);
-}
-
 HistogramInterface* MetricRegistry::MakeHistogram(const char* name, int num_labels, const char* label_keys[], int num_boundaries, double boundary_values[]) {
 	std::vector<std::string> label_names;
 	for (int i = 0; i < num_labels; i++) {
@@ -162,6 +124,20 @@ HistogramInterface* MetricRegistry::MakeHistogram(const char* name, int num_labe
 	}
 
 	return MakeHistogram(name, label_names, boundaries);
+}
+
+SummaryInterface* MetricRegistry::MakeSummary(const char* name, int num_labels, const char* label_keys[], int num_quantiles, double quantile_values[], double quantile_tolerances[], int total_window_size_seconds, int window_partitions) {
+	std::vector<std::string> label_names;
+	for (int i = 0; i < num_labels; i++) {
+		label_names.push_back(label_keys[i]);
+	}
+
+	std::vector< std::pair<double, double> > quantiles;
+	for (auto i = 0; i < num_quantiles; i++) {
+		quantiles.push_back(std::make_pair(quantile_values[i], quantile_tolerances[i]));
+	}
+
+	return MakeSummary(name, label_names, quantiles, total_window_size_seconds, window_partitions);
 }
 
 bool MetricRegistry::Serve(const char* bind_address) {
@@ -342,20 +318,16 @@ static PyObject* MetricRegistry_MakeSummary(MetricRegistryPyObject* self, PyObje
 	}
 
 	// Convert labels
-	std::map<std::string, std::string> labels;
-	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
-		PyObject* py_key = NULL;
-		PyObject* py_value = NULL;
-		Py_ssize_t pos = 0;
-
-		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
-			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
+	std::vector<std::string> label_names;
+	if (arg_labels != NULL && PyList_Check(arg_labels)) {
+		auto num_elements = PyList_Size(arg_labels);
+		for (auto i = 0; i < num_elements; i++) {
+			char* label = PyString_AsString(PyList_GetItem(arg_labels, i));
+			if (label == NULL) {
 				continue;
 			}
 
-			const char* key = PyString_AsString(py_key);
-			const char* value = PyString_AsString(py_value);
-			labels.insert(std::make_pair(key, value));
+			label_names.push_back(label);
 		}
 	}
 
@@ -386,7 +358,7 @@ static PyObject* MetricRegistry_MakeSummary(MetricRegistryPyObject* self, PyObje
 	}
 
 	// Create the Summary
-	Summary* native_summary = self->metric_registry->MakeSummary(name.c_str(), labels, quantiles, window_size_seconds, window_partitions);
+	Summary* native_summary = self->metric_registry->MakeSummary(name.c_str(), label_names, quantiles, window_size_seconds, window_partitions);
 	return Py_BuildValue("O", Summary::CreatePythonObject(native_summary));
 }
 

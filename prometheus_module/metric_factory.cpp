@@ -11,10 +11,12 @@ using namespace prometheus_module;
 #include <prometheus/gauge.h>
 #include <prometheus/histogram.h>
 #include <prometheus/registry.h>
+#include <prometheus/summary.h>
 
 #include "counter.h"
 #include "gauge.h"
 #include "histogram.h"
+#include "summary.h"
 
 struct MetricFactory::Private {
 	static std::string GetHashKey(const std::string& name, const std::map<std::string, std::string>& labels);
@@ -33,6 +35,10 @@ struct MetricFactory::Private {
 	typedef prometheus::Family<prometheus::Histogram> HistogramFamily;
 	std::unordered_map<std::string, HistogramFamily*> histogram_families;
 	std::unordered_map<std::string, std::unique_ptr<prometheus_module::Histogram> > histograms;
+
+	typedef prometheus::Family<prometheus::Summary> SummaryFamily;
+	std::unordered_map<std::string, SummaryFamily*> summary_families;
+	std::unordered_map<std::string, std::unique_ptr<prometheus_module::Summary> > summaries;
 };
 
 std::string MetricFactory::Private::GetHashKey(const std::string& name, const std::map<std::string, std::string>& labels) {
@@ -184,5 +190,50 @@ Histogram& MetricFactory::MakeHistogram(const std::string& name, const std::map<
 
 	// Return it
 	prometheus_module::Histogram* result = result_iter->second.get();
+	return *result;
+}
+
+Summary& MetricFactory::MakeSummary(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions) {
+	// If this metric already exists, then return it
+	auto metric_hash = private_->GetHashKey(name, labels);
+	auto metric_iter = private_->summaries.find(metric_hash);
+	if (metric_iter != private_->summaries.end()) {
+		prometheus_module::Summary* result = metric_iter->second.get();
+		return *result;
+	}
+
+	// The metric doesn't exist yet, so see if its family does
+	auto label_names = private_->GetLabelNames(labels);
+	auto family_hash = private_->GetHashKey(name, label_names);
+	auto family_iter = private_->summary_families.find(family_hash);
+	auto family = family_iter->second;
+	if (family_iter == private_->summary_families.end()) {
+		// If not, then create it
+		std::map<std::string, std::string> empty_labels; ///< See MetricFactory::MakeCounter for an explanation of empty_labels
+		family = &prometheus::BuildSummary().Name(name).Labels(empty_labels).Register(*private_->registry.get());
+		private_->summary_families.insert(std::make_pair(family_hash, family));
+	}
+
+	// Convert to prometheus quantiles type
+	prometheus::Summary::Quantiles quantiles_converted;
+	if (!quantiles.empty()) {
+		for (auto q : quantiles) {
+			quantiles_converted.push_back(prometheus::detail::CKMSQuantiles::Quantile(q.first, q.second));
+		}
+	}
+
+	// Create the metric
+	auto& prometheus_metric = family->Add(labels, quantiles_converted, std::chrono::seconds{ total_window_size_seconds / window_partitions }, window_partitions);
+	std::vector<std::string> label_names_vec;
+	for (auto& label_names_iter : label_names) {
+		label_names_vec.push_back(label_names_iter.first);
+	}
+	std::unique_ptr<prometheus_module::Summary> ptr = std::make_unique<prometheus_module::Summary>(prometheus_metric, *this, name, label_names_vec, quantiles, total_window_size_seconds, window_partitions);
+
+	// Store it
+	auto result_iter = private_->summaries.insert(std::make_pair(metric_hash, std::move(ptr))).first;
+
+	// Return it
+	prometheus_module::Summary* result = result_iter->second.get();
 	return *result;
 }

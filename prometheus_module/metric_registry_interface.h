@@ -15,8 +15,8 @@ public:
 
 	virtual CounterInterface* MakeCounter(const char* name, int num_labels, const char* label_keys[]) = 0;
 	virtual GaugeInterface* MakeGauge(const char* name, int num_labels, const char* label_keys[]) = 0;
-	virtual SummaryInterface* MakeSummary(const char* name, int num_labels, const char* label_keys[], const char* label_values[], int num_quantiles, double quantile_values[], double quantile_tolerances[], int total_window_size_seconds, int window_partitions) = 0;
 	virtual HistogramInterface* MakeHistogram(const char* name, int num_labels, const char* label_keys[], int num_boundaries, double boundaries[]) = 0;
+	virtual SummaryInterface* MakeSummary(const char* name, int num_labels, const char* label_keys[], int num_quantiles, double quantile_values[], double quantile_tolerances[], int total_window_size_seconds, int window_partitions) = 0;
 
 	virtual bool Serve(const char* bind_address) = 0;
 	virtual void StopServing() = 0;

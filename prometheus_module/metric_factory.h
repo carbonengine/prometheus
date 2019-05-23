@@ -28,7 +28,7 @@ public:
 	Counter& MakeCounter(const std::string& name, const std::map<std::string, std::string>& labels);
 	Gauge& MakeGauge(const std::string& name, const std::map<std::string, std::string>& labels);
 	Histogram& MakeHistogram(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries);
-	//Summary& MakeSummary(/*stuff*/);
+	Summary& MakeSummary(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions);
 
 private:
 

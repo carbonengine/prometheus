@@ -5,8 +5,10 @@
 #include <map>
 #include <memory>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <thread>
+#include <unordered_map>
 
 // Python
 #include <Python.h>
@@ -15,22 +17,69 @@
 #include <prometheus/summary.h>
 using namespace prometheus_module;
 
+// prometheus_module
+#include "metric_factory.h"
+
 struct Summary::Private {
-	Private(prometheus::Summary& wrapped) :
-		summary(wrapped)
+	Private(prometheus::Summary& wrapped, prometheus_module::MetricFactory& factory) :
+		summary(wrapped),
+		factory(factory)
 	{
 	}
 
 	prometheus::Summary& summary;
+	prometheus_module::MetricFactory& factory;
+	std::string name;
+	std::vector<std::string> labels;
+	std::vector<std::pair<double, double> > quantiles;
+	int total_window_size_seconds;
+	int window_partitions;
 };
 
-Summary::Summary(prometheus::Summary& summary) :
-	private_(std::make_unique<Private>(summary))
+Summary::Summary(prometheus::Summary& summary, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions) :
+	private_(std::make_unique<Private>(summary, factory))
 {
+	private_->name = name;
+	private_->labels = labels;
+	private_->quantiles = quantiles;
+	private_->total_window_size_seconds = total_window_size_seconds;
+	private_->window_partitions = window_partitions;
 }
+
+Summary::~Summary() = default;
 
 void Summary::Observe(double value) {
 	private_->summary.Observe(value);
+}
+
+SummaryInterface* Summary::WithLabelValues(const char* values[], int num_values) {
+	std::vector<std::string> values_vec;
+	for (auto i = 0; i < num_values; i++) {
+		values_vec.push_back(values[i]);
+	}
+	return WithLabelValues(values_vec);
+}
+
+Summary* Summary::WithLabelValues(std::vector<std::string> values) {
+	if (values.size() != private_->labels.size()) {
+		return nullptr;
+	}
+
+	std::map<std::string, std::string> labels;
+	for (auto i = 0; i < private_->labels.size(); i++) {
+		labels.insert(std::make_pair(private_->labels[i], values[i]));
+	}
+
+	Summary& result = private_->factory.MakeSummary(private_->name, labels, private_->quantiles, private_->total_window_size_seconds, private_->window_partitions);
+	return &result;
+}
+
+const std::string& Summary::name() {
+	return private_->name;
+}
+
+const std::vector<std::string>& Summary::label_names() {
+	return private_->labels;
 }
 
 
@@ -131,9 +180,15 @@ void Summary::RegisterPythonObject(PyObject* module) {
 	PyModule_AddObject(module, "Summary", (PyObject *)&SummaryPyType);
 }
 
-PyObject* Summary::CreatePythonObject(Summary* wrapped) {
+PyObject* Summary::CreatePythonObject(Summary* wrapped, PyObject* family) {
 	PyObject* capsule = PyCapsule_New((void*)wrapped, NULL, NULL);
-	PyObject* obj = PyObject_CallObject((PyObject*)&SummaryPyType, Py_BuildValue("(O)", capsule));
+	PyObject* obj = nullptr;
+	if (family != nullptr) {
+		obj = PyObject_Call((PyObject*)&SummaryPyType, Py_BuildValue("(O)", capsule), Py_BuildValue("{s:O}", "family", family));
+	}
+	else {
+		obj = PyObject_CallObject((PyObject*)&SummaryPyType, Py_BuildValue("(O)", capsule));
+	}
 	return obj;
 }
 

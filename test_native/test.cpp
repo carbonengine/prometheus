@@ -505,7 +505,7 @@ protected:
 TEST_F(TestSummary, MakeSummary) {
 	auto n = RandomString();
 	EXPECT_TRUE(FetchLines(n).empty());
-	registry->MakeSummary(n.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr, 0, 0);
+	registry->MakeSummary(n.c_str(), 0, nullptr, 0, nullptr, nullptr, 0, 0);
 	EXPECT_FALSE(FetchLines(n).empty());
 }
 
@@ -515,7 +515,7 @@ TEST_F(TestSummary, MakeSummaryWithLabels) {
 	std::string label_values[] = { RandomString(), RandomString() };
 	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
 	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
-	registry->MakeSummary(n.c_str(), 2, label_names_c, label_values_c, 0, nullptr, nullptr, 0, 0);
+	registry->MakeSummary(n.c_str(), 2, label_names_c, 0, nullptr, nullptr, 0, 0);
 
 	auto line = FetchLine(n);
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
@@ -528,7 +528,7 @@ TEST_F(TestSummary, MakeSummaryWithQuantiles) {
 	auto n = RandomString();
 	double quantiles[] = { 0.1, 0.5, 0.9 };
 	double tolerances[] = { 0.05, 0.05, 0.05 };
-	registry->MakeSummary(n.c_str(), 0, nullptr, nullptr, 3, quantiles, tolerances, 0, 0);
+	registry->MakeSummary(n.c_str(), 0, nullptr, 3, quantiles, tolerances, 0, 0);
 
 	auto values = FetchSummary(n);
 	EXPECT_EQ(values.count, 0);
@@ -536,11 +536,28 @@ TEST_F(TestSummary, MakeSummaryWithQuantiles) {
 	EXPECT_EQ(values.quantiles.size(), 3);
 }
 
+TEST_F(TestSummary, MakeSummaryWithNewQuantilesFails) {
+	auto n = RandomString();
+	std::string label_names[] = { RandomString(), RandomString() };
+	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
+	double quantiles[] = { 0.1, 0.5, 0.9 };
+	double tolerances[] = { 0.05, 0.05, 0.05 };
+	auto metric = registry->MakeSummary(n.c_str(), 2, label_names_c, 3, quantiles, tolerances, 0, 0);
+
+	double new_quantiles[] = { 0.2, 0.3, 0.4 };
+	double new_tolerances[] = { 0.1, 0.2, 0.3 };
+	auto new_metric = registry->MakeSummary(n.c_str(), 2, label_names_c, 3, new_quantiles, new_tolerances, 0, 0);
+
+	// If the metric name and label names match, then MakeSummary will return the existing metric.
+	// The new quantiles have no effect, and do NOT replace the existing metric's quantiles.
+	EXPECT_EQ(metric, new_metric);
+}
+
 TEST_F(TestSummary, Observe) {
 	auto n = RandomString();
 	double quantiles[] = { 0.1, 0.5, 0.9 };
 	double tolerances[] = { 0.05, 0.05, 0.05 };
-	auto s = registry->MakeSummary(n.c_str(), 0, nullptr, nullptr, 3, quantiles, tolerances, 0, 0);
+	auto s = registry->MakeSummary(n.c_str(), 0, nullptr, 3, quantiles, tolerances, 0, 0);
 
 	s->Observe(1.0);
 	s->Observe(10.0);
