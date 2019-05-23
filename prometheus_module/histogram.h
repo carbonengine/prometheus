@@ -2,6 +2,8 @@
 #define HISTOGRAM_H
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include <prometheus/histogram.h>
 
@@ -11,16 +13,27 @@ struct _object;
 typedef _object PyObject;
 
 namespace prometheus_module {
+	class MetricFactory;
+} //namespace prometheus_module
+
+namespace prometheus_module {
 
 class Histogram : public HistogramInterface {
 public:
 
-	Histogram(prometheus::Histogram& histogram);
+	Histogram(prometheus::Histogram& histogram, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels, const std::vector<double>& boundaries);
+	~Histogram();
 
 	void Observe(double value) override;
 
+	HistogramInterface* WithLabelValues(const char* values[], int num_values) override;
+
+	Histogram* WithLabelValues(std::vector<std::string> values);
+	const std::string& name();
+	const std::vector<std::string>& label_names();
+
 	static void RegisterPythonObject(PyObject* module);
-	static PyObject* CreatePythonObject(Histogram* wrapped);
+	static PyObject* CreatePythonObject(Histogram* wrapped, PyObject* family=nullptr);
 
 private:
 

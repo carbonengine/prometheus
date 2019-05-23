@@ -5,8 +5,10 @@
 #include <map>
 #include <memory>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <thread>
+#include <unordered_map>
 
 // Python
 #include <Python.h>
@@ -15,22 +17,65 @@
 #include <prometheus/histogram.h>
 using namespace prometheus_module;
 
+// prometheus_module
+#include "metric_factory.h"
+
 struct Histogram::Private {
-	Private(prometheus::Histogram& wrapped) :
-		histogram(wrapped)
+	Private(prometheus::Histogram& wrapped, prometheus_module::MetricFactory& factory) :
+		histogram(wrapped),
+		factory(factory)
 	{
 	}
 
 	prometheus::Histogram& histogram;
+	prometheus_module::MetricFactory& factory;
+	std::string name;
+	std::vector<std::string> labels;
+	std::vector<double> boundaries;
 };
 
-Histogram::Histogram(prometheus::Histogram& histogram) :
-	private_(std::make_unique<Private>(histogram))
+Histogram::Histogram(prometheus::Histogram& histogram, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels, const std::vector<double>& boundaries) :
+	private_(std::make_unique<Private>(histogram, factory))
 {
+	private_->name = name;
+	private_->labels = labels;
+	private_->boundaries = boundaries;
 }
+
+Histogram::~Histogram() = default;
 
 void Histogram::Observe(double value) {
 	private_->histogram.Observe(value);
+}
+
+HistogramInterface* Histogram::WithLabelValues(const char* values[], int num_values) {
+	std::vector<std::string> values_vec;
+	for (auto i = 0; i < num_values; i++) {
+		values_vec.push_back(values[i]);
+	}
+	return WithLabelValues(values_vec);
+}
+
+Histogram* Histogram::WithLabelValues(std::vector<std::string> values) {
+	if (values.size() != private_->labels.size()) {
+		return nullptr;
+	}
+
+	std::map<std::string, std::string> labels;
+	for (auto i = 0; i < private_->labels.size(); i++) {
+		labels.insert(std::make_pair(private_->labels[i], values[i]));
+	}
+
+	Histogram& result = private_->factory.MakeHistogram(private_->name, labels, private_->boundaries);
+	return &result;
+}
+
+const std::string& Histogram::name() {
+	return private_->name;
+}
+
+const std::vector<std::string>& Histogram::label_names() {
+	return private_->labels;
 }
 
 
@@ -41,23 +86,44 @@ void Histogram::Observe(double value) {
 typedef struct {
 	PyObject_HEAD
 	std::unique_ptr<Histogram> histogram;
+	PyObject* family;
+	std::unordered_map<std::string, PyObject*>* cache;
 } HistogramPyObject;
 
 static int Histogram_init(HistogramPyObject *self, PyObject *args, PyObject *kwds) {
 	PyObject* capsule = NULL;
+	PyObject* family = NULL;
 
-	static char *kwlist[] = { "capsule", NULL };
+	static char *kwlist[] = { "capsule", "family", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &capsule))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist, &capsule, &family))
 		return -1;
 
 	Histogram* wrapped = (Histogram*)PyCapsule_GetPointer(capsule, NULL);
 	self->histogram.reset(wrapped);
+
+	if (family != NULL) {
+		self->family = family;
+		Py_IncRef(family);
+		self->cache = nullptr;
+	}
+	else {
+		self->family = reinterpret_cast<PyObject*>(self);
+		self->cache = new std::unordered_map<std::string, PyObject*>();
+	}
+
 	return 0;
 }
 
 static void Histogram_dealloc(HistogramPyObject* self) {
 	self->histogram.reset(nullptr);
+
+	if (self->family != reinterpret_cast<PyObject*>(self)) {
+		Py_DecRef(self->family);
+	}
+
+	delete self->family;
+
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
@@ -74,8 +140,88 @@ static PyObject* Histogram_Observe(HistogramPyObject* self, PyObject* args, PyOb
 	Py_RETURN_TRUE;
 }
 
+static PyObject* Histogram_WithLabelValues(HistogramPyObject* self, PyObject* args, PyObject* keywords) {
+	PyObject* arg_labels = NULL;
+
+	static char* keyword_list[] = { "labels", NULL };
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "|O", keyword_list, &arg_labels)) {
+		return Py_BuildValue("O", self);
+	}
+
+	// Convert labels dictionary to map
+	std::map<std::string, std::string> labels;
+	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
+		PyObject* py_key = NULL;
+		PyObject* py_value = NULL;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
+			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
+				continue;
+			}
+
+			const char* key = PyString_AsString(py_key);
+			const char* value = PyString_AsString(py_value);
+			labels.insert(std::make_pair(key, value));
+		}
+	}
+
+	// Strip invalid label names
+	auto& valid_label_names = self->histogram->label_names();
+	std::vector<std::string> final_labels;
+	for (auto& name : valid_label_names) {
+		auto&& iter = labels.find(name);
+		if (iter != labels.end()) {
+			final_labels.push_back(iter->second);
+		}
+		else {
+			final_labels.push_back("");
+		}
+	}
+
+	// Build cache key
+	std::map<std::string, std::string> final_labels_with_values;
+	for (auto&& label_name : final_labels) {
+		final_labels_with_values.insert(std::make_pair(label_name, labels[label_name]));
+	}
+
+	std::stringstream ss;
+	ss << "h|";
+	ss << self->histogram->name();
+	for (auto&& iter : final_labels_with_values) {
+		ss << "|" << iter.first << "=" << iter.second;
+	}
+	std::string cache_key = ss.str();
+
+	// Check cache for the metric
+	HistogramPyObject* family = reinterpret_cast<HistogramPyObject*>(self->family);
+	auto&& family_iter = family->cache->find(cache_key);
+	if (family_iter != family->cache->end()) {
+		PyObject* result = family_iter->second;
+		Py_IncRef(result);
+		return Py_BuildValue("O", result);
+	}
+
+	// Not in cache, so create a new metric
+	auto native_metric = self->histogram->WithLabelValues(final_labels);
+	if (native_metric == nullptr) {
+		return Py_BuildValue("O", self);
+	}
+
+	// Cache it
+	PyObject* python_metric = prometheus_module::Histogram::CreatePythonObject(native_metric, reinterpret_cast<PyObject*>(family));
+	Py_IncRef(python_metric);
+	family->cache->insert(std::make_pair(cache_key, python_metric));
+
+	// And done
+	return Py_BuildValue("O", python_metric);
+}
+
 static PyMethodDef HistogramPyMethods[] = {
 	{"Observe", (PyCFunction)Histogram_Observe, METH_VARARGS | METH_KEYWORDS, "Observe the specified value."},
+
+	{"WithLabelValues", (PyCFunction)Histogram_WithLabelValues, METH_VARARGS | METH_KEYWORDS, "Returns the histogram with the specified label values."},
 
 	{NULL}  /* Sentinel */
 };
@@ -131,9 +277,14 @@ void Histogram::RegisterPythonObject(PyObject* module) {
 	PyModule_AddObject(module, "Histogram", (PyObject *)&HistogramPyType);
 }
 
-PyObject* Histogram::CreatePythonObject(Histogram* wrapped) {
+PyObject* Histogram::CreatePythonObject(Histogram* wrapped, PyObject* family) {
 	PyObject* capsule = PyCapsule_New((void*)wrapped, NULL, NULL);
-	PyObject* obj = PyObject_CallObject((PyObject*)&HistogramPyType, Py_BuildValue("(O)", capsule));
+	PyObject* obj = nullptr;
+	if (family != nullptr) {
+		obj = PyObject_Call((PyObject*)&HistogramPyType, Py_BuildValue("(O)", capsule), Py_BuildValue("{s:O}", "family", family));
+	}
+	else {
+		obj = PyObject_CallObject((PyObject*)&HistogramPyType, Py_BuildValue("(O)", capsule));
+	}
 	return obj;
 }
-

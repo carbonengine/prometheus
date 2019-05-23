@@ -5,8 +5,10 @@
 #include <map>
 #include <memory>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <thread>
+#include <unordered_map>
 
 // Python
 #include <Python.h>
@@ -15,19 +17,30 @@
 #include <prometheus/counter.h>
 using namespace prometheus_module;
 
+// prometheus_module
+#include "metric_factory.h"
+
 struct Counter::Private {
-	Private(prometheus::Counter& wrapped) :
-		counter(wrapped)
+	Private(prometheus::Counter& wrapped, prometheus_module::MetricFactory& factory) :
+		counter(wrapped),
+		factory(factory)
 	{
 	}
 
 	prometheus::Counter& counter;
+	prometheus_module::MetricFactory& factory;
+	std::string name;
+	std::vector<std::string> labels;
 };
 
-Counter::Counter(prometheus::Counter& counter) :
-	private_(std::make_unique<Private>(counter))
+Counter::Counter(prometheus::Counter& counter, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels) :
+	private_(std::make_unique<Private>(counter, factory))
 {
+	private_->name = name;
+	private_->labels = labels;
 }
+
+Counter::~Counter() = default;
 
 void Counter::Increment() {
 	private_->counter.Increment();
@@ -35,6 +48,36 @@ void Counter::Increment() {
 
 void Counter::Increment(double value) {
 	private_->counter.Increment(value);
+}
+
+CounterInterface* Counter::WithLabelValues(const char* values[], int num_values) {
+	std::vector<std::string> values_vec;
+	for (auto i = 0; i < num_values; i++) {
+		values_vec.push_back(values[i]);
+	}
+	return WithLabelValues(values_vec);
+}
+
+Counter* Counter::WithLabelValues(std::vector<std::string> values) {
+	if (values.size() != private_->labels.size()) {
+		return nullptr;
+	}
+
+	std::map<std::string, std::string> labels;
+	for (auto i = 0; i < private_->labels.size(); i++) {
+		labels.insert(std::make_pair(private_->labels[i], values[i]));
+	}
+
+	Counter& result = private_->factory.MakeCounter(private_->name, labels);
+	return &result;
+}
+
+const std::string& Counter::name() {
+	return private_->name;
+}
+
+const std::vector<std::string>& Counter::label_names() {
+	return private_->labels;
 }
 
 
@@ -45,24 +88,123 @@ void Counter::Increment(double value) {
 typedef struct {
 	PyObject_HEAD
 	std::unique_ptr<Counter> counter;
+	PyObject* family;
+	std::unordered_map<std::string, PyObject*>* cache;
 } CounterPyObject;
 
 static int Counter_init(CounterPyObject *self, PyObject *args, PyObject *kwds) {
 	PyObject* capsule = NULL;
+	PyObject* family = NULL;
 
-	static char *kwlist[] = { "capsule", NULL };
+	static char *kwlist[] = { "capsule", "family", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &capsule))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist, &capsule, &family))
 		return -1;
 
 	Counter* wrapped = (Counter*)PyCapsule_GetPointer(capsule, NULL);
 	self->counter.reset(wrapped);
+
+	if (family != NULL) {
+		self->family = family;
+		Py_IncRef(family);
+		self->cache = nullptr;
+	}
+	else {
+		self->family = reinterpret_cast<PyObject*>(self);
+		self->cache = new std::unordered_map<std::string, PyObject*>();
+	}
+
 	return 0;
 }
 
 static void Counter_dealloc(CounterPyObject* self) {
 	self->counter.reset(nullptr);
+	
+	if (self->family != reinterpret_cast<PyObject*>(self)) {
+		Py_DecRef(self->family);
+	}
+
+	delete self->family;
+
 	Py_TYPE(self)->tp_free((PyObject*)self);
+}
+
+static PyObject* Counter_WithLabelValues(CounterPyObject* self, PyObject* args, PyObject* keywords) {
+	PyObject* arg_labels = NULL;
+
+	static char* keyword_list[] = {"labels", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "|O", keyword_list, &arg_labels)) {
+		return Py_BuildValue("O", self);
+	}
+
+	// Convert labels dictionary to map
+	std::map<std::string, std::string> labels;
+	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
+		PyObject* py_key = NULL;
+		PyObject* py_value = NULL;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
+			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
+				continue;
+			}
+
+			const char* key = PyString_AsString(py_key);
+			const char* value = PyString_AsString(py_value);
+			labels.insert(std::make_pair(key, value));
+		}
+	}
+
+	// Strip invalid label names
+	auto& valid_label_names = self->counter->label_names();
+	std::vector<std::string> final_labels;
+	for (auto& name : valid_label_names) {
+		auto&& iter = labels.find(name);
+		if (iter != labels.end()) {
+			final_labels.push_back(iter->second);
+		}
+		else {
+			final_labels.push_back("");
+		}
+	}
+
+	// Build cache key
+	std::map<std::string, std::string> final_labels_with_values;
+	for (auto&& label_name : final_labels) {
+		final_labels_with_values.insert(std::make_pair(label_name, labels[label_name]));
+	}
+	
+	std::stringstream ss;
+	ss << "c|";
+	ss << self->counter->name();
+	for (auto&& iter : final_labels_with_values) {
+		ss << "|" << iter.first << "=" << iter.second;
+	}
+	std::string cache_key = ss.str();
+
+	// Check cache for the metric
+	CounterPyObject* family = reinterpret_cast<CounterPyObject*>(self->family);
+	auto&& family_iter = family->cache->find(cache_key);
+	if (family_iter != family->cache->end()) {
+		PyObject* result = family_iter->second;
+		Py_IncRef(result);
+		return Py_BuildValue("O", result);
+	}
+
+	// Not in cache, so create a new metric
+	prometheus_module::Counter* native_counter = self->counter->WithLabelValues(final_labels);
+	if (native_counter == nullptr) {
+		return Py_BuildValue("O", self);
+	}
+
+	// Cache it
+	PyObject* python_counter = prometheus_module::Counter::CreatePythonObject(native_counter, reinterpret_cast<PyObject*>(family));
+	Py_IncRef(python_counter);
+	family->cache->insert(std::make_pair(cache_key, python_counter));
+
+	// And done
+	return Py_BuildValue("O", python_counter);
 }
 
 static PyObject* Counter_Increment(CounterPyObject* self, PyObject* args, PyObject* keywords) {
@@ -86,6 +228,7 @@ static PyObject* Counter_Increment(CounterPyObject* self, PyObject* args, PyObje
 }
 
 static PyMethodDef CounterPyMethods[] = {
+	{"WithLabelValues", (PyCFunction)Counter_WithLabelValues, METH_VARARGS | METH_KEYWORDS, "Returns the counter with the specified label values."},
 	{"Increment", (PyCFunction)Counter_Increment, METH_VARARGS | METH_KEYWORDS, "Increment the counter. Optionally, specify a value to increment by (default 1.0). If a value is specified, it must be non-zero."},
 
 	{NULL}  /* Sentinel */
@@ -141,9 +284,15 @@ void Counter::RegisterPythonObject(PyObject* module) {
 	PyModule_AddObject(module, "Counter", (PyObject *)&CounterPyType);
 }
 
-PyObject* Counter::CreatePythonObject(Counter* wrapped) {
+PyObject* Counter::CreatePythonObject(Counter* wrapped, PyObject* family) {
 	PyObject* capsule = PyCapsule_New((void*)wrapped, NULL, NULL);
-	PyObject* obj = PyObject_CallObject((PyObject*)&CounterPyType, Py_BuildValue("(O)", capsule));
+	PyObject* obj = nullptr;
+	if (family != nullptr) {
+		obj = PyObject_Call((PyObject*)&CounterPyType, Py_BuildValue("(O)", capsule), Py_BuildValue("{s:O}", "family", family));
+	}
+	else {
+		obj = PyObject_CallObject((PyObject*)&CounterPyType, Py_BuildValue("(O)", capsule));
+	}
 	return obj;
 }
 

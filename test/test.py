@@ -36,6 +36,13 @@ class TestBase(unittest.TestCase):
                 result.append(line)
         return result
 
+    def FetchLinesWithComments(self, substr, port=''):
+        result = []
+        for line in self.Fetch(port).split('\n'):
+            if (substr in line):
+                result.append(line)
+        return result
+
     def IsServerListening(self, port=''):
         try:
             content = self.Fetch(port)
@@ -132,9 +139,10 @@ class TestCounter(TestBase):
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
-        self.registry.MakeCounter(n, {label_name:label_value, label_name2:label_value2})
+        counter_family = self.registry.MakeCounter(n, [label_name, label_name2])
+        counter = counter_family.WithLabelValues({label_name:label_value, label_name2:label_value2}) 
 
-        line = self.FetchLine(n)
+        line = self.FetchLine(label_value)
         self.assertTrue(label_name in line)
         self.assertTrue(label_value in line)
         self.assertTrue(label_name2 in line)
@@ -148,6 +156,44 @@ class TestCounter(TestBase):
         self.assertEqual(self.FetchCounter(n), 1, 'Counter must increment by one by default')
         c.Increment(10)
         self.assertEqual(self.FetchCounter(n), 11, 'Counter must increment by parameter value')
+
+    def test_counter_increment_with_labels(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_name2 = self.RandomString() 
+        # label_name2 exists to show that only providing label_name (omitting label_name2) in WithLabelValues still works
+        # WithLabelValues({label_name:whatever}) (omitting label_name2) is the same as WithLabelValues({label_name:whatever,label_name2:''})
+        f = self.registry.MakeCounter(n, [label_name, label_name2])
+
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+        c = f.WithLabelValues({label_name:label_value})
+        c2 = f.WithLabelValues({label_name:label_value2})
+
+        self.assertEqual(self.FetchCounter(label_value), 0, 'Counter with labels must start at zero')
+        c.Increment()
+        self.assertEqual(self.FetchCounter(label_value), 1, 'Counter with labels must increment by one by default')
+
+        f.WithLabelValues({label_name:label_value}).Increment(10)
+        self.assertEqual(self.FetchCounter(label_value), 11, 'Counter with labels must increment by parameter value')
+
+        f.WithLabelValues({label_name:label_value2}).Increment(1)
+        self.assertEqual(self.FetchCounter(label_value), 11, 'Counters with distinct label values must represent their own time series')
+        self.assertEqual(self.FetchCounter(label_value2), 1, 'Counters with distinct label values must represent their own time series')
+
+    def test_counter_with_labels_reuses_objects(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+
+        f = self.registry.MakeCounter(n, [label_name])
+        c = f.WithLabelValues({label_name:label_value})
+        c_same = f.WithLabelValues({label_name:label_value})
+        c_different = f.WithLabelValues({label_name:label_value2})
+
+        self.assertTrue(c is c_same, 'Metrics with identical name and label values must re-use the object')
+        self.assertFalse(c is c_different, 'Metrics with different name or label values must use distinct objects')
 
     def test_counter_decrement_fails(self):
         n = self.RandomString()
@@ -163,6 +209,19 @@ class TestCounter(TestBase):
         c = self.registry.MakeCounter(n)
         c.Increment(0)
         self.assertEqual(self.FetchCounter(n), 1, 'Incrementing counter by zero must increment by one')
+
+    def test_counters_with_different_label_values_share_one_type_definition(self):
+        # The page pulled by prometheus contains a TYPE definition for each metric like this:
+        #   '# TYPE my_counter_name counter'
+        # When there are multiple metrics with the same name but different label values, they should share one definition
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = label_value + '-2'
+        self.registry.MakeCounter(n, {label_name:label_value})
+        self.registry.MakeCounter(n, {label_name:label_value2})
+        lines = self.FetchLinesWithComments('TYPE ' + n)
+        self.assertEqual(len(lines), 1)
 
 
 #
@@ -198,9 +257,10 @@ class TestGauge(TestBase):
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
-        self.registry.MakeGauge(n, {label_name:label_value, label_name2:label_value2})
+        gauge_family = self.registry.MakeGauge(n, [label_name, label_name2])
+        gauge = gauge_family.WithLabelValues({label_name:label_value, label_name2:label_value2})
 
-        line = self.FetchLine(n)
+        line = self.FetchLine(label_value)
         self.assertTrue(label_name in line)
         self.assertTrue(label_value in line)
         self.assertTrue(label_name2 in line)
@@ -234,10 +294,62 @@ class TestGauge(TestBase):
 
     def test_gauge_set(self):
         n = self.RandomString()
-        c = self.registry.MakeGauge(n)
+        m = self.registry.MakeGauge(n)
         self.assertEqual(self.FetchGauge(n), 0, 'Gauge must start at zero')
-        c.Set(999)
+        m.Set(999)
         self.assertEqual(self.FetchGauge(n), 999, 'Gauge must set value to parameter value')
+
+    def test_gauge_set_with_labels(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_name2 = self.RandomString() 
+        # label_name2 exists to show that only providing label_name (omitting label_name2) in WithLabelValues still works
+        # WithLabelValues({label_name:whatever}) (omitting label_name2) is the same as WithLabelValues({label_name:whatever,label_name2:''})
+        f = self.registry.MakeGauge(n, [label_name, label_name2])
+
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+        m = f.WithLabelValues({label_name:label_value})
+        m2 = f.WithLabelValues({label_name:label_value2})
+
+        self.assertEqual(self.FetchGauge(label_value), 0, 'Gauge with labels must start at zero')
+        m.Set(999)
+        self.assertEqual(self.FetchGauge(label_value), 999, 'Gauge must set value to parameter value')
+
+        f.WithLabelValues({label_name:label_value}).Set(10)
+        self.assertEqual(self.FetchGauge(label_value), 10, 'Gauge with labels must set value to parameter value')
+
+        f.WithLabelValues({label_name:label_value2}).Set(1)
+        self.assertEqual(self.FetchGauge(label_value), 10, 'Metrics with distinct label values must represent their own time series')
+        self.assertEqual(self.FetchGauge(label_value2), 1, 'Metrics with distinct label values must represent their own time series')
+
+    def test_gauge_with_labels_reuses_objects(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+
+        f = self.registry.MakeGauge(n, [label_name])
+        m = f.WithLabelValues({label_name:label_value})
+        m_same = f.WithLabelValues({label_name:label_value})
+        m_different = f.WithLabelValues({label_name:label_value2})
+
+        self.assertTrue(m is m_same, 'Metrics with identical name and label values must re-use the object')
+        self.assertFalse(m is m_different, 'Metrics with different name or label values must use distinct objects')
+
+    def test_gauges_with_different_label_values_share_one_type_definition(self):
+        # The page pulled by prometheus contains a TYPE definition for each metric like this:
+        #   '# TYPE my_metric_name gauge'
+        # When there are multiple metrics with the same name but different label values, they should share one definition
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = label_value + '-2'
+        family = self.registry.MakeGauge(n, [label_name])
+        gauge1 = family.WithLabelValues({label_name:label_value})
+        gauge2 = family.WithLabelValues({label_name:label_value2})
+        lines = self.FetchLinesWithComments('TYPE ' + n)
+        self.assertEqual(len(lines), 1)
 
 
 #
@@ -287,9 +399,10 @@ class TestHistogram(TestBase):
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
-        self.registry.MakeHistogram(n, labels={label_name:label_value, label_name2:label_value2})
+        f = self.registry.MakeHistogram(n, labels=[label_name, label_name2])
+        f.WithLabelValues({label_name:label_value, label_name2:label_value2})
 
-        line = self.FetchLine(n)
+        line = self.FetchLine(label_value)
         self.assertTrue(label_name in line)
         self.assertTrue(label_value in line)
         self.assertTrue(label_name2 in line)
@@ -322,6 +435,64 @@ class TestHistogram(TestBase):
         self.assertEqual(buckets[1], 3, 'Observed values must be recorded in their corresponding buckets')
         self.assertEqual(buckets[2], 4, 'Observed values must be recorded in their corresponding buckets')
         self.assertEqual(buckets[3], 5, 'Observed values must be recorded in their corresponding buckets')
+
+    def test_histogram_observe_with_labels(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_name2 = self.RandomString() 
+        # label_name2 exists to show that only providing label_name (omitting label_name2) in WithLabelValues still works
+        # WithLabelValues({label_name:whatever}) (omitting label_name2) is the same as WithLabelValues({label_name:whatever,label_name2:''})
+        f = self.registry.MakeHistogram(n, [label_name, label_name2])
+
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+        m = f.WithLabelValues({label_name:label_value})
+        m2 = f.WithLabelValues({label_name:label_value2})
+
+        values = self.FetchHistogram(label_value)
+        self.assertEqual(values['count'], 0, 'Histogram must start with zero observations')
+
+        m.Observe(1)
+        values = self.FetchHistogram(label_value)
+        self.assertEqual(values['count'], 1, 'Histogram_count must increment with observations')
+
+        f.WithLabelValues({label_name:label_value}).Observe(10)
+        values = self.FetchHistogram(label_value)
+        self.assertEqual(values['count'], 2, 'Histogram_count must increment with observations')
+
+        f.WithLabelValues({label_name:label_value2}).Observe(1)
+        values = self.FetchHistogram(label_value)
+        values2 = self.FetchHistogram(label_value2)
+        self.assertEqual(values['count'], 2, 'Metrics with distinct label values must represent their own time series')
+        self.assertEqual(values2['count'], 1, 'Metrics with distinct label values must represent their own time series')
+
+    def test_histogram_with_labels_reuses_objects(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+
+        f = self.registry.MakeHistogram(n, [label_name])
+        m = f.WithLabelValues({label_name:label_value})
+        m_same = f.WithLabelValues({label_name:label_value})
+        m_different = f.WithLabelValues({label_name:label_value2})
+
+        self.assertTrue(m is m_same, 'Metrics with identical name and label values must re-use the object')
+        self.assertFalse(m is m_different, 'Metrics with different name or label values must use distinct objects')
+
+    def test_histograms_with_different_label_values_share_one_type_definition(self):
+        # The page pulled by prometheus contains a TYPE definition for each metric like this:
+        #   '# TYPE my_metric_name histogram'
+        # When there are multiple metrics with the same name but different label values, they should share one definition
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = label_value + '-2'
+        family = self.registry.MakeHistogram(n, [label_name])
+        metric1 = family.WithLabelValues({label_name:label_value})
+        metric2 = family.WithLabelValues({label_name:label_value2})
+        lines = self.FetchLinesWithComments('TYPE ' + n)
+        self.assertEqual(len(lines), 1)
 
 
 #
@@ -371,9 +542,10 @@ class TestSummary(TestBase):
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
-        self.registry.MakeSummary(n, labels={label_name:label_value, label_name2:label_value2})
+        f = self.registry.MakeSummary(n, labels=[label_name, label_name2])
+        f.WithLabelValues({label_name:label_value, label_name2:label_value2})
 
-        line = self.FetchLine(n)
+        line = self.FetchLine(label_value)
         self.assertTrue(label_name in line)
         self.assertTrue(label_value in line)
         self.assertTrue(label_name2 in line)
@@ -436,6 +608,64 @@ class TestSummary(TestBase):
         # Now, at t+4s, the sample should be gone
         quantiles = self.FetchSummary(n)['quantiles']
         self.assertTrue(math.isnan(quantiles[0]), 'Sample must be absent at t+4s')
+
+    def test_summary_observe_with_labels(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_name2 = self.RandomString() 
+        # label_name2 exists to show that only providing label_name (omitting label_name2) in WithLabelValues still works
+        # WithLabelValues({label_name:whatever}) (omitting label_name2) is the same as WithLabelValues({label_name:whatever,label_name2:''})
+        f = self.registry.MakeSummary(n, [label_name, label_name2])
+
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+        m = f.WithLabelValues({label_name:label_value})
+        m2 = f.WithLabelValues({label_name:label_value2})
+
+        values = self.FetchSummary(label_value)
+        self.assertEqual(values['count'], 0, 'Summary must start with zero observations')
+
+        m.Observe(1)
+        values = self.FetchSummary(label_value)
+        self.assertEqual(values['count'], 1, 'Summary_count must increment with observations')
+
+        f.WithLabelValues({label_name:label_value}).Observe(10)
+        values = self.FetchSummary(label_value)
+        self.assertEqual(values['count'], 2, 'Summary_count must increment with observations')
+
+        f.WithLabelValues({label_name:label_value2}).Observe(1)
+        values = self.FetchSummary(label_value)
+        values2 = self.FetchSummary(label_value2)
+        self.assertEqual(values['count'], 2, 'Metrics with distinct label values must represent their own time series')
+        self.assertEqual(values2['count'], 1, 'Metrics with distinct label values must represent their own time series')
+
+    def test_summary_with_labels_reuses_objects(self):
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = self.RandomString()
+
+        f = self.registry.MakeSummary(n, [label_name])
+        m = f.WithLabelValues({label_name:label_value})
+        m_same = f.WithLabelValues({label_name:label_value})
+        m_different = f.WithLabelValues({label_name:label_value2})
+
+        self.assertTrue(m is m_same, 'Metrics with identical name and label values must re-use the object')
+        self.assertFalse(m is m_different, 'Metrics with different name or label values must use distinct objects')
+
+    def test_summaries_with_different_label_values_share_one_type_definition(self):
+        # The page pulled by prometheus contains a TYPE definition for each metric like this:
+        #   '# TYPE my_metric_name summary'
+        # When there are multiple metrics with the same name but different label values, they should share one definition
+        n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        label_value2 = label_value + '-2'
+        family = self.registry.MakeSummary(n, [label_name])
+        metric1 = family.WithLabelValues({label_name:label_value})
+        metric2 = family.WithLabelValues({label_name:label_value2})
+        lines = self.FetchLinesWithComments('TYPE ' + n)
+        self.assertEqual(len(lines), 1)
 
 
 #

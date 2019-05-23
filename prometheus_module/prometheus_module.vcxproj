@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Release|x64">
@@ -58,6 +58,7 @@
     <ClCompile Include="gauge.cpp" />
     <ClCompile Include="handler.cpp" />
     <ClCompile Include="histogram.cpp" />
+    <ClCompile Include="metric_factory.cpp" />
     <ClCompile Include="metric_registry.cpp" />
     <ClCompile Include="module.cpp" />
     <ClCompile Include="summary.cpp" />
@@ -71,6 +72,7 @@
     <ClInclude Include="handler.h" />
     <ClInclude Include="histogram.h" />
     <ClInclude Include="histogram_interface.h" />
+    <ClInclude Include="metric_factory.h" />
     <ClInclude Include="metric_registry_interface.h" />
     <ClInclude Include="metric_registry.h" />
     <ClInclude Include="summary.h" />

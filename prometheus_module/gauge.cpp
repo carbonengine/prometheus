@@ -5,8 +5,10 @@
 #include <map>
 #include <memory>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <thread>
+#include <unordered_map>
 
 // Python
 #include <Python.h>
@@ -15,19 +17,30 @@
 #include <prometheus/gauge.h>
 using namespace prometheus_module;
 
+// prometheus_module
+#include "metric_factory.h"
+
 struct Gauge::Private {
-	Private(prometheus::Gauge& wrapped) :
-		gauge(wrapped)
+	Private(prometheus::Gauge& wrapped, prometheus_module::MetricFactory& factory) :
+		gauge(wrapped),
+		factory(factory)
 	{
 	}
 
 	prometheus::Gauge& gauge;
+	prometheus_module::MetricFactory& factory;
+	std::string name;
+	std::vector<std::string> labels;
 };
 
-Gauge::Gauge(prometheus::Gauge& gauge) :
-	private_(std::make_unique<Private>(gauge))
+Gauge::Gauge(prometheus::Gauge& gauge, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels) :
+	private_(std::make_unique<Private>(gauge, factory))
 {
+	private_->name = name;
+	private_->labels = labels;
 }
+
+Gauge::~Gauge() = default;
 
 void Gauge::Increment() {
 	private_->gauge.Increment();
@@ -49,6 +62,36 @@ void Gauge::Set(double value) {
 	private_->gauge.Set(value);
 }
 
+GaugeInterface* Gauge::WithLabelValues(const char* values[], int num_values) {
+	std::vector<std::string> values_vec;
+	for (auto i = 0; i < num_values; i++) {
+		values_vec.push_back(values[i]);
+	}
+	return WithLabelValues(values_vec);
+}
+
+Gauge* Gauge::WithLabelValues(std::vector<std::string> values) {
+	if (values.size() != private_->labels.size()) {
+		return nullptr;
+	}
+
+	std::map<std::string, std::string> labels;
+	for (auto i = 0; i < private_->labels.size(); i++) {
+		labels.insert(std::make_pair(private_->labels[i], values[i]));
+	}
+
+	Gauge& result = private_->factory.MakeGauge(private_->name, labels);
+	return &result;
+}
+
+const std::string& Gauge::name() {
+	return private_->name;
+}
+
+const std::vector<std::string>& Gauge::label_names() {
+	return private_->labels;
+}
+
 
 // Python linkage
 
@@ -57,23 +100,44 @@ void Gauge::Set(double value) {
 typedef struct {
 	PyObject_HEAD
 	std::unique_ptr<Gauge> gauge;
+	PyObject* family;
+	std::unordered_map<std::string, PyObject*>* cache;
 } GaugePyObject;
 
 static int Gauge_init(GaugePyObject *self, PyObject *args, PyObject *kwds) {
 	PyObject* capsule = NULL;
+	PyObject* family = NULL;
 
-	static char *kwlist[] = { "capsule", NULL };
+	static char *kwlist[] = { "capsule", "family", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &capsule))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist, &capsule, &family))
 		return -1;
 
 	Gauge* wrapped = (Gauge*)PyCapsule_GetPointer(capsule, NULL);
 	self->gauge.reset(wrapped);
+
+	if (family != NULL) {
+		self->family = family;
+		Py_IncRef(family);
+		self->cache = nullptr;
+	}
+	else {
+		self->family = reinterpret_cast<PyObject*>(self);
+		self->cache = new std::unordered_map<std::string, PyObject*>();
+	}
+
 	return 0;
 }
 
 static void Gauge_dealloc(GaugePyObject* self) {
 	self->gauge.reset(nullptr);
+
+	if (self->family != reinterpret_cast<PyObject*>(self)) {
+		Py_DecRef(self->family);
+	}
+
+	delete self->family;
+
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
@@ -128,10 +192,90 @@ static PyObject* Gauge_Set(GaugePyObject* self, PyObject* args, PyObject* keywor
 	Py_RETURN_TRUE;
 }
 
+static PyObject* Gauge_WithLabelValues(GaugePyObject* self, PyObject* args, PyObject* keywords) {
+	PyObject* arg_labels = NULL;
+
+	static char* keyword_list[] = {"labels", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "|O", keyword_list, &arg_labels)) {
+		return Py_BuildValue("O", self);
+	}
+
+	// Convert labels dictionary to map
+	std::map<std::string, std::string> labels;
+	if (arg_labels != NULL && PyDict_Check(arg_labels)) {
+		PyObject* py_key = NULL;
+		PyObject* py_value = NULL;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
+			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
+				continue;
+			}
+
+			const char* key = PyString_AsString(py_key);
+			const char* value = PyString_AsString(py_value);
+			labels.insert(std::make_pair(key, value));
+		}
+	}
+
+	// Strip invalid label names
+	auto& valid_label_names = self->gauge->label_names();
+	std::vector<std::string> final_labels;
+	for (auto& name : valid_label_names) {
+		auto&& iter = labels.find(name);
+		if (iter != labels.end()) {
+			final_labels.push_back(iter->second);
+		}
+		else {
+			final_labels.push_back("");
+		}
+	}
+
+	// Build cache key
+	std::map<std::string, std::string> final_labels_with_values;
+	for (auto&& label_name : final_labels) {
+		final_labels_with_values.insert(std::make_pair(label_name, labels[label_name]));
+	}
+	
+	std::stringstream ss;
+	ss << "g|";
+	ss << self->gauge->name();
+	for (auto&& iter : final_labels_with_values) {
+		ss << "|" << iter.first << "=" << iter.second;
+	}
+	std::string cache_key = ss.str();
+
+	// Check cache for the metric
+	GaugePyObject* family = reinterpret_cast<GaugePyObject*>(self->family);
+	auto&& family_iter = family->cache->find(cache_key);
+	if (family_iter != family->cache->end()) {
+		PyObject* result = family_iter->second;
+		Py_IncRef(result);
+		return Py_BuildValue("O", result);
+	}
+
+	// Not in cache, so create a new metric
+	auto native_metric = self->gauge->WithLabelValues(final_labels);
+	if (native_metric == nullptr) {
+		return Py_BuildValue("O", self);
+	}
+
+	// Cache it
+	PyObject* python_metric = prometheus_module::Gauge::CreatePythonObject(native_metric, reinterpret_cast<PyObject*>(family));
+	Py_IncRef(python_metric);
+	family->cache->insert(std::make_pair(cache_key, python_metric));
+
+	// And done
+	return Py_BuildValue("O", python_metric);
+}
+
 static PyMethodDef GaugePyMethods[] = {
 	{"Increment", (PyCFunction)Gauge_Increment, METH_VARARGS | METH_KEYWORDS, "Increment the gauge. Optionally, specify a value to increment by (default 1.0). If a value is specified, it must be non-zero."},
 	{"Decrement", (PyCFunction)Gauge_Decrement, METH_VARARGS | METH_KEYWORDS, "Decrement the gauge. Optionally, specify a value to decrement by (default 1.0). If a value is specified, it must be non-zero."},
 	{"Set", (PyCFunction)Gauge_Set, METH_VARARGS | METH_KEYWORDS, "Set the gauge to the specified value."},
+
+	{"WithLabelValues", (PyCFunction)Gauge_WithLabelValues, METH_VARARGS | METH_KEYWORDS, "Returns the gauge with the specified label values."},
 
 	{NULL}  /* Sentinel */
 };
@@ -187,9 +331,15 @@ void Gauge::RegisterPythonObject(PyObject* module) {
 	PyModule_AddObject(module, "Gauge", (PyObject *)&GaugePyType);
 }
 
-PyObject* Gauge::CreatePythonObject(Gauge* wrapped) {
+PyObject* Gauge::CreatePythonObject(Gauge* wrapped, PyObject* family) {
 	PyObject* capsule = PyCapsule_New((void*)wrapped, NULL, NULL);
-	PyObject* obj = PyObject_CallObject((PyObject*)&GaugePyType, Py_BuildValue("(O)", capsule));
+	PyObject* obj = nullptr;
+	if (family != nullptr) {
+		obj = PyObject_Call((PyObject*)&GaugePyType, Py_BuildValue("(O)", capsule), Py_BuildValue("{s:O}", "family", family));
+	}
+	else {
+		obj = PyObject_CallObject((PyObject*)&GaugePyType, Py_BuildValue("(O)", capsule));
+	}
 	return obj;
 }
 

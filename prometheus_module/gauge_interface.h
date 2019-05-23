@@ -13,6 +13,8 @@ public:
 	virtual void Decrement(double value) = 0;
 
 	virtual void Set(double value) = 0;
+
+	virtual GaugeInterface* WithLabelValues(const char* values[], int num_values) = 0;
 };
 
 } // namespace prometheus_module
