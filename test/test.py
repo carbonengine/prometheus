@@ -21,7 +21,9 @@ class TestBase(unittest.TestCase):
         if not port:
             port = self.port
         url = 'http://localhost:' + port
-        return urllib2.urlopen(url).read()
+        r = urllib2.urlopen(url)
+        result = r.read()
+        return result
 
     def FetchLine(self, substr, port=''):
         for line in self.Fetch(port).split('\n'):
@@ -133,9 +135,9 @@ class TestCounter(TestBase):
         self.assertTrue(self.FetchLine(n))
 
     def test_MakeCounter_with_labels(self):
-        n = self.RandomString()
-        label_name = self.RandomString()
-        label_value = self.RandomString()
+        n = u'name' + unicode(self.RandomString(), 'utf-8')
+        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+        label_value = u'label_value' + unicode(self.RandomString(), 'utf-8')
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
@@ -251,9 +253,9 @@ class TestGauge(TestBase):
         self.assertTrue(self.FetchLine(n))
 
     def test_MakeGauge_with_labels(self):
-        n = self.RandomString()
-        label_name = self.RandomString()
-        label_value = self.RandomString()
+        n = u'name' + unicode(self.RandomString(), 'utf-8')
+        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+        label_value = u'label_value' + unicode(self.RandomString(), 'utf-8')
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
@@ -393,9 +395,9 @@ class TestHistogram(TestBase):
         self.assertTrue(self.FetchLine(n))
 
     def test_MakeHistogram_with_labels(self):
-        n = self.RandomString()
-        label_name = self.RandomString()
-        label_value = self.RandomString()
+        n = u'name' + unicode(self.RandomString(), 'utf-8')
+        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+        label_value = u'label_value' + unicode(self.RandomString(), 'utf-8')
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
@@ -536,9 +538,9 @@ class TestSummary(TestBase):
         self.assertTrue(self.FetchLine(n))
 
     def test_MakeSummary_with_labels(self):
-        n = self.RandomString()
-        label_name = self.RandomString()
-        label_value = self.RandomString()
+        n = u'name' + unicode(self.RandomString(), 'utf-8')
+        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+        label_value = u'label_value' + unicode(self.RandomString(), 'utf-8')
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 

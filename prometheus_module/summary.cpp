@@ -19,6 +19,7 @@ using namespace prometheus_module;
 
 // prometheus_module
 #include "metric_factory.h"
+#include "utilities.h"
 
 struct Summary::Private {
 	Private(prometheus::Summary& wrapped, prometheus_module::MetricFactory& factory) :
@@ -161,13 +162,12 @@ static PyObject* Summary_WithLabelValues(SummaryPyObject* self, PyObject* args, 
 		Py_ssize_t pos = 0;
 
 		while (PyDict_Next(arg_labels, &pos, &py_key, &py_value)) {
-			if (!PyString_Check(py_key) || !PyString_Check(py_value)) {
-				continue;
-			}
+			std::string key = prometheus_module::Utilities::ConvertString(py_key);
+			std::string value = prometheus_module::Utilities::ConvertString(py_value);
 
-			const char* key = PyString_AsString(py_key);
-			const char* value = PyString_AsString(py_value);
-			labels.insert(std::make_pair(key, value));
+			if (!key.empty()) {
+				labels.insert(std::make_pair(key, value));
+			}
 		}
 	}
 
