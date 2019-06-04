@@ -44,6 +44,9 @@
     <ClCompile Include="metric_factory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utilities.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="metric_registry.h">
@@ -83,6 +86,9 @@
       <Filter>prometheus-cpp-custom</Filter>
     </ClInclude>
     <ClInclude Include="metric_factory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
