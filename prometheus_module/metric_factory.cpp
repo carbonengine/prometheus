@@ -77,10 +77,12 @@ MetricFactory::~MetricFactory() = default;
 Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std::string, std::string>& labels, MetricFactory::MakeMetricOption make_option, prometheus_module::Counter* wrapper) {
 	// If this metric already exists, then return it
 	auto metric_hash = private_->GetHashKey(name, labels);
-	auto counter_iter = private_->counters.find(metric_hash);
-	if (counter_iter != private_->counters.end()) {
-		prometheus_module::Counter* result = counter_iter->second.get();
-		return *result;
+	if (make_option != MakeMetricOption::kPromoteFromLazy) {
+		auto counter_iter = private_->counters.find(metric_hash);
+		if (counter_iter != private_->counters.end()) {
+			prometheus_module::Counter* result = counter_iter->second.get();
+			return *result;
+		}
 	}
 
 	// The metric doesn't exist yet, so see if its family does
@@ -103,29 +105,32 @@ Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std:
 		private_->counter_families.insert(std::make_pair(family_hash, family));
 	}
 
-	// Create the metric
-	auto& prometheus_counter = family->Add(labels);
-	std::vector<std::string> label_names_vec;
-	for (auto& label_names_iter : label_names) {
-		label_names_vec.push_back(label_names_iter.first);
-	}
-	
-	if (make_option == MetricFactory::MakeMetricOption::kImmediate) {
-		wrapper = new prometheus_module::Counter(prometheus_counter, *this, name, label_names_vec);
-	}
-	else if (make_option == MakeMetricOption::kPromoteFromLazy && wrapper != nullptr) {
-		wrapper->set_wrapped(&prometheus_counter);
-	}
-	else if (make_option == MakeMetricOption::kLazy) {
+	// Create the metric (if not lazy) and create or update its wrapper
+	if (make_option == MakeMetricOption::kLazy) {
 		wrapper = new prometheus_module::Counter(*this, name, labels);
+	}
+	else {
+		auto& prometheus_counter = family->Add(labels);
+		std::vector<std::string> label_names_vec;
+		for (auto& label_names_iter : label_names) {
+			label_names_vec.push_back(label_names_iter.first);
+		}
+
+		if (make_option == MetricFactory::MakeMetricOption::kImmediate) {
+			wrapper = new prometheus_module::Counter(prometheus_counter, *this, name, label_names_vec);
+		}
+		else if (make_option == MakeMetricOption::kPromoteFromLazy && wrapper != nullptr) {
+			wrapper->set_wrapped(prometheus_counter);
+		}
 	}
 
 	// Store it
-	auto result_iter = private_->counters.insert(std::make_pair(metric_hash, std::unique_ptr<prometheus_module::Counter>(wrapper))).first;
+	if (make_option != MakeMetricOption::kPromoteFromLazy) {
+		private_->counters.insert(std::make_pair(metric_hash, std::unique_ptr<prometheus_module::Counter>(wrapper))).first;
+	}
 
 	// Return it
-	prometheus_module::Counter* result = result_iter->second.get();
-	return *result;
+	return *wrapper;
 }
 
 Gauge& MetricFactory::MakeGauge(const std::string& name, const std::map<std::string, std::string>& labels) {

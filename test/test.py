@@ -23,6 +23,7 @@ class TestBase(unittest.TestCase):
         url = 'http://localhost:' + port
         r = urllib2.urlopen(url)
         result = r.read()
+        print result
         return result
 
     def FetchLine(self, substr, port=''):
@@ -131,8 +132,10 @@ class TestCounter(TestBase):
     def test_MakeCounter(self):
         n = self.RandomString()
         self.assertFalse(self.FetchLine(n))
-        self.registry.MakeCounter(n)
-        self.assertTrue(self.FetchLine(n))
+        metric_family = self.registry.MakeCounter(n)
+        self.assertIsNotNone(metric_family)
+        self.assertFalse(self.FetchLine(n)) # Lazy
+
 
     def test_MakeCounter_with_labels(self):
         n = u'name' + unicode(self.RandomString(), 'utf-8')
@@ -149,10 +152,28 @@ class TestCounter(TestBase):
         self.assertTrue(label_value in line)
         self.assertTrue(label_name2 in line)
         self.assertTrue(label_value2 in line)
+        
+    def test_MakeCounter_lazy_instantiates(self):
+        n = u'name' + unicode(self.RandomString(), 'utf-8')
+        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+
+        counter_family = self.registry.MakeCounter(n, [label_name])
+        line = self.FetchLine(n)
+        #self.assertEqual(line, '', 'Counter with empty label values must not be published unless modified')
+
+        counter_family.Increment()
+        self.assertEqual(self.FetchCounter(n), 1, 'Counter with empty label values must be published after being modified')
+
+        line = self.FetchLine(n)
+        self.assertTrue(label_name in line)
 
     def test_counter_increment(self):
         n = self.RandomString()
-        c = self.registry.MakeCounter(n)
+        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+        label_value = u'label_value' + unicode(self.RandomString(), 'utf-8')
+        f = self.registry.MakeCounter(n, [label_name])
+        c = f.WithLabelValues({label_name:label_value})
+
         self.assertEqual(self.FetchCounter(n), 0, 'Counter must start at zero')
         c.Increment()
         self.assertEqual(self.FetchCounter(n), 1, 'Counter must increment by one by default')

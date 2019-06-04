@@ -201,8 +201,8 @@ protected:
 TEST_F(TestCounter, MakeCounter) {
 	auto n = RandomString();
 	EXPECT_TRUE(FetchLines(n).empty());
-	registry->MakeCounter(n.c_str(), 0, nullptr);
-	EXPECT_FALSE(FetchLines(n).empty());
+	CounterInterface* family = registry->MakeCounter(n.c_str(), 0, nullptr);
+	EXPECT_NE(family, nullptr);
 }
 
 TEST_F(TestCounter, MakeCounterWithLabels) {
@@ -211,14 +211,27 @@ TEST_F(TestCounter, MakeCounterWithLabels) {
 	std::string label_values[] = { RandomString(), RandomString() };
 	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
 	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
+
 	CounterInterface* family = registry->MakeCounter(n.c_str(), 2, label_names_c);
 	CounterInterface* counter = family->WithLabelValues(label_values_c, 2);
 
-	auto line = FetchLines(n)[1];
+	auto line = FetchLine(label_values[0]);
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_names[1]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_values[0]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_values[1]) != std::string::npos);
+}
+
+TEST_F(TestCounter, MakeCounterLazyInstantiates) {
+	auto n = RandomString();
+	std::string label_names[] = { RandomString(), RandomString() };
+	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
+
+	CounterInterface* family = registry->MakeCounter(n.c_str(), 2, label_names_c);
+	EXPECT_TRUE(FetchLines(n).empty());
+
+	family->Increment();
+	EXPECT_EQ(FetchCounter(n), 1);
 }
 
 TEST_F(TestCounter, Increment) {

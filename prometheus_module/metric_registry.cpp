@@ -62,7 +62,7 @@ Counter* MetricRegistry::MakeCounter(const char* name, const std::vector<std::st
 		labels.insert(std::make_pair(name, ""));
 	}
 
-	auto& result = private_->factory->MakeCounter(name, labels);
+	auto& result = private_->factory->MakeCounter(name, labels, prometheus_module::MetricFactory::MakeMetricOption::kLazy);
 	return &result;
 }
 
@@ -174,6 +174,7 @@ static int MetricRegistry_init(MetricRegistryPyObject *self, PyObject *args, PyO
 
 static void MetricRegistry_dealloc(MetricRegistryPyObject* self) {
 	self->metric_registry.reset(nullptr);
+
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 

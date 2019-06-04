@@ -35,7 +35,7 @@ public:
 	const std::string& name();
 	const std::vector<std::string>& label_names();
 
-	void set_wrapped(prometheus::Counter* wrapped);
+	void set_wrapped(prometheus::Counter& wrapped);
 
 	static void RegisterPythonObject(PyObject* module);
 	static PyObject* CreatePythonObject(Counter* wrapped, PyObject* family=nullptr);
