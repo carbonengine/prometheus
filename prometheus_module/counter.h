@@ -1,7 +1,10 @@
 #ifndef COUNTER_H
 #define COUNTER_H
 
+#include <map>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include <prometheus/counter.h>
 
@@ -20,6 +23,7 @@ class Counter : public CounterInterface {
 public:
 
 	Counter(prometheus::Counter& counter, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels);
+	Counter(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels);
 	~Counter();
 
 	void Increment() override;
@@ -30,6 +34,8 @@ public:
 	Counter* WithLabelValues(std::vector<std::string> values);
 	const std::string& name();
 	const std::vector<std::string>& label_names();
+
+	void set_wrapped(prometheus::Counter* wrapped);
 
 	static void RegisterPythonObject(PyObject* module);
 	static PyObject* CreatePythonObject(Counter* wrapped, PyObject* family=nullptr);

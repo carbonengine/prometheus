@@ -74,7 +74,7 @@ MetricFactory::MetricFactory(std::shared_ptr<prometheus::Registry> registry) :
 
 MetricFactory::~MetricFactory() = default;
 
-Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std::string, std::string>& labels) {
+Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std::string, std::string>& labels, MetricFactory::MakeMetricOption make_option, prometheus_module::Counter* wrapper) {
 	// If this metric already exists, then return it
 	auto metric_hash = private_->GetHashKey(name, labels);
 	auto counter_iter = private_->counters.find(metric_hash);
@@ -109,10 +109,19 @@ Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std:
 	for (auto& label_names_iter : label_names) {
 		label_names_vec.push_back(label_names_iter.first);
 	}
-	std::unique_ptr<prometheus_module::Counter> ptr = std::make_unique<prometheus_module::Counter>(prometheus_counter, *this, name, label_names_vec);
+	
+	if (make_option == MetricFactory::MakeMetricOption::kImmediate) {
+		wrapper = new prometheus_module::Counter(prometheus_counter, *this, name, label_names_vec);
+	}
+	else if (make_option == MakeMetricOption::kPromoteFromLazy && wrapper != nullptr) {
+		wrapper->set_wrapped(&prometheus_counter);
+	}
+	else if (make_option == MakeMetricOption::kLazy) {
+		wrapper = new prometheus_module::Counter(*this, name, labels);
+	}
 
 	// Store it
-	auto result_iter = private_->counters.insert(std::make_pair(metric_hash, std::move(ptr))).first;
+	auto result_iter = private_->counters.insert(std::make_pair(metric_hash, std::unique_ptr<prometheus_module::Counter>(wrapper))).first;
 
 	// Return it
 	prometheus_module::Counter* result = result_iter->second.get();

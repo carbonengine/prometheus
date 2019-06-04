@@ -25,7 +25,13 @@ public:
 	MetricFactory(std::shared_ptr<prometheus::Registry> registry);
 	~MetricFactory();
 
-	Counter& MakeCounter(const std::string& name, const std::map<std::string, std::string>& labels);
+	enum class MakeMetricOption {
+		kImmediate,
+		kLazy,
+		kPromoteFromLazy
+	};
+
+	Counter& MakeCounter(const std::string& name, const std::map<std::string, std::string>& labels, MakeMetricOption make_option = MakeMetricOption::kImmediate, prometheus_module::Counter* wrapper=nullptr);
 	Gauge& MakeGauge(const std::string& name, const std::map<std::string, std::string>& labels);
 	Histogram& MakeHistogram(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries);
 	Summary& MakeSummary(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions);
