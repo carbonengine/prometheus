@@ -23,8 +23,6 @@ class TestBase(unittest.TestCase):
         url = 'http://localhost:' + port
         r = urllib2.urlopen(url)
         result = r.read()
-        print result
-        print ''
         return result
 
     def FetchLine(self, substr, port=''):
@@ -144,7 +142,6 @@ class TestCounter(TestBase):
         label_value2 = self.RandomString()
 
         counter_family = self.registry.MakeCounter(n, [label_name, label_name2])
-        print 'calling withlabelvalues with %s=%s and %s=%s' % (label_name, label_value, label_name2, label_value2)
         counter = counter_family.WithLabelValues({label_name:label_value, label_name2:label_value2}) 
 
         line = self.FetchLine(label_value)

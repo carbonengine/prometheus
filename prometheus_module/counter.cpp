@@ -150,7 +150,7 @@ static PyObject* Counter_WithLabelValues(CounterPyObject* self, PyObject* args, 
 			std::string key = prometheus_module::Utilities::ConvertString(py_key);
 			std::string value = prometheus_module::Utilities::ConvertString(py_value);
 
-			if (key.length()>0 && value.length()>0) {
+			if (!key.empty()) {
 				labels.insert(std::make_pair(key, value));
 			}
 		}
