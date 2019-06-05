@@ -461,14 +461,22 @@ class TestHistogram(TestBase):
 
     def test_MakeHistogram_with_boundaries(self):
         n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
         b = [10,100,1000]
-        self.registry.MakeHistogram(n, boundaries=b)
+        f = self.registry.MakeHistogram(n, labels=[label_name], boundaries=b)
+        h = f.WithLabelValues({label_name:label_value})
         values = self.FetchHistogram(n)
         self.assertEqual(len(values['buckets']), len(b) + 1, 'Number of buckets must equal number of boundaries plus one)')
 
     def test_histogram_observe(self):
         n = self.RandomString()
-        h = self.registry.MakeHistogram(n, boundaries=[10,100,1000])
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        b = [10,100,1000]
+        f = self.registry.MakeHistogram(n, labels=[label_name], boundaries=b)
+        h = f.WithLabelValues({label_name:label_value})
+
         values = self.FetchHistogram(n)
         self.assertEqual(values['count'], 0, 'Histogram must start with zero observations')
         self.assertEqual(values['sum'], 0.0, 'Histogram must start with zero observations')
@@ -612,21 +620,28 @@ class TestSummary(TestBase):
         self.assertEqual(line, '', 'Summary with empty label values must not be published unless modified')
 
         summary_family.Observe(1)
-        values = self.FetchSumary(n)
+        values = self.FetchSummary(n)
         self.assertEqual(values['count'], 1, 'Summary with empty label values must be published after being modified')
 
     def test_MakeSummary_with_quantiles(self):
         n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
         q = [(0.1,0.05),(0.5,0.05),(0.9,0.05)]
-        self.registry.MakeSummary(n, quantiles=q)
+        f = self.registry.MakeSummary(n, labels=[label_name], quantiles=q)
+        s = f.WithLabelValues({label_name:label_value})
 
         values = self.FetchSummary(n)
         self.assertEqual(len(values['quantiles']), len(q), 'Number of quantiles must match')
 
     def test_summary_observe(self):
         n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
         tolerance = 0.05
-        s = self.registry.MakeSummary(n, quantiles=[(0.1,tolerance),(0.5,tolerance),(0.9,tolerance)])
+        f = self.registry.MakeSummary(n, labels=[label_name], quantiles=[(0.1,tolerance),(0.5,tolerance),(0.9,tolerance)])
+        s = f.WithLabelValues({label_name:label_value})
+
         values = self.FetchSummary(n)
         self.assertEqual(values['count'], 0, 'Summary must start with zero observations')
         self.assertEqual(values['sum'], 0.0, 'Summary must start with zero observations')

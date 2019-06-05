@@ -33,7 +33,7 @@ struct Counter::Private {
 			return;
 		}
 
-		factory.MakeCounter(lazy_name, lazy_labels, MetricFactory::MakeMetricOption::kPromoteFromLazy, self);
+		factory.MakeCounter(name, lazy_labels, MetricFactory::MakeMetricOption::kPromoteFromLazy, self);
 	}
 
 	prometheus::Counter* counter;
@@ -41,7 +41,6 @@ struct Counter::Private {
 	std::string name;
 	std::vector<std::string> labels;
 
-	std::string lazy_name;
 	std::map<std::string, std::string> lazy_labels;
 };
 
@@ -55,10 +54,9 @@ Counter::Counter(prometheus::Counter& counter, prometheus_module::MetricFactory&
 Counter::Counter(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels) :
 	private_(std::make_unique<Private>(nullptr, factory))
 {
-	private_->lazy_name = name;
+	private_->name = name;
 	private_->lazy_labels = labels;
 
-	private_->name = name;
 	for (auto& kv : labels) {
 		private_->labels.push_back(kv.first);
 	}

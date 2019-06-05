@@ -1,6 +1,7 @@
 #ifndef SUMMARY_H
 #define SUMMARY_H
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -22,6 +23,7 @@ class Summary : public SummaryInterface {
 public:
 
 	Summary(prometheus::Summary& summary, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions);
+	Summary(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions);
 	~Summary();
 
 	void Observe(double value) override;
@@ -31,6 +33,8 @@ public:
 	Summary* WithLabelValues(std::vector<std::string> values);
 	const std::string& name();
 	const std::vector<std::string>& label_names();
+
+	void set_wrapped(prometheus::Summary& wrapped);
 
 	static void RegisterPythonObject(PyObject* module);
 	static PyObject* CreatePythonObject(Summary* wrapped, PyObject* family=nullptr);

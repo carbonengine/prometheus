@@ -133,13 +133,15 @@ Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std:
 	return *wrapper;
 }
 
-Gauge& MetricFactory::MakeGauge(const std::string& name, const std::map<std::string, std::string>& labels) {
+Gauge& MetricFactory::MakeGauge(const std::string& name, const std::map<std::string, std::string>& labels, MetricFactory::MakeMetricOption make_option, prometheus_module::Gauge* wrapper) {
 	// If this metric already exists, then return it
 	auto metric_hash = private_->GetHashKey(name, labels);
-	auto gauge_iter = private_->gauges.find(metric_hash);
-	if (gauge_iter != private_->gauges.end()) {
-		prometheus_module::Gauge *result = gauge_iter->second.get();
-		return *result;
+	if (make_option != MakeMetricOption::kPromoteFromLazy) {
+		auto gauge_iter = private_->gauges.find(metric_hash);
+		if (gauge_iter != private_->gauges.end()) {
+			prometheus_module::Gauge *result = gauge_iter->second.get();
+			return *result;
+		}
 	}
 
 	// The metric doesn't exist yet, so see if its family does
@@ -154,29 +156,43 @@ Gauge& MetricFactory::MakeGauge(const std::string& name, const std::map<std::str
 		private_->gauge_families.insert(std::make_pair(family_hash, family));
 	}
 
-	// Create the metric
-	auto& prometheus_metric = family->Add(labels);
-	std::vector<std::string> label_names_vec;
-	for (auto& label_names_iter : label_names) {
-		label_names_vec.push_back(label_names_iter.first);
+	// Create the metric (if not lazy) and create or update its wrapper
+	if (make_option == MakeMetricOption::kLazy) {
+		wrapper = new prometheus_module::Gauge(*this, name, labels);
 	}
-	std::unique_ptr<prometheus_module::Gauge> ptr = std::make_unique<prometheus_module::Gauge>(prometheus_metric, *this, name, label_names_vec);
+	else {
+		auto& prometheus_metric = family->Add(labels);
+		std::vector<std::string> label_names_vec;
+		for (auto& label_names_iter : label_names) {
+			label_names_vec.push_back(label_names_iter.first);
+		}
+
+		if (make_option == MetricFactory::MakeMetricOption::kImmediate) {
+			wrapper = new prometheus_module::Gauge(prometheus_metric, *this, name, label_names_vec);
+		}
+		else if (make_option == MakeMetricOption::kPromoteFromLazy && wrapper != nullptr) {
+			wrapper->set_wrapped(prometheus_metric);
+		}
+	}
 
 	// Store it
-	auto result_iter = private_->gauges.insert(std::make_pair(metric_hash, std::move(ptr))).first;
+	if (make_option != MakeMetricOption::kPromoteFromLazy) {
+		private_->gauges.insert(std::make_pair(metric_hash, std::unique_ptr<prometheus_module::Gauge>(wrapper))).first;
+	}
 
 	// Return it
-	prometheus_module::Gauge* result = result_iter->second.get();
-	return *result;
+	return *wrapper;
 }
 
-Histogram& MetricFactory::MakeHistogram(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries) {
+Histogram& MetricFactory::MakeHistogram(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries, MetricFactory::MakeMetricOption make_option, prometheus_module::Histogram* wrapper) {
 	// If this metric already exists, then return it
 	auto metric_hash = private_->GetHashKey(name, labels);
-	auto histogram_iter = private_->histograms.find(metric_hash);
-	if (histogram_iter != private_->histograms.end()) {
-		prometheus_module::Histogram *result = histogram_iter->second.get();
-		return *result;
+	if (make_option != MakeMetricOption::kPromoteFromLazy) {
+		auto histogram_iter = private_->histograms.find(metric_hash);
+		if (histogram_iter != private_->histograms.end()) {
+			prometheus_module::Histogram *result = histogram_iter->second.get();
+			return *result;
+		}
 	}
 
 	// The metric doesn't exist yet, so see if its family does
@@ -191,29 +207,43 @@ Histogram& MetricFactory::MakeHistogram(const std::string& name, const std::map<
 		private_->histogram_families.insert(std::make_pair(family_hash, family));
 	}
 
-	// Create the metric
-	auto& prometheus_metric = family->Add(labels, boundaries);
-	std::vector<std::string> label_names_vec;
-	for (auto& label_names_iter : label_names) {
-		label_names_vec.push_back(label_names_iter.first);
+	// Create the metric (if not lazy) and create or update its wrapper
+	if (make_option == MakeMetricOption::kLazy) {
+		wrapper = new prometheus_module::Histogram(*this, name, labels, boundaries);
 	}
-	std::unique_ptr<prometheus_module::Histogram> ptr = std::make_unique<prometheus_module::Histogram>(prometheus_metric, *this, name, label_names_vec, boundaries);
+	else {
+		auto& prometheus_metric = family->Add(labels, boundaries);
+		std::vector<std::string> label_names_vec;
+		for (auto& label_names_iter : label_names) {
+			label_names_vec.push_back(label_names_iter.first);
+		}
+
+		if (make_option == MetricFactory::MakeMetricOption::kImmediate) {
+			wrapper = new prometheus_module::Histogram(prometheus_metric, *this, name, label_names_vec, boundaries);
+		}
+		else if (make_option == MakeMetricOption::kPromoteFromLazy && wrapper != nullptr) {
+			wrapper->set_wrapped(prometheus_metric);
+		}
+	}
 
 	// Store it
-	auto result_iter = private_->histograms.insert(std::make_pair(metric_hash, std::move(ptr))).first;
+	if (make_option != MakeMetricOption::kPromoteFromLazy) {
+		private_->histograms.insert(std::make_pair(metric_hash, std::unique_ptr<prometheus_module::Histogram>(wrapper))).first;
+	}
 
 	// Return it
-	prometheus_module::Histogram* result = result_iter->second.get();
-	return *result;
+	return *wrapper;
 }
 
-Summary& MetricFactory::MakeSummary(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions) {
+Summary& MetricFactory::MakeSummary(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions, MetricFactory::MakeMetricOption make_option, prometheus_module::Summary* wrapper) {
 	// If this metric already exists, then return it
 	auto metric_hash = private_->GetHashKey(name, labels);
-	auto metric_iter = private_->summaries.find(metric_hash);
-	if (metric_iter != private_->summaries.end()) {
-		prometheus_module::Summary* result = metric_iter->second.get();
-		return *result;
+	if (make_option != MakeMetricOption::kPromoteFromLazy) {
+		auto metric_iter = private_->summaries.find(metric_hash);
+		if (metric_iter != private_->summaries.end()) {
+			prometheus_module::Summary* result = metric_iter->second.get();
+			return *result;
+		}
 	}
 
 	// The metric doesn't exist yet, so see if its family does
@@ -245,18 +275,30 @@ Summary& MetricFactory::MakeSummary(const std::string& name, const std::map<std:
 		window_partitions = 5;
 	}
 
-	// Create the metric
-	auto& prometheus_metric = family->Add(labels, quantiles_converted, std::chrono::seconds{ total_window_size_seconds / window_partitions }, window_partitions);
-	std::vector<std::string> label_names_vec;
-	for (auto& label_names_iter : label_names) {
-		label_names_vec.push_back(label_names_iter.first);
+	// Create the metric (if not lazy) and create or update its wrapper
+	if (make_option == MakeMetricOption::kLazy) {
+		wrapper = new prometheus_module::Summary(*this, name, labels, quantiles, total_window_size_seconds, window_partitions);
 	}
-	std::unique_ptr<prometheus_module::Summary> ptr = std::make_unique<prometheus_module::Summary>(prometheus_metric, *this, name, label_names_vec, quantiles, total_window_size_seconds, window_partitions);
+	else {
+		auto& prometheus_metric = family->Add(labels, quantiles_converted, std::chrono::seconds{ total_window_size_seconds / window_partitions }, window_partitions);
+		std::vector<std::string> label_names_vec;
+		for (auto& label_names_iter : label_names) {
+			label_names_vec.push_back(label_names_iter.first);
+		}
+
+		if (make_option == MetricFactory::MakeMetricOption::kImmediate) {
+			wrapper = new prometheus_module::Summary(prometheus_metric, *this, name, label_names_vec, quantiles, total_window_size_seconds, window_partitions);
+		}
+		else if (make_option == MakeMetricOption::kPromoteFromLazy && wrapper != nullptr) {
+			wrapper->set_wrapped(prometheus_metric);
+		}
+	}
 
 	// Store it
-	auto result_iter = private_->summaries.insert(std::make_pair(metric_hash, std::move(ptr))).first;
+	if (make_option != MakeMetricOption::kPromoteFromLazy) {
+		private_->summaries.insert(std::make_pair(metric_hash, std::unique_ptr<prometheus_module::Summary>(wrapper))).first;
+	}
 
 	// Return it
-	prometheus_module::Summary* result = result_iter->second.get();
-	return *result;
+	return *wrapper;
 }

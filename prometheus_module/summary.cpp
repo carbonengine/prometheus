@@ -22,23 +22,33 @@ using namespace prometheus_module;
 #include "utilities.h"
 
 struct Summary::Private {
-	Private(prometheus::Summary& wrapped, prometheus_module::MetricFactory& factory) :
+	Private(prometheus::Summary* wrapped, prometheus_module::MetricFactory& factory) :
 		summary(wrapped),
 		factory(factory)
 	{
 	}
 
-	prometheus::Summary& summary;
+	void LazyInstantiate(prometheus_module::Summary* self) {
+		if (summary != nullptr) {
+			return;
+		}
+
+		factory.MakeSummary(name, lazy_labels, quantiles, total_window_size_seconds, window_partitions, MetricFactory::MakeMetricOption::kPromoteFromLazy, self);
+	}
+
+	prometheus::Summary* summary;
 	prometheus_module::MetricFactory& factory;
 	std::string name;
 	std::vector<std::string> labels;
 	std::vector<std::pair<double, double> > quantiles;
 	int total_window_size_seconds;
 	int window_partitions;
+
+	std::map<std::string, std::string> lazy_labels;
 };
 
 Summary::Summary(prometheus::Summary& summary, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions) :
-	private_(std::make_unique<Private>(summary, factory))
+	private_(std::make_unique<Private>(&summary, factory))
 {
 	private_->name = name;
 	private_->labels = labels;
@@ -47,10 +57,25 @@ Summary::Summary(prometheus::Summary& summary, prometheus_module::MetricFactory&
 	private_->window_partitions = window_partitions;
 }
 
+Summary::Summary(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions) :
+	private_(std::make_unique<Private>(nullptr, factory))
+{
+	private_->name = name;
+	private_->lazy_labels = labels;
+	private_->quantiles = quantiles;
+	private_->total_window_size_seconds = total_window_size_seconds;
+	private_->window_partitions = window_partitions;
+
+	for (auto& kv : labels) {
+		private_->labels.push_back(kv.first);
+	}
+}
+
 Summary::~Summary() = default;
 
 void Summary::Observe(double value) {
-	private_->summary.Observe(value);
+	private_->LazyInstantiate(this);
+	private_->summary->Observe(value);
 }
 
 SummaryInterface* Summary::WithLabelValues(const char* values[], int num_values) {
@@ -81,6 +106,10 @@ const std::string& Summary::name() {
 
 const std::vector<std::string>& Summary::label_names() {
 	return private_->labels;
+}
+
+void Summary::set_wrapped(prometheus::Summary& wrapped) {
+	private_->summary = &wrapped;
 }
 
 
