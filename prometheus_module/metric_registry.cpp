@@ -62,7 +62,7 @@ Counter* MetricRegistry::MakeCounter(const char* name, const std::vector<std::st
 		labels.insert(std::make_pair(name, ""));
 	}
 
-	auto& result = private_->factory->MakeCounter(name, labels);
+	auto& result = private_->factory->MakeCounter(name, labels, prometheus_module::MetricFactory::MakeMetricOption::kLazy);
 	return &result;
 }
 
@@ -72,7 +72,7 @@ Gauge* MetricRegistry::MakeGauge(const char* name, const std::vector<std::string
 		labels.insert(std::make_pair(name, ""));
 	}
 
-	auto& result = private_->factory->MakeGauge(name, labels);
+	auto& result = private_->factory->MakeGauge(name, labels, prometheus_module::MetricFactory::MakeMetricOption::kLazy);
 	return &result;
 }
 
@@ -82,7 +82,7 @@ Histogram* MetricRegistry::MakeHistogram(const char* name, const std::vector<std
 		labels.insert(std::make_pair(name, ""));
 	}
 
-	auto& result = private_->factory->MakeHistogram(name, labels, boundaries);
+	auto& result = private_->factory->MakeHistogram(name, labels, boundaries, prometheus_module::MetricFactory::MakeMetricOption::kLazy);
 	return &result;
 }
 
@@ -92,7 +92,7 @@ Summary* MetricRegistry::MakeSummary(const char* name, const std::vector<std::st
 		labels.insert(std::make_pair(name, ""));
 	}
 
-	auto& result = private_->factory->MakeSummary(name, labels, quantiles, total_window_size_seconds, window_partitions);
+	auto& result = private_->factory->MakeSummary(name, labels, quantiles, total_window_size_seconds, window_partitions, prometheus_module::MetricFactory::MakeMetricOption::kLazy);
 	return &result;
 }
 
@@ -174,6 +174,7 @@ static int MetricRegistry_init(MetricRegistryPyObject *self, PyObject *args, PyO
 
 static void MetricRegistry_dealloc(MetricRegistryPyObject* self) {
 	self->metric_registry.reset(nullptr);
+
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 

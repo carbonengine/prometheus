@@ -22,45 +22,71 @@ using namespace prometheus_module;
 #include "utilities.h"
 
 struct Gauge::Private {
-	Private(prometheus::Gauge& wrapped, prometheus_module::MetricFactory& factory) :
+	Private(prometheus::Gauge* wrapped, prometheus_module::MetricFactory& factory) :
 		gauge(wrapped),
 		factory(factory)
 	{
 	}
 
-	prometheus::Gauge& gauge;
+	void LazyInstantiate(prometheus_module::Gauge* self) {
+		if (gauge != nullptr) {
+			return;
+		}
+
+		factory.MakeGauge(name, lazy_labels, MetricFactory::MakeMetricOption::kPromoteFromLazy, self);
+	}
+
+	prometheus::Gauge* gauge;
 	prometheus_module::MetricFactory& factory;
 	std::string name;
 	std::vector<std::string> labels;
+
+	std::map<std::string, std::string> lazy_labels;
 };
 
 Gauge::Gauge(prometheus::Gauge& gauge, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels) :
-	private_(std::make_unique<Private>(gauge, factory))
+	private_(std::make_unique<Private>(&gauge, factory))
 {
 	private_->name = name;
 	private_->labels = labels;
 }
 
+Gauge::Gauge(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels) :
+	private_(std::make_unique<Private>(nullptr, factory))
+{
+	private_->name = name;
+	private_->lazy_labels = labels;
+
+	for (auto& kv : labels) {
+		private_->labels.push_back(kv.first);
+	}
+}
+
 Gauge::~Gauge() = default;
 
 void Gauge::Increment() {
-	private_->gauge.Increment();
+	private_->LazyInstantiate(this);
+	private_->gauge->Increment();
 }
 
 void Gauge::Increment(double value) {
-	private_->gauge.Increment(value);
+	private_->LazyInstantiate(this);
+	private_->gauge->Increment(value);
 }
 
 void Gauge::Decrement() {
-	private_->gauge.Decrement();
+	private_->LazyInstantiate(this);
+	private_->gauge->Decrement();
 }
 
 void Gauge::Decrement(double value) {
-	private_->gauge.Decrement(value);
+	private_->LazyInstantiate(this);
+	private_->gauge->Decrement(value);
 }
 
 void Gauge::Set(double value) {
-	private_->gauge.Set(value);
+	private_->LazyInstantiate(this);
+	private_->gauge->Set(value);
 }
 
 GaugeInterface* Gauge::WithLabelValues(const char* values[], int num_values) {
@@ -91,6 +117,10 @@ const std::string& Gauge::name() {
 
 const std::vector<std::string>& Gauge::label_names() {
 	return private_->labels;
+}
+
+void Gauge::set_wrapped(prometheus::Gauge& wrapped) {
+	private_->gauge = &wrapped;
 }
 
 

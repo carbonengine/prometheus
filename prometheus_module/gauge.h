@@ -1,7 +1,10 @@
 #ifndef GAUGE_H
 #define GAUGE_H
 
+#include <map>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include <prometheus/gauge.h>
 
@@ -20,6 +23,7 @@ class Gauge : public GaugeInterface {
 public:
 
 	Gauge(prometheus::Gauge& gauge, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels);
+	Gauge(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels);
 	~Gauge();
 
 	void Increment() override;
@@ -35,6 +39,8 @@ public:
 	Gauge* WithLabelValues(std::vector<std::string> values);
 	const std::string& name();
 	const std::vector<std::string>& label_names();
+
+	void set_wrapped(prometheus::Gauge& wrapped);
 
 	static void RegisterPythonObject(PyObject* module);
 	static PyObject* CreatePythonObject(Gauge* wrapped, PyObject* family=nullptr);

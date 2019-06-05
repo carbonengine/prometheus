@@ -23,6 +23,7 @@ class TestBase(unittest.TestCase):
         url = 'http://localhost:' + port
         r = urllib2.urlopen(url)
         result = r.read()
+        print result
         return result
 
     def FetchLine(self, substr, port=''):
@@ -131,8 +132,10 @@ class TestCounter(TestBase):
     def test_MakeCounter(self):
         n = self.RandomString()
         self.assertFalse(self.FetchLine(n))
-        self.registry.MakeCounter(n)
-        self.assertTrue(self.FetchLine(n))
+        metric_family = self.registry.MakeCounter(n)
+        self.assertIsNotNone(metric_family)
+        self.assertFalse(self.FetchLine(n)) # Lazy
+
 
     def test_MakeCounter_with_labels(self):
         n = u'name' + unicode(self.RandomString(), 'utf-8')
@@ -149,10 +152,28 @@ class TestCounter(TestBase):
         self.assertTrue(label_value in line)
         self.assertTrue(label_name2 in line)
         self.assertTrue(label_value2 in line)
+        
+    def test_MakeCounter_lazy_instantiates(self):
+        n = u'name' + unicode(self.RandomString(), 'utf-8')
+        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+
+        counter_family = self.registry.MakeCounter(n, [label_name])
+        line = self.FetchLine(n)
+        self.assertEqual(line, '', 'Counter with empty label values must not be published unless modified')
+
+        counter_family.Increment()
+        self.assertEqual(self.FetchCounter(n), 1, 'Counter with empty label values must be published after being modified')
+
+        line = self.FetchLine(n)
+        self.assertTrue(label_name in line)
 
     def test_counter_increment(self):
         n = self.RandomString()
-        c = self.registry.MakeCounter(n)
+        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+        label_value = u'label_value' + unicode(self.RandomString(), 'utf-8')
+        f = self.registry.MakeCounter(n, [label_name])
+        c = f.WithLabelValues({label_name:label_value})
+
         self.assertEqual(self.FetchCounter(n), 0, 'Counter must start at zero')
         c.Increment()
         self.assertEqual(self.FetchCounter(n), 1, 'Counter must increment by one by default')
@@ -249,8 +270,9 @@ class TestGauge(TestBase):
     def test_MakeGauge(self):
         n = self.RandomString()
         self.assertFalse(self.FetchLine(n))
-        self.registry.MakeGauge(n)
-        self.assertTrue(self.FetchLine(n))
+        metric_family = self.registry.MakeGauge(n)
+        self.assertIsNotNone(metric_family)
+        self.assertFalse(self.FetchLine(n)) # Lazy
 
     def test_MakeGauge_with_labels(self):
         n = u'name' + unicode(self.RandomString(), 'utf-8')
@@ -267,6 +289,20 @@ class TestGauge(TestBase):
         self.assertTrue(label_value in line)
         self.assertTrue(label_name2 in line)
         self.assertTrue(label_value2 in line)
+
+    def test_MakeGauge_lazy_instantiates(self):
+        n = u'name' + unicode(self.RandomString(), 'utf-8')
+        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+
+        gauge_family = self.registry.MakeGauge(n, [label_name])
+        line = self.FetchLine(n)
+        self.assertEqual(line, '', 'Gauge with empty label values must not be published unless modified')
+
+        gauge_family.Set(1)
+        self.assertEqual(self.FetchGauge(n), 1, 'Gauge with empty label values must be published after being modified')
+
+        line = self.FetchLine(n)
+        self.assertTrue(label_name in line)
 
     def test_gauge_increment(self):
         n = self.RandomString()
@@ -391,8 +427,9 @@ class TestHistogram(TestBase):
     def test_MakeHistogram(self):
         n = self.RandomString()
         self.assertFalse(self.FetchLine(n))
-        self.registry.MakeHistogram(n)
-        self.assertTrue(self.FetchLine(n))
+        metric_family = self.registry.MakeHistogram(n)
+        self.assertIsNotNone(metric_family)
+        self.assertFalse(self.FetchLine(n)) # Lazy
 
     def test_MakeHistogram_with_labels(self):
         n = u'name' + unicode(self.RandomString(), 'utf-8')
@@ -410,16 +447,36 @@ class TestHistogram(TestBase):
         self.assertTrue(label_name2 in line)
         self.assertTrue(label_value2 in line)
 
+    def test_MakeHistogram_lazy_instantiates(self):
+        n = u'name' + unicode(self.RandomString(), 'utf-8')
+        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+
+        histogram_family = self.registry.MakeHistogram(n, [label_name])
+        line = self.FetchLine(n)
+        self.assertEqual(line, '', 'Histogram with empty label values must not be published unless modified')
+
+        histogram_family.Observe(1)
+        values = self.FetchHistogram(n)
+        self.assertEqual(values['count'], 1, 'Histogram with empty label values must be published after being modified')
+
     def test_MakeHistogram_with_boundaries(self):
         n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
         b = [10,100,1000]
-        self.registry.MakeHistogram(n, boundaries=b)
+        f = self.registry.MakeHistogram(n, labels=[label_name], boundaries=b)
+        h = f.WithLabelValues({label_name:label_value})
         values = self.FetchHistogram(n)
         self.assertEqual(len(values['buckets']), len(b) + 1, 'Number of buckets must equal number of boundaries plus one)')
 
     def test_histogram_observe(self):
         n = self.RandomString()
-        h = self.registry.MakeHistogram(n, boundaries=[10,100,1000])
+        label_name = self.RandomString()
+        label_value = self.RandomString()
+        b = [10,100,1000]
+        f = self.registry.MakeHistogram(n, labels=[label_name], boundaries=b)
+        h = f.WithLabelValues({label_name:label_value})
+
         values = self.FetchHistogram(n)
         self.assertEqual(values['count'], 0, 'Histogram must start with zero observations')
         self.assertEqual(values['sum'], 0.0, 'Histogram must start with zero observations')
@@ -534,8 +591,9 @@ class TestSummary(TestBase):
     def test_MakeSummary(self):
         n = self.RandomString()
         self.assertFalse(self.FetchLine(n))
-        self.registry.MakeSummary(n)
-        self.assertTrue(self.FetchLine(n))
+        metric_family = self.registry.MakeSummary(n)
+        self.assertIsNotNone(metric_family)
+        self.assertFalse(self.FetchLine(n)) # Lazy
 
     def test_MakeSummary_with_labels(self):
         n = u'name' + unicode(self.RandomString(), 'utf-8')
@@ -553,18 +611,37 @@ class TestSummary(TestBase):
         self.assertTrue(label_name2 in line)
         self.assertTrue(label_value2 in line)
 
+    def test_MakeSummary_lazy_instantiates(self):
+        n = u'name' + unicode(self.RandomString(), 'utf-8')
+        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+
+        summary_family = self.registry.MakeSummary(n, [label_name])
+        line = self.FetchLine(n)
+        self.assertEqual(line, '', 'Summary with empty label values must not be published unless modified')
+
+        summary_family.Observe(1)
+        values = self.FetchSummary(n)
+        self.assertEqual(values['count'], 1, 'Summary with empty label values must be published after being modified')
+
     def test_MakeSummary_with_quantiles(self):
         n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
         q = [(0.1,0.05),(0.5,0.05),(0.9,0.05)]
-        self.registry.MakeSummary(n, quantiles=q)
+        f = self.registry.MakeSummary(n, labels=[label_name], quantiles=q)
+        s = f.WithLabelValues({label_name:label_value})
 
         values = self.FetchSummary(n)
         self.assertEqual(len(values['quantiles']), len(q), 'Number of quantiles must match')
 
     def test_summary_observe(self):
         n = self.RandomString()
+        label_name = self.RandomString()
+        label_value = self.RandomString()
         tolerance = 0.05
-        s = self.registry.MakeSummary(n, quantiles=[(0.1,tolerance),(0.5,tolerance),(0.9,tolerance)])
+        f = self.registry.MakeSummary(n, labels=[label_name], quantiles=[(0.1,tolerance),(0.5,tolerance),(0.9,tolerance)])
+        s = f.WithLabelValues({label_name:label_value})
+
         values = self.FetchSummary(n)
         self.assertEqual(values['count'], 0, 'Summary must start with zero observations')
         self.assertEqual(values['sum'], 0.0, 'Summary must start with zero observations')

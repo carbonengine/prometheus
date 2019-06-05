@@ -22,33 +22,56 @@ using namespace prometheus_module;
 #include "utilities.h"
 
 struct Counter::Private {
-	Private(prometheus::Counter& wrapped, prometheus_module::MetricFactory& factory) :
+	Private(prometheus::Counter* wrapped, prometheus_module::MetricFactory& factory) :
 		counter(wrapped),
 		factory(factory)
 	{
 	}
 
-	prometheus::Counter& counter;
+	void LazyInstantiate(prometheus_module::Counter* self) {
+		if (counter != nullptr) {
+			return;
+		}
+
+		factory.MakeCounter(name, lazy_labels, MetricFactory::MakeMetricOption::kPromoteFromLazy, self);
+	}
+
+	prometheus::Counter* counter;
 	prometheus_module::MetricFactory& factory;
 	std::string name;
 	std::vector<std::string> labels;
+
+	std::map<std::string, std::string> lazy_labels;
 };
 
 Counter::Counter(prometheus::Counter& counter, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels) :
-	private_(std::make_unique<Private>(counter, factory))
+	private_(std::make_unique<Private>(&counter, factory))
 {
 	private_->name = name;
 	private_->labels = labels;
 }
 
+Counter::Counter(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels) :
+	private_(std::make_unique<Private>(nullptr, factory))
+{
+	private_->name = name;
+	private_->lazy_labels = labels;
+
+	for (auto& kv : labels) {
+		private_->labels.push_back(kv.first);
+	}
+}
+
 Counter::~Counter() = default;
 
 void Counter::Increment() {
-	private_->counter.Increment();
+	private_->LazyInstantiate(this);
+	private_->counter->Increment();
 }
 
 void Counter::Increment(double value) {
-	private_->counter.Increment(value);
+	private_->LazyInstantiate(this);
+	private_->counter->Increment(value);
 }
 
 CounterInterface* Counter::WithLabelValues(const char* values[], int num_values) {
@@ -79,6 +102,10 @@ const std::string& Counter::name() {
 
 const std::vector<std::string>& Counter::label_names() {
 	return private_->labels;
+}
+
+void Counter::set_wrapped(prometheus::Counter& wrapped) {
+	private_->counter = &wrapped;
 }
 
 

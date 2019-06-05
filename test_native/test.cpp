@@ -201,8 +201,8 @@ protected:
 TEST_F(TestCounter, MakeCounter) {
 	auto n = RandomString();
 	EXPECT_TRUE(FetchLines(n).empty());
-	registry->MakeCounter(n.c_str(), 0, nullptr);
-	EXPECT_FALSE(FetchLines(n).empty());
+	CounterInterface* family = registry->MakeCounter(n.c_str(), 0, nullptr);
+	EXPECT_NE(family, nullptr);
 }
 
 TEST_F(TestCounter, MakeCounterWithLabels) {
@@ -211,14 +211,27 @@ TEST_F(TestCounter, MakeCounterWithLabels) {
 	std::string label_values[] = { RandomString(), RandomString() };
 	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
 	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
+
 	CounterInterface* family = registry->MakeCounter(n.c_str(), 2, label_names_c);
 	CounterInterface* counter = family->WithLabelValues(label_values_c, 2);
 
-	auto line = FetchLines(n)[1];
+	auto line = FetchLine(label_values[0]);
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_names[1]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_values[0]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_values[1]) != std::string::npos);
+}
+
+TEST_F(TestCounter, MakeCounterLazyInstantiates) {
+	auto n = RandomString();
+	std::string label_names[] = { RandomString(), RandomString() };
+	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
+
+	CounterInterface* family = registry->MakeCounter(n.c_str(), 2, label_names_c);
+	EXPECT_TRUE(FetchLines(n).empty());
+
+	family->Increment();
+	EXPECT_EQ(FetchCounter(n), 1);
 }
 
 TEST_F(TestCounter, Increment) {
@@ -270,8 +283,9 @@ protected:
 TEST_F(TestGauge, MakeGauge) {
 	auto n = RandomString();
 	EXPECT_TRUE(FetchLines(n).empty());
-	registry->MakeGauge(n.c_str(), 0, nullptr);
-	EXPECT_FALSE(FetchLines(n).empty());
+	GaugeInterface* family = registry->MakeGauge(n.c_str(), 0, nullptr);
+	EXPECT_TRUE(FetchLines(n).empty());
+	EXPECT_NE(family, nullptr);
 }
 
 TEST_F(TestGauge, MakeGaugeWithLabels) {
@@ -288,6 +302,18 @@ TEST_F(TestGauge, MakeGaugeWithLabels) {
 	EXPECT_TRUE(line.find(label_names[1]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_values[0]) != std::string::npos);
 	EXPECT_TRUE(line.find(label_values[1]) != std::string::npos);
+}
+
+TEST_F(TestGauge, MakeGaugeLazyInstantiates) {
+	auto n = RandomString();
+	std::string label_names[] = { RandomString(), RandomString() };
+	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
+
+	GaugeInterface* family = registry->MakeGauge(n.c_str(), 2, label_names_c);
+	EXPECT_TRUE(FetchLines(n).empty());
+
+	family->Increment();
+	EXPECT_EQ(FetchGauge(n), 1);
 }
 
 TEST_F(TestGauge, Increment) {
@@ -382,8 +408,9 @@ protected:
 TEST_F(TestHistogram, MakeHistogram) {
 	auto n = RandomString();
 	EXPECT_TRUE(FetchLines(n).empty());
-	registry->MakeHistogram(n.c_str(), 0, nullptr, 0, nullptr);
-	EXPECT_FALSE(FetchLines(n).empty());
+	HistogramInterface* family = registry->MakeHistogram(n.c_str(), 0, nullptr, 0, nullptr);
+	EXPECT_TRUE(FetchLines(n).empty());
+	EXPECT_NE(family, nullptr);
 }
 
 TEST_F(TestHistogram, MakeHistogramWithLabels) {
@@ -402,10 +429,28 @@ TEST_F(TestHistogram, MakeHistogramWithLabels) {
 	EXPECT_TRUE(line.find(label_values[1]) != std::string::npos);
 }
 
+TEST_F(TestHistogram, MakeHistogramLazyInstantiates) {
+	auto n = RandomString();
+	std::string label_names[] = { RandomString(), RandomString() };
+	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
+
+	HistogramInterface* family = registry->MakeHistogram(n.c_str(), 2, label_names_c, 0, nullptr);
+	EXPECT_TRUE(FetchLines(n).empty());
+
+	family->Observe(1);
+	auto values = FetchHistogram(n);
+	EXPECT_EQ(values.count, 1);
+}
+
 TEST_F(TestHistogram, MakeHistogramWithBoundaries) {
 	auto n = RandomString();
 	double boundaries[] = { 10.0, 100.0, 1000.0 };
-	auto h = registry->MakeHistogram(n.c_str(), 0, nullptr, 3, boundaries);
+	std::string label_names[] = { RandomString() };
+	std::string label_values[] = { RandomString() };
+	const char* label_names_c[] = { label_names[0].c_str() };
+	const char* label_values_c[] = { label_values[0].c_str() };
+	auto f = registry->MakeHistogram(n.c_str(), 1, label_names_c, 3, boundaries);
+	auto h = f->WithLabelValues(label_values_c, 1);
 
 	auto values = FetchHistogram(n);
 	EXPECT_EQ(values.count, 0);
@@ -505,8 +550,9 @@ protected:
 TEST_F(TestSummary, MakeSummary) {
 	auto n = RandomString();
 	EXPECT_TRUE(FetchLines(n).empty());
-	registry->MakeSummary(n.c_str(), 0, nullptr, 0, nullptr, nullptr, 0, 0);
-	EXPECT_FALSE(FetchLines(n).empty());
+	SummaryInterface* family = registry->MakeSummary(n.c_str(), 0, nullptr, 0, nullptr, nullptr, 0, 0);
+	EXPECT_TRUE(FetchLines(n).empty());
+	EXPECT_NE(family, nullptr);
 }
 
 TEST_F(TestSummary, MakeSummaryWithLabels) {
@@ -526,11 +572,29 @@ TEST_F(TestSummary, MakeSummaryWithLabels) {
 	EXPECT_TRUE(line.find(label_values[1]) != std::string::npos);
 }
 
+TEST_F(TestSummary, MakeSummaryLazyInstantiates) {
+	auto n = RandomString();
+	std::string label_names[] = { RandomString(), RandomString() };
+	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
+
+	SummaryInterface* family = registry->MakeSummary(n.c_str(), 2, label_names_c, 0, nullptr, nullptr, 0, 0);
+	EXPECT_TRUE(FetchLines(n).empty());
+
+	family->Observe(1);
+	auto values = FetchSummary(n);
+	EXPECT_EQ(values.count, 1);
+}
+
 TEST_F(TestSummary, MakeSummaryWithQuantiles) {
 	auto n = RandomString();
+	std::string label_names[] = { RandomString() };
+	std::string label_values[] = { RandomString() };
+	const char* label_names_c[] = { label_names[0].c_str() };
+	const char* label_values_c[] = { label_values[0].c_str() };
 	double quantiles[] = { 0.1, 0.5, 0.9 };
 	double tolerances[] = { 0.05, 0.05, 0.05 };
-	registry->MakeSummary(n.c_str(), 0, nullptr, 3, quantiles, tolerances, 0, 0);
+	auto f = registry->MakeSummary(n.c_str(), 1, label_names_c, 3, quantiles, tolerances, 0, 0);
+	auto h = f->WithLabelValues(label_values_c, 1);
 
 	auto values = FetchSummary(n);
 	EXPECT_EQ(values.count, 0);

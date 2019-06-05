@@ -22,31 +22,54 @@ using namespace prometheus_module;
 #include "utilities.h"
 
 struct Histogram::Private {
-	Private(prometheus::Histogram& wrapped, prometheus_module::MetricFactory& factory) :
+	Private(prometheus::Histogram* wrapped, prometheus_module::MetricFactory& factory) :
 		histogram(wrapped),
 		factory(factory)
 	{
 	}
 
-	prometheus::Histogram& histogram;
+	void LazyInstantiate(prometheus_module::Histogram* self) {
+		if (histogram != nullptr) {
+			return;
+		}
+
+		factory.MakeHistogram(name, lazy_labels, boundaries, MetricFactory::MakeMetricOption::kPromoteFromLazy, self);
+	}
+
+	prometheus::Histogram* histogram;
 	prometheus_module::MetricFactory& factory;
 	std::string name;
 	std::vector<std::string> labels;
 	std::vector<double> boundaries;
+
+	std::map<std::string, std::string> lazy_labels;
 };
 
 Histogram::Histogram(prometheus::Histogram& histogram, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels, const std::vector<double>& boundaries) :
-	private_(std::make_unique<Private>(histogram, factory))
+	private_(std::make_unique<Private>(&histogram, factory))
 {
 	private_->name = name;
 	private_->labels = labels;
 	private_->boundaries = boundaries;
 }
 
+Histogram::Histogram(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries) :
+	private_(std::make_unique<Private>(nullptr, factory))
+{
+	private_->name = name;
+	private_->boundaries = boundaries;
+	private_->lazy_labels = labels;
+
+	for (auto& kv : labels) {
+		private_->labels.push_back(kv.first);
+	}
+}
+
 Histogram::~Histogram() = default;
 
 void Histogram::Observe(double value) {
-	private_->histogram.Observe(value);
+	private_->LazyInstantiate(this);
+	private_->histogram->Observe(value);
 }
 
 HistogramInterface* Histogram::WithLabelValues(const char* values[], int num_values) {
@@ -77,6 +100,10 @@ const std::string& Histogram::name() {
 
 const std::vector<std::string>& Histogram::label_names() {
 	return private_->labels;
+}
+
+void Histogram::set_wrapped(prometheus::Histogram& wrapped) {
+	private_->histogram = &wrapped;
 }
 
 
