@@ -78,7 +78,7 @@ void Summary::Observe(double value) {
 	private_->summary->Observe(value);
 }
 
-SummaryInterface* Summary::WithLabelValues(const char* values[], int num_values) {
+SummaryInterface* Summary::WithLabelValues(int num_values, const char* values[]) {
 	std::vector<std::string> values_vec;
 	for (auto i = 0; i < num_values; i++) {
 		values_vec.push_back(values[i]);

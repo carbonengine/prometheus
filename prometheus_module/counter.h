@@ -29,7 +29,7 @@ public:
 	void Increment() override;
 	void Increment(double value) override;
 
-	CounterInterface* WithLabelValues(const char* values[], int num_values) override;
+	CounterInterface* WithLabelValues(int num_values, const char* values[]) override;
 
 	Counter* WithLabelValues(std::vector<std::string> values);
 	const std::string& name();

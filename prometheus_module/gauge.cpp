@@ -89,7 +89,7 @@ void Gauge::Set(double value) {
 	private_->gauge->Set(value);
 }
 
-GaugeInterface* Gauge::WithLabelValues(const char* values[], int num_values) {
+GaugeInterface* Gauge::WithLabelValues(int num_values, const char* values[]) {
 	std::vector<std::string> values_vec;
 	for (auto i = 0; i < num_values; i++) {
 		values_vec.push_back(values[i]);

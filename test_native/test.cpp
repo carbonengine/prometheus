@@ -213,7 +213,7 @@ TEST_F(TestCounter, MakeCounterWithLabels) {
 	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
 
 	CounterInterface* family = registry->MakeCounter(n.c_str(), 2, label_names_c);
-	CounterInterface* counter = family->WithLabelValues(label_values_c, 2);
+	CounterInterface* counter = family->WithLabelValues(2, label_values_c);
 
 	auto line = FetchLine(label_values[0]);
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
@@ -295,7 +295,7 @@ TEST_F(TestGauge, MakeGaugeWithLabels) {
 	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
 	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
 	GaugeInterface* default_gauge = registry->MakeGauge(n.c_str(), 2, label_names_c);
-	GaugeInterface* labelled_gauge = default_gauge->WithLabelValues(label_values_c, 2);
+	GaugeInterface* labelled_gauge = default_gauge->WithLabelValues(2, label_values_c);
 
 	auto line = FetchLine(label_values[0]);
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
@@ -420,7 +420,7 @@ TEST_F(TestHistogram, MakeHistogramWithLabels) {
 	const char* label_names_c[] = { label_names[0].c_str(), label_names[1].c_str() };
 	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
 	auto family = registry->MakeHistogram(n.c_str(), 2, label_names_c, 0, nullptr);
-	HistogramInterface* histogram = family->WithLabelValues(label_values_c, 2);
+	HistogramInterface* histogram = family->WithLabelValues(2, label_values_c);
 
 	auto line = FetchLine(label_values[0]);
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
@@ -450,7 +450,7 @@ TEST_F(TestHistogram, MakeHistogramWithBoundaries) {
 	const char* label_names_c[] = { label_names[0].c_str() };
 	const char* label_values_c[] = { label_values[0].c_str() };
 	auto f = registry->MakeHistogram(n.c_str(), 1, label_names_c, 3, boundaries);
-	auto h = f->WithLabelValues(label_values_c, 1);
+	auto h = f->WithLabelValues(1, label_values_c);
 
 	auto values = FetchHistogram(n);
 	EXPECT_EQ(values.count, 0);
@@ -563,7 +563,7 @@ TEST_F(TestSummary, MakeSummaryWithLabels) {
 	const char* label_values_c[] = { label_values[0].c_str(), label_values[1].c_str() };
 
 	auto family = registry->MakeSummary(n.c_str(), 2, label_names_c, 0, nullptr, nullptr, 0, 0);
-	SummaryInterface* summary = family->WithLabelValues(label_values_c, 2);
+	SummaryInterface* summary = family->WithLabelValues(2, label_values_c);
 
 	auto line = FetchLine(label_values[0]);
 	EXPECT_TRUE(line.find(label_names[0]) != std::string::npos);
@@ -594,7 +594,7 @@ TEST_F(TestSummary, MakeSummaryWithQuantiles) {
 	double quantiles[] = { 0.1, 0.5, 0.9 };
 	double tolerances[] = { 0.05, 0.05, 0.05 };
 	auto f = registry->MakeSummary(n.c_str(), 1, label_names_c, 3, quantiles, tolerances, 0, 0);
-	auto h = f->WithLabelValues(label_values_c, 1);
+	auto h = f->WithLabelValues(1, label_values_c);
 
 	auto values = FetchSummary(n);
 	EXPECT_EQ(values.count, 0);

@@ -34,7 +34,7 @@ public:
 
 	void Set(double value) override;
 
-	GaugeInterface* WithLabelValues(const char* values[], int num_values) override;
+	GaugeInterface* WithLabelValues(int num_values, const char* values[]) override;
 
 	Gauge* WithLabelValues(std::vector<std::string> values);
 	const std::string& name();

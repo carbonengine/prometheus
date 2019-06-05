@@ -28,7 +28,7 @@ public:
 
 	void Observe(double value) override;
 
-	HistogramInterface* WithLabelValues(const char* values[], int num_values) override;
+	HistogramInterface* WithLabelValues(int num_values, const char* values[]) override;
 
 	Histogram* WithLabelValues(std::vector<std::string> values);
 	const std::string& name();

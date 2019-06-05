@@ -74,7 +74,7 @@ void Counter::Increment(double value) {
 	private_->counter->Increment(value);
 }
 
-CounterInterface* Counter::WithLabelValues(const char* values[], int num_values) {
+CounterInterface* Counter::WithLabelValues(int num_values, const char* values[]) {
 	std::vector<std::string> values_vec;
 	for (auto i = 0; i < num_values; i++) {
 		values_vec.push_back(values[i]);
