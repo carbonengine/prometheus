@@ -72,7 +72,7 @@ void Histogram::Observe(double value) {
 	private_->histogram->Observe(value);
 }
 
-HistogramInterface* Histogram::WithLabelValues(const char* values[], int num_values) {
+HistogramInterface* Histogram::WithLabelValues(int num_values, const char* values[]) {
 	std::vector<std::string> values_vec;
 	for (auto i = 0; i < num_values; i++) {
 		values_vec.push_back(values[i]);

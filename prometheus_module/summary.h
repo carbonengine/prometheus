@@ -28,7 +28,7 @@ public:
 
 	void Observe(double value) override;
 
-	SummaryInterface* WithLabelValues(const char* values[], int num_values) override;
+	SummaryInterface* WithLabelValues(int num_values, const char* values[]) override;
 
 	Summary* WithLabelValues(std::vector<std::string> values);
 	const std::string& name();

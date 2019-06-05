@@ -14,7 +14,7 @@ public:
 
 	virtual void Set(double value) = 0;
 
-	virtual GaugeInterface* WithLabelValues(const char* values[], int num_values) = 0;
+	virtual GaugeInterface* WithLabelValues(int num_values, const char* values[]) = 0;
 };
 
 } // namespace prometheus_module
