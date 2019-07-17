@@ -41,7 +41,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ConformanceMode>false</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)import\Python27\include;$(SolutionDir)import\Python27\include\stackless;$(SolutionDir)import\vcpkg\installed\x64-windows-static\include</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NDEBUG;_WINDLL;_WIN32_WINNT=0x600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>HAVE_ZLIB;NDEBUG;_WINDLL;_WIN32_WINNT=0x600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>

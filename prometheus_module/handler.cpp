@@ -59,7 +59,7 @@ namespace prometheus_module {
 			}
 
 			zs.next_in = (Bytef*)input.data();
-			zs.avail_in = input.size();
+			zs.avail_in = (uInt)input.size();
 
 			int ret;
 			std::vector<Byte> output;
