@@ -1,5 +1,7 @@
+import gzip
 import math
 import string
+import StringIO
 import random
 import time
 import unittest
@@ -107,6 +109,20 @@ class TestServing(TestBase):
         # todo: test ssl (specify port with a trailing 's', e.g. '443s')
         # todo: test multiple ports in one string (separate ports with a comma, e.g. '20800,20801,[::]:20800', each gets its own socket)
         # todo: test ipv4 and ipv6 in one socket (specify port with a leading '+', e.g. '+20800', one socket serves both)
+
+    def test_gzip_supported(self):
+        self.assertTrue(self.registry.Serve(self.port))
+        url = 'http://localhost:' + self.port
+        request = urllib2.Request(url)
+        request.add_header('Accept-encoding', 'gzip')
+        response = urllib2.urlopen(request)
+        encoding = response.info().get('Content-Encoding')
+        self.assertEqual(encoding, 'gzip', 'Exposer must provide gzipped data when requested')
+        buf = StringIO.StringIO(response.read())
+        f = gzip.GzipFile(fileobj=buf)
+        content = f.read()
+        self.assertTrue('exposer' in content, 'Returned content must unzip correctly and contain metrics')
+        self.registry.StopServing()
 
 
 #
