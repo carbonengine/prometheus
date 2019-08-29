@@ -2,6 +2,7 @@
 using namespace prometheus_module;
 
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -23,6 +24,8 @@ struct MetricFactory::Private {
 	static std::map<std::string, std::string> GetLabelNames(const std::map<std::string, std::string>& labels);
 
 	std::shared_ptr<prometheus::Registry> registry;
+
+	std::mutex factory_mutex;
 
 	typedef prometheus::Family<prometheus::Counter> CounterFamily;
 	std::unordered_map<std::string, CounterFamily*> counter_families;
@@ -75,6 +78,8 @@ MetricFactory::MetricFactory(std::shared_ptr<prometheus::Registry> registry) :
 MetricFactory::~MetricFactory() = default;
 
 Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std::string, std::string>& labels, MetricFactory::MakeMetricOption make_option, prometheus_module::Counter* wrapper) {
+	std::lock_guard<std::mutex> lock(private_->factory_mutex);
+
 	// If this metric already exists, then return it
 	auto metric_hash = private_->GetHashKey(name, labels);
 	if (make_option != MakeMetricOption::kPromoteFromLazy) {
@@ -134,6 +139,8 @@ Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std:
 }
 
 Gauge& MetricFactory::MakeGauge(const std::string& name, const std::map<std::string, std::string>& labels, MetricFactory::MakeMetricOption make_option, prometheus_module::Gauge* wrapper) {
+	std::lock_guard<std::mutex> lock(private_->factory_mutex);
+
 	// If this metric already exists, then return it
 	auto metric_hash = private_->GetHashKey(name, labels);
 	if (make_option != MakeMetricOption::kPromoteFromLazy) {
@@ -185,6 +192,8 @@ Gauge& MetricFactory::MakeGauge(const std::string& name, const std::map<std::str
 }
 
 Histogram& MetricFactory::MakeHistogram(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries, MetricFactory::MakeMetricOption make_option, prometheus_module::Histogram* wrapper) {
+	std::lock_guard<std::mutex> lock(private_->factory_mutex);
+
 	// If this metric already exists, then return it
 	auto metric_hash = private_->GetHashKey(name, labels);
 	if (make_option != MakeMetricOption::kPromoteFromLazy) {
@@ -236,6 +245,8 @@ Histogram& MetricFactory::MakeHistogram(const std::string& name, const std::map<
 }
 
 Summary& MetricFactory::MakeSummary(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions, MetricFactory::MakeMetricOption make_option, prometheus_module::Summary* wrapper) {
+	std::lock_guard<std::mutex> lock(private_->factory_mutex);
+
 	// If this metric already exists, then return it
 	auto metric_hash = private_->GetHashKey(name, labels);
 	if (make_option != MakeMetricOption::kPromoteFromLazy) {
