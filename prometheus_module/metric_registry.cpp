@@ -47,7 +47,7 @@ MetricRegistry::MetricRegistry() :
 	private_->factory = std::make_unique<prometheus_module::MetricFactory>(private_->registry);
 
 	auto default_error = 0.05;
-	private_->default_quantiles = prometheus::Summary::Quantiles{ 
+	private_->default_quantiles = prometheus::Summary::Quantiles{
 		{0.01, default_error},
 		{0.1, default_error},
 		{0.5, default_error},
@@ -62,7 +62,7 @@ Counter* MetricRegistry::MakeCounter(const char* name, const std::vector<std::st
 		labels.insert(std::make_pair(name, ""));
 	}
 
-	auto& result = private_->factory->MakeCounter(name, labels, prometheus_module::MetricFactory::MakeMetricOption::kLazy);
+	auto& result = private_->factory->MakeCounter(name, label_names, labels, prometheus_module::MetricFactory::MakeMetricOption::kLazy);
 	return &result;
 }
 
@@ -72,7 +72,7 @@ Gauge* MetricRegistry::MakeGauge(const char* name, const std::vector<std::string
 		labels.insert(std::make_pair(name, ""));
 	}
 
-	auto& result = private_->factory->MakeGauge(name, labels, prometheus_module::MetricFactory::MakeMetricOption::kLazy);
+	auto& result = private_->factory->MakeGauge(name, label_names, labels, prometheus_module::MetricFactory::MakeMetricOption::kLazy);
 	return &result;
 }
 
@@ -82,7 +82,7 @@ Histogram* MetricRegistry::MakeHistogram(const char* name, const std::vector<std
 		labels.insert(std::make_pair(name, ""));
 	}
 
-	auto& result = private_->factory->MakeHistogram(name, labels, boundaries, prometheus_module::MetricFactory::MakeMetricOption::kLazy);
+	auto& result = private_->factory->MakeHistogram(name, label_names, labels, boundaries, prometheus_module::MetricFactory::MakeMetricOption::kLazy);
 	return &result;
 }
 
@@ -92,7 +92,7 @@ Summary* MetricRegistry::MakeSummary(const char* name, const std::vector<std::st
 		labels.insert(std::make_pair(name, ""));
 	}
 
-	auto& result = private_->factory->MakeSummary(name, labels, quantiles, total_window_size_seconds, window_partitions, prometheus_module::MetricFactory::MakeMetricOption::kLazy);
+	auto& result = private_->factory->MakeSummary(name, label_names, labels, quantiles, total_window_size_seconds, window_partitions, prometheus_module::MetricFactory::MakeMetricOption::kLazy);
 	return &result;
 }
 

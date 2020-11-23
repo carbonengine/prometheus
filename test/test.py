@@ -30,6 +30,7 @@ class TestBase(unittest.TestCase):
 
     def FetchLine(self, substr, port=''):
         for line in self.Fetch(port).split('\n'):
+            print line
             if (substr in line) and not ('#' in line):
                 return line.strip()
         return ''
@@ -95,7 +96,7 @@ class TestServing(TestBase):
 
         self.registry.StopServing()
 
-        
+
     def test_bad_port_formats(self):
         self.ExpectServeFailure('invalid_string')
         self.ExpectServeFailure('http://localhost:20800')
@@ -161,14 +162,14 @@ class TestCounter(TestBase):
         label_value2 = self.RandomString()
 
         counter_family = self.registry.MakeCounter(n, [label_name, label_name2])
-        counter = counter_family.WithLabelValues({label_name:label_value, label_name2:label_value2}) 
+        counter = counter_family.WithLabelValues({label_name:label_value, label_name2:label_value2})
 
         line = self.FetchLine(label_value)
         self.assertTrue(label_name in line)
         self.assertTrue(label_value in line)
         self.assertTrue(label_name2 in line)
         self.assertTrue(label_value2 in line)
-        
+
     def test_MakeCounter_lazy_instantiates(self):
         n = u'name' + unicode(self.RandomString(), 'utf-8')
         label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
@@ -182,6 +183,30 @@ class TestCounter(TestBase):
 
         line = self.FetchLine(n)
         self.assertTrue(label_name in line)
+
+    def test_MakeCounter_preserves_label_order(self):
+        n = u'name' + unicode(self.RandomString(), 'utf-8')
+        label_name_a = u'label_name_a' + unicode(self.RandomString(), 'utf-8')
+        label_value_a = u'label_value_a' + unicode(self.RandomString(), 'utf-8')
+        label_name_b = u'label_name_b' + unicode(self.RandomString(), 'utf-8')
+        label_value_b = u'label_value_b' + unicode(self.RandomString(), 'utf-8')
+        label_name_c = u'label_name_c' + unicode(self.RandomString(), 'utf-8')
+        label_value_c = u'label_value_c' + unicode(self.RandomString(), 'utf-8')
+
+        # Define the counter with labels in non-alphabetical order
+        counter_family = self.registry.MakeCounter(n, [label_name_b, label_name_a, label_name_c])
+
+        # Make sure WithLabelValues maps the keys to values regardless of order
+        counter = counter_family.WithLabelValues({label_name_a:label_value_a, label_name_c:label_value_c, label_name_b:label_value_b})
+
+        line = self.FetchLine(label_value_a)
+        # label_name_aXYVIYD="label_value_aLSBDZH",label_name_bOOHOMG="label_value_bHJLADD"
+        label_string_a = '{}="{}"'.format(label_name_a, label_value_a)
+        label_string_b = '{}="{}"'.format(label_name_b, label_value_b)
+        label_string_c = '{}="{}"'.format(label_name_c, label_value_c)
+        self.assertTrue(label_string_a in line)
+        self.assertTrue(label_string_b in line)
+        self.assertTrue(label_string_c in line)
 
     def test_counter_increment(self):
         n = self.RandomString()
@@ -199,7 +224,7 @@ class TestCounter(TestBase):
     def test_counter_increment_with_labels(self):
         n = self.RandomString()
         label_name = self.RandomString()
-        label_name2 = self.RandomString() 
+        label_name2 = self.RandomString()
         # label_name2 exists to show that only providing label_name (omitting label_name2) in WithLabelValues still works
         # WithLabelValues({label_name:whatever}) (omitting label_name2) is the same as WithLabelValues({label_name:whatever,label_name2:''})
         f = self.registry.MakeCounter(n, [label_name, label_name2])
@@ -320,6 +345,30 @@ class TestGauge(TestBase):
         line = self.FetchLine(n)
         self.assertTrue(label_name in line)
 
+    def test_MakeGauge_preserves_label_order(self):
+        n = u'name' + unicode(self.RandomString(), 'utf-8')
+        label_name_a = u'label_name_a' + unicode(self.RandomString(), 'utf-8')
+        label_value_a = u'label_value_a' + unicode(self.RandomString(), 'utf-8')
+        label_name_b = u'label_name_b' + unicode(self.RandomString(), 'utf-8')
+        label_value_b = u'label_value_b' + unicode(self.RandomString(), 'utf-8')
+        label_name_c = u'label_name_c' + unicode(self.RandomString(), 'utf-8')
+        label_value_c = u'label_value_c' + unicode(self.RandomString(), 'utf-8')
+
+        # Define the counter with labels in non-alphabetical order
+        family = self.registry.MakeGauge(n, [label_name_b, label_name_a, label_name_c])
+
+        # Make sure WithLabelValues maps the keys to values regardless of order
+        m = family.WithLabelValues({label_name_a:label_value_a, label_name_c:label_value_c, label_name_b:label_value_b})
+
+        line = self.FetchLine(label_value_a)
+        # label_name_aXYVIYD="label_value_aLSBDZH",label_name_bOOHOMG="label_value_bHJLADD"
+        label_string_a = '{}="{}"'.format(label_name_a, label_value_a)
+        label_string_b = '{}="{}"'.format(label_name_b, label_value_b)
+        label_string_c = '{}="{}"'.format(label_name_c, label_value_c)
+        self.assertTrue(label_string_a in line)
+        self.assertTrue(label_string_b in line)
+        self.assertTrue(label_string_c in line)
+
     def test_gauge_increment(self):
         n = self.RandomString()
         g = self.registry.MakeGauge(n)
@@ -356,7 +405,7 @@ class TestGauge(TestBase):
     def test_gauge_set_with_labels(self):
         n = self.RandomString()
         label_name = self.RandomString()
-        label_name2 = self.RandomString() 
+        label_name2 = self.RandomString()
         # label_name2 exists to show that only providing label_name (omitting label_name2) in WithLabelValues still works
         # WithLabelValues({label_name:whatever}) (omitting label_name2) is the same as WithLabelValues({label_name:whatever,label_name2:''})
         f = self.registry.MakeGauge(n, [label_name, label_name2])
@@ -475,6 +524,30 @@ class TestHistogram(TestBase):
         values = self.FetchHistogram(n)
         self.assertEqual(values['count'], 1, 'Histogram with empty label values must be published after being modified')
 
+    def test_MakeHistogram_preserves_label_order(self):
+        n = u'name' + unicode(self.RandomString(), 'utf-8')
+        label_name_a = u'label_name_a' + unicode(self.RandomString(), 'utf-8')
+        label_value_a = u'label_value_a' + unicode(self.RandomString(), 'utf-8')
+        label_name_b = u'label_name_b' + unicode(self.RandomString(), 'utf-8')
+        label_value_b = u'label_value_b' + unicode(self.RandomString(), 'utf-8')
+        label_name_c = u'label_name_c' + unicode(self.RandomString(), 'utf-8')
+        label_value_c = u'label_value_c' + unicode(self.RandomString(), 'utf-8')
+
+        # Define the metric with labels in non-alphabetical order
+        family = self.registry.MakeHistogram(n, [label_name_b, label_name_a, label_name_c])
+
+        # Make sure WithLabelValues maps the keys to values regardless of order
+        m = family.WithLabelValues({label_name_a:label_value_a, label_name_c:label_value_c, label_name_b:label_value_b})
+
+        line = self.FetchLine(label_value_a)
+        # label_name_aXYVIYD="label_value_aLSBDZH",label_name_bOOHOMG="label_value_bHJLADD"
+        label_string_a = '{}="{}"'.format(label_name_a, label_value_a)
+        label_string_b = '{}="{}"'.format(label_name_b, label_value_b)
+        label_string_c = '{}="{}"'.format(label_name_c, label_value_c)
+        self.assertTrue(label_string_a in line)
+        self.assertTrue(label_string_b in line)
+        self.assertTrue(label_string_c in line)
+
     def test_MakeHistogram_with_boundaries(self):
         n = self.RandomString()
         label_name = self.RandomString()
@@ -514,7 +587,7 @@ class TestHistogram(TestBase):
     def test_histogram_observe_with_labels(self):
         n = self.RandomString()
         label_name = self.RandomString()
-        label_name2 = self.RandomString() 
+        label_name2 = self.RandomString()
         # label_name2 exists to show that only providing label_name (omitting label_name2) in WithLabelValues still works
         # WithLabelValues({label_name:whatever}) (omitting label_name2) is the same as WithLabelValues({label_name:whatever,label_name2:''})
         f = self.registry.MakeHistogram(n, [label_name, label_name2])
@@ -639,6 +712,30 @@ class TestSummary(TestBase):
         values = self.FetchSummary(n)
         self.assertEqual(values['count'], 1, 'Summary with empty label values must be published after being modified')
 
+    def test_MakeSummary_preserves_label_order(self):
+        n = u'name' + unicode(self.RandomString(), 'utf-8')
+        label_name_a = u'label_name_a' + unicode(self.RandomString(), 'utf-8')
+        label_value_a = u'label_value_a' + unicode(self.RandomString(), 'utf-8')
+        label_name_b = u'label_name_b' + unicode(self.RandomString(), 'utf-8')
+        label_value_b = u'label_value_b' + unicode(self.RandomString(), 'utf-8')
+        label_name_c = u'label_name_c' + unicode(self.RandomString(), 'utf-8')
+        label_value_c = u'label_value_c' + unicode(self.RandomString(), 'utf-8')
+
+        # Define the metric with labels in non-alphabetical order
+        family = self.registry.MakeSummary(n, [label_name_b, label_name_a, label_name_c])
+
+        # Make sure WithLabelValues maps the keys to values regardless of order
+        m = family.WithLabelValues({label_name_a:label_value_a, label_name_c:label_value_c, label_name_b:label_value_b})
+
+        line = self.FetchLine(label_value_a)
+        # label_name_aXYVIYD="label_value_aLSBDZH",label_name_bOOHOMG="label_value_bHJLADD"
+        label_string_a = '{}="{}"'.format(label_name_a, label_value_a)
+        label_string_b = '{}="{}"'.format(label_name_b, label_value_b)
+        label_string_c = '{}="{}"'.format(label_name_c, label_value_c)
+        self.assertTrue(label_string_a in line)
+        self.assertTrue(label_string_b in line)
+        self.assertTrue(label_string_c in line)
+
     def test_MakeSummary_with_quantiles(self):
         n = self.RandomString()
         label_name = self.RandomString()
@@ -707,7 +804,7 @@ class TestSummary(TestBase):
     def test_summary_observe_with_labels(self):
         n = self.RandomString()
         label_name = self.RandomString()
-        label_name2 = self.RandomString() 
+        label_name2 = self.RandomString()
         # label_name2 exists to show that only providing label_name (omitting label_name2) in WithLabelValues still works
         # WithLabelValues({label_name:whatever}) (omitting label_name2) is the same as WithLabelValues({label_name:whatever,label_name2:''})
         f = self.registry.MakeSummary(n, [label_name, label_name2])

@@ -33,7 +33,7 @@ struct Summary::Private {
 			return;
 		}
 
-		factory.MakeSummary(name, lazy_labels, quantiles, total_window_size_seconds, window_partitions, MetricFactory::MakeMetricOption::kPromoteFromLazy, self);
+		factory.MakeSummary(name, labels, lazy_labels, quantiles, total_window_size_seconds, window_partitions, MetricFactory::MakeMetricOption::kPromoteFromLazy, self);
 	}
 
 	prometheus::Summary* summary;
@@ -57,7 +57,7 @@ Summary::Summary(prometheus::Summary& summary, prometheus_module::MetricFactory&
 	private_->window_partitions = window_partitions;
 }
 
-Summary::Summary(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions) :
+Summary::Summary(prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& label_names, const std::map<std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions) :
 	private_(std::make_unique<Private>(nullptr, factory))
 {
 	private_->name = name;
@@ -66,9 +66,7 @@ Summary::Summary(prometheus_module::MetricFactory& factory, const std::string& n
 	private_->total_window_size_seconds = total_window_size_seconds;
 	private_->window_partitions = window_partitions;
 
-	for (auto& kv : labels) {
-		private_->labels.push_back(kv.first);
-	}
+	private_->labels = label_names;
 }
 
 Summary::~Summary() = default;
@@ -96,7 +94,7 @@ Summary* Summary::WithLabelValues(std::vector<std::string> values) {
 		labels.insert(std::make_pair(private_->labels[i], values[i]));
 	}
 
-	Summary& result = private_->factory.MakeSummary(private_->name, labels, private_->quantiles, private_->total_window_size_seconds, private_->window_partitions);
+	Summary& result = private_->factory.MakeSummary(private_->name, private_->labels, labels, private_->quantiles, private_->total_window_size_seconds, private_->window_partitions);
 	return &result;
 }
 

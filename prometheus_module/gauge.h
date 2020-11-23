@@ -23,7 +23,7 @@ class Gauge : public GaugeInterface {
 public:
 
 	Gauge(prometheus::Gauge& gauge, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels);
-	Gauge(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels);
+	Gauge(prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& label_names, const std::map<std::string, std::string>& labels);
 	~Gauge();
 
 	void Increment() override;

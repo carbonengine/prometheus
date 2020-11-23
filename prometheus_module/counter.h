@@ -23,7 +23,7 @@ class Counter : public CounterInterface {
 public:
 
 	Counter(prometheus::Counter& counter, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels);
-	Counter(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels);
+	Counter(prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& label_names, const std::map<std::string, std::string>& labels);
 	~Counter();
 
 	void Increment() override;

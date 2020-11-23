@@ -77,7 +77,7 @@ MetricFactory::MetricFactory(std::shared_ptr<prometheus::Registry> registry) :
 
 MetricFactory::~MetricFactory() = default;
 
-Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std::string, std::string>& labels, MetricFactory::MakeMetricOption make_option, prometheus_module::Counter* wrapper) {
+Counter& MetricFactory::MakeCounter(const std::string& name, const std::vector<std::string>& label_names, const std::map<std::string, std::string>& labels, MetricFactory::MakeMetricOption make_option, prometheus_module::Counter* wrapper) {
 	std::lock_guard<std::mutex> lock(private_->factory_mutex);
 
 	// If this metric already exists, then return it
@@ -91,8 +91,8 @@ Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std:
 	}
 
 	// The metric doesn't exist yet, so see if its family does
-	auto label_names = private_->GetLabelNames(labels);
-	auto family_hash = private_->GetHashKey(name, label_names);
+	auto label_names_map = private_->GetLabelNames(labels);
+	auto family_hash = private_->GetHashKey(name, label_names_map);
 	auto family_iter = private_->counter_families.find(family_hash);
 	auto family = family_iter->second;
 	if (family_iter == private_->counter_families.end()) {
@@ -112,17 +112,13 @@ Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std:
 
 	// Create the metric (if not lazy) and create or update its wrapper
 	if (make_option == MakeMetricOption::kLazy) {
-		wrapper = new prometheus_module::Counter(*this, name, labels);
+		wrapper = new prometheus_module::Counter(*this, name, label_names, labels);
 	}
 	else {
 		auto& prometheus_counter = family->Add(labels);
-		std::vector<std::string> label_names_vec;
-		for (auto& label_names_iter : label_names) {
-			label_names_vec.push_back(label_names_iter.first);
-		}
 
 		if (make_option == MetricFactory::MakeMetricOption::kImmediate) {
-			wrapper = new prometheus_module::Counter(prometheus_counter, *this, name, label_names_vec);
+			wrapper = new prometheus_module::Counter(prometheus_counter, *this, name, label_names);
 		}
 		else if (make_option == MakeMetricOption::kPromoteFromLazy && wrapper != nullptr) {
 			wrapper->set_wrapped(prometheus_counter);
@@ -138,7 +134,7 @@ Counter& MetricFactory::MakeCounter(const std::string& name, const std::map<std:
 	return *wrapper;
 }
 
-Gauge& MetricFactory::MakeGauge(const std::string& name, const std::map<std::string, std::string>& labels, MetricFactory::MakeMetricOption make_option, prometheus_module::Gauge* wrapper) {
+Gauge& MetricFactory::MakeGauge(const std::string& name, const std::vector<std::string>& label_names, const std::map<std::string, std::string>& labels, MetricFactory::MakeMetricOption make_option, prometheus_module::Gauge* wrapper) {
 	std::lock_guard<std::mutex> lock(private_->factory_mutex);
 
 	// If this metric already exists, then return it
@@ -152,8 +148,8 @@ Gauge& MetricFactory::MakeGauge(const std::string& name, const std::map<std::str
 	}
 
 	// The metric doesn't exist yet, so see if its family does
-	auto label_names = private_->GetLabelNames(labels);
-	auto family_hash = private_->GetHashKey(name, label_names);
+	auto label_names_map = private_->GetLabelNames(labels);
+	auto family_hash = private_->GetHashKey(name, label_names_map);
 	auto family_iter = private_->gauge_families.find(family_hash);
 	auto family = family_iter->second;
 	if (family_iter == private_->gauge_families.end()) {
@@ -165,12 +161,12 @@ Gauge& MetricFactory::MakeGauge(const std::string& name, const std::map<std::str
 
 	// Create the metric (if not lazy) and create or update its wrapper
 	if (make_option == MakeMetricOption::kLazy) {
-		wrapper = new prometheus_module::Gauge(*this, name, labels);
+		wrapper = new prometheus_module::Gauge(*this, name, label_names, labels);
 	}
 	else {
 		auto& prometheus_metric = family->Add(labels);
 		std::vector<std::string> label_names_vec;
-		for (auto& label_names_iter : label_names) {
+		for (auto& label_names_iter : label_names_map) {
 			label_names_vec.push_back(label_names_iter.first);
 		}
 
@@ -191,7 +187,7 @@ Gauge& MetricFactory::MakeGauge(const std::string& name, const std::map<std::str
 	return *wrapper;
 }
 
-Histogram& MetricFactory::MakeHistogram(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries, MetricFactory::MakeMetricOption make_option, prometheus_module::Histogram* wrapper) {
+Histogram& MetricFactory::MakeHistogram(const std::string& name, const std::vector<std::string>& label_names, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries, MetricFactory::MakeMetricOption make_option, prometheus_module::Histogram* wrapper) {
 	std::lock_guard<std::mutex> lock(private_->factory_mutex);
 
 	// If this metric already exists, then return it
@@ -205,8 +201,8 @@ Histogram& MetricFactory::MakeHistogram(const std::string& name, const std::map<
 	}
 
 	// The metric doesn't exist yet, so see if its family does
-	auto label_names = private_->GetLabelNames(labels);
-	auto family_hash = private_->GetHashKey(name, label_names);
+	auto label_names_map = private_->GetLabelNames(labels);
+	auto family_hash = private_->GetHashKey(name, label_names_map);
 	auto family_iter = private_->histogram_families.find(family_hash);
 	auto family = family_iter->second;
 	if (family_iter == private_->histogram_families.end()) {
@@ -218,12 +214,12 @@ Histogram& MetricFactory::MakeHistogram(const std::string& name, const std::map<
 
 	// Create the metric (if not lazy) and create or update its wrapper
 	if (make_option == MakeMetricOption::kLazy) {
-		wrapper = new prometheus_module::Histogram(*this, name, labels, boundaries);
+		wrapper = new prometheus_module::Histogram(*this, name, label_names, labels, boundaries);
 	}
 	else {
 		auto& prometheus_metric = family->Add(labels, boundaries);
 		std::vector<std::string> label_names_vec;
-		for (auto& label_names_iter : label_names) {
+		for (auto& label_names_iter : label_names_map) {
 			label_names_vec.push_back(label_names_iter.first);
 		}
 
@@ -244,7 +240,7 @@ Histogram& MetricFactory::MakeHistogram(const std::string& name, const std::map<
 	return *wrapper;
 }
 
-Summary& MetricFactory::MakeSummary(const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions, MetricFactory::MakeMetricOption make_option, prometheus_module::Summary* wrapper) {
+Summary& MetricFactory::MakeSummary(const std::string& name, const std::vector<std::string>& label_names, const std::map<std::string, std::string>& labels, const std::vector<std::pair<double, double> >& quantiles, int total_window_size_seconds, int window_partitions, MetricFactory::MakeMetricOption make_option, prometheus_module::Summary* wrapper) {
 	std::lock_guard<std::mutex> lock(private_->factory_mutex);
 
 	// If this metric already exists, then return it
@@ -258,8 +254,8 @@ Summary& MetricFactory::MakeSummary(const std::string& name, const std::map<std:
 	}
 
 	// The metric doesn't exist yet, so see if its family does
-	auto label_names = private_->GetLabelNames(labels);
-	auto family_hash = private_->GetHashKey(name, label_names);
+	auto label_names_map = private_->GetLabelNames(labels);
+	auto family_hash = private_->GetHashKey(name, label_names_map);
 	auto family_iter = private_->summary_families.find(family_hash);
 	auto family = family_iter->second;
 	if (family_iter == private_->summary_families.end()) {
@@ -288,12 +284,12 @@ Summary& MetricFactory::MakeSummary(const std::string& name, const std::map<std:
 
 	// Create the metric (if not lazy) and create or update its wrapper
 	if (make_option == MakeMetricOption::kLazy) {
-		wrapper = new prometheus_module::Summary(*this, name, labels, quantiles, total_window_size_seconds, window_partitions);
+		wrapper = new prometheus_module::Summary(*this, name, label_names, labels, quantiles, total_window_size_seconds, window_partitions);
 	}
 	else {
 		auto& prometheus_metric = family->Add(labels, quantiles_converted, std::chrono::seconds{ total_window_size_seconds / window_partitions }, window_partitions);
 		std::vector<std::string> label_names_vec;
-		for (auto& label_names_iter : label_names) {
+		for (auto& label_names_iter : label_names_map) {
 			label_names_vec.push_back(label_names_iter.first);
 		}
 

@@ -23,7 +23,7 @@ class Histogram : public HistogramInterface {
 public:
 
 	Histogram(prometheus::Histogram& histogram, prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& labels, const std::vector<double>& boundaries);
-	Histogram(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries);
+	Histogram(prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& label_names, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries);
 	~Histogram();
 
 	void Observe(double value) override;

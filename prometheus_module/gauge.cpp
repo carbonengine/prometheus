@@ -33,7 +33,7 @@ struct Gauge::Private {
 			return;
 		}
 
-		factory.MakeGauge(name, lazy_labels, MetricFactory::MakeMetricOption::kPromoteFromLazy, self);
+		factory.MakeGauge(name, labels, lazy_labels, MetricFactory::MakeMetricOption::kPromoteFromLazy, self);
 	}
 
 	prometheus::Gauge* gauge;
@@ -51,15 +51,13 @@ Gauge::Gauge(prometheus::Gauge& gauge, prometheus_module::MetricFactory& factory
 	private_->labels = labels;
 }
 
-Gauge::Gauge(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels) :
+Gauge::Gauge(prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& label_names, const std::map<std::string, std::string>& labels) :
 	private_(std::make_unique<Private>(nullptr, factory))
 {
 	private_->name = name;
 	private_->lazy_labels = labels;
 
-	for (auto& kv : labels) {
-		private_->labels.push_back(kv.first);
-	}
+	private_->labels = label_names;
 }
 
 Gauge::~Gauge() = default;
@@ -107,7 +105,7 @@ Gauge* Gauge::WithLabelValues(std::vector<std::string> values) {
 		labels.insert(std::make_pair(private_->labels[i], values[i]));
 	}
 
-	Gauge& result = private_->factory.MakeGauge(private_->name, labels);
+	Gauge& result = private_->factory.MakeGauge(private_->name, private_->labels, labels);
 	return &result;
 }
 
@@ -267,7 +265,7 @@ static PyObject* Gauge_WithLabelValues(GaugePyObject* self, PyObject* args, PyOb
 	for (auto&& label_name : final_labels) {
 		final_labels_with_values.insert(std::make_pair(label_name, labels[label_name]));
 	}
-	
+
 	std::stringstream ss;
 	ss << "g|";
 	ss << self->gauge->name();

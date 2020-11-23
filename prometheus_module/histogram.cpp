@@ -33,7 +33,7 @@ struct Histogram::Private {
 			return;
 		}
 
-		factory.MakeHistogram(name, lazy_labels, boundaries, MetricFactory::MakeMetricOption::kPromoteFromLazy, self);
+		factory.MakeHistogram(name, labels, lazy_labels, boundaries, MetricFactory::MakeMetricOption::kPromoteFromLazy, self);
 	}
 
 	prometheus::Histogram* histogram;
@@ -53,16 +53,14 @@ Histogram::Histogram(prometheus::Histogram& histogram, prometheus_module::Metric
 	private_->boundaries = boundaries;
 }
 
-Histogram::Histogram(prometheus_module::MetricFactory& factory, const std::string& name, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries) :
+Histogram::Histogram(prometheus_module::MetricFactory& factory, const std::string& name, const std::vector<std::string>& label_names, const std::map<std::string, std::string>& labels, const std::vector<double>& boundaries) :
 	private_(std::make_unique<Private>(nullptr, factory))
 {
 	private_->name = name;
 	private_->boundaries = boundaries;
 	private_->lazy_labels = labels;
 
-	for (auto& kv : labels) {
-		private_->labels.push_back(kv.first);
-	}
+	private_->labels = label_names;
 }
 
 Histogram::~Histogram() = default;
@@ -90,7 +88,7 @@ Histogram* Histogram::WithLabelValues(std::vector<std::string> values) {
 		labels.insert(std::make_pair(private_->labels[i], values[i]));
 	}
 
-	Histogram& result = private_->factory.MakeHistogram(private_->name, labels, private_->boundaries);
+	Histogram& result = private_->factory.MakeHistogram(private_->name, private_->labels, labels, private_->boundaries);
 	return &result;
 }
 
