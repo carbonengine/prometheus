@@ -37,7 +37,7 @@ RUN Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Ne
 RUN choco install --yes --no-progress --limit-output git.install --params "'/GitAndUnixToolsOnPath /NoGitLfs /SChannel /NoAutoCrlf'"
 
 # Install pip for pytest
-ADD https://bootstrap.pypa.io/get-pip.py C:\get-pip.py
+ADD https://bootstrap.pypa.io/pip/2.7/get-pip.py C:\get-pip.py
 RUN C:\build\import\python27\python.exe C:\get-pip.py
 
 # Install pytest
