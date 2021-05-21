@@ -7,6 +7,8 @@
 #include <zlib.h>
 #endif
 
+#include <prometheus/counter.h>
+#include <prometheus/summary.h>
 #include "prometheus/collectable.h"
 #include "prometheus/registry.h"
 #include "prometheus/serializer.h"

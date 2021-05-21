@@ -1,0 +1,3 @@
+[submodule "cmake"]
+	path = vendor/ccpgames/platform-cmake
+	url = git@github.com:ccpgames/platform-cmake.git

@@ -778,7 +778,7 @@ class TestSummary(TestBase):
         n = self.RandomString()
 
         # Make an 8-second window, split into 2 partitions, giving us 4 seconds per partition
-        s = self.registry.MakeSummary(n, quantiles=[(0.5,0.0)], window_size_seconds=10, window_partitions=2)
+        s = self.registry.MakeSummary(n, quantiles=[(0.5,0.0)], window_size_seconds=8, window_partitions=2)
 
         # Observe a sample, this is time t
         s.Observe(1)
