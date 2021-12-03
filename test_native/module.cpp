@@ -15,19 +15,19 @@
 
 // Python linkage
 
-static PyObject* RunTests(PyObject *self, PyObject *args, PyObject *kwds) {
-	PyObject* capsule = NULL;
+static PyObject* RunTests(PyObject *, PyObject *args, PyObject *kwds) {
+	PyObject* capsule = nullptr;
 
-	static char *kwlist[] = { "capsule", NULL };
+	static const char *kwlist[] = { "capsule", nullptr };
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &capsule))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char**)kwlist, &capsule))
 		Py_RETURN_FALSE;
 
-	prometheus_module::MetricRegistryInterface* registry = (MetricRegistryInterface*)PyCapsule_GetPointer(capsule, NULL);
+	auto* registry = (MetricRegistryInterface*)PyCapsule_GetPointer(capsule, nullptr);
 	TestBase::StaticInitialize(registry);
 
 	int argc = 1;
-	char* argv[] = {"nothing.exe"};	//< gtest falsely accuses us of not calling InitGoogleTest if this is empty
+	static const char* argv[] = {"nothing.exe"};	//< gtest falsely accuses us of not calling InitGoogleTest if this is empty
 	::testing::InitGoogleTest(&argc, (char**)argv);
 
 	auto has_failures = RUN_ALL_TESTS();
@@ -43,7 +43,7 @@ static PyObject* RunTests(PyObject *self, PyObject *args, PyObject *kwds) {
 
 static PyMethodDef ModuleMethods[] = {
 	{"RunTests", (PyCFunction)RunTests, METH_VARARGS | METH_KEYWORDS, "Run all the native tests"},
-    {NULL, NULL, 0, NULL}        /* Sentinel */
+    {nullptr, nullptr, 0, nullptr}        /* Sentinel */
 };
 
 PyMODINIT_FUNC inittest_native(void) {

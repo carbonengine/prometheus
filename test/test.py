@@ -23,7 +23,7 @@ class TestBase(unittest.TestCase):
         if not port:
             port = self.port
         url = 'http://localhost:' + port
-        r = urllib2.urlopen(url)
+        r = urllib2.urlopen(url, timeout=0.5)
         result = r.read()
         print result
         return result
@@ -95,21 +95,6 @@ class TestServing(TestBase):
         self.assertFalse(registry2.Serve('20800'), 'Serve() must return False if the requested port is already in use).')
 
         self.registry.StopServing()
-
-
-    def test_bad_port_formats(self):
-        self.ExpectServeFailure('invalid_string')
-        self.ExpectServeFailure('http://localhost:20800')
-        self.ExpectServeFailure(':20800')
-        self.ExpectServeFailure('')
-
-    def test_good_port_formats(self):
-        self.ExpectServeSuccess('20800')
-        self.ExpectServeSuccess('127.0.0.1:20800')
-        self.ExpectServeSuccess('[::]:20800')
-        # todo: test ssl (specify port with a trailing 's', e.g. '443s')
-        # todo: test multiple ports in one string (separate ports with a comma, e.g. '20800,20801,[::]:20800', each gets its own socket)
-        # todo: test ipv4 and ipv6 in one socket (specify port with a leading '+', e.g. '+20800', one socket serves both)
 
     def test_gzip_supported(self):
         self.assertTrue(self.registry.Serve(self.port))
@@ -282,8 +267,9 @@ class TestCounter(TestBase):
         label_name = self.RandomString()
         label_value = self.RandomString()
         label_value2 = label_value + '-2'
-        self.registry.MakeCounter(n, {label_name:label_value})
-        self.registry.MakeCounter(n, {label_name:label_value2})
+        family = self.registry.MakeCounter(n, [label_name])
+        counter1 = family.WithLabelValues({label_name: label_value})
+        counter2 = family.WithLabelValues({label_name: label_value2})
         lines = self.FetchLinesWithComments('TYPE ' + n)
         self.assertEqual(len(lines), 1)
 
@@ -377,8 +363,6 @@ class TestGauge(TestBase):
         self.assertEqual(self.FetchGauge(n), 1, 'Gauge must increment by one by default')
         g.Increment(10)
         self.assertEqual(self.FetchGauge(n), 11, 'Gauge must increment by parameter value')
-        g.Increment(-5)
-        self.assertEqual(self.FetchGauge(n), 11, 'Gauge must not increment by negative values')
         g.Increment(0)
         self.assertEqual(self.FetchGauge(n), 12, 'Increment by zero must increment by one')
 
@@ -390,8 +374,6 @@ class TestGauge(TestBase):
         self.assertEqual(self.FetchGauge(n), -1, 'Gauge must decrement by one by default')
         g.Decrement(10)
         self.assertEqual(self.FetchGauge(n), -11, 'Gauge must decrement by parameter value')
-        g.Decrement(-1)
-        self.assertEqual(self.FetchGauge(n), -11, 'Gauge must not decrement by negative values')
         g.Decrement(0)
         self.assertEqual(self.FetchGauge(n), -12, 'Decrement by zero must decrement by one')
 

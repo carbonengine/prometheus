@@ -183,9 +183,9 @@ static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self, PyObje
 	const char* arg_name = NULL;
 	PyObject* arg_labels = NULL;
 
-	static char* keyword_list[] = {"name", "labels", NULL};
+	static const char* keyword_list[] = {"name", "labels", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|O", keyword_list, &arg_name, &arg_labels)) {
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|O", (char**)keyword_list, &arg_name, &arg_labels)) {
 		Py_RETURN_NONE;
 	}
 
@@ -215,9 +215,9 @@ static PyObject* MetricRegistry_MakeGauge(MetricRegistryPyObject* self, PyObject
 	const char* arg_name = NULL;
 	PyObject* arg_labels = NULL;
 
-	static char* keyword_list[] = {"name", "labels", NULL};
+	static const char* keyword_list[] = {"name", "labels", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|O", keyword_list, &arg_name, &arg_labels)) {
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|O", (char**)keyword_list, &arg_name, &arg_labels)) {
 		Py_RETURN_NONE;
 	}
 
@@ -250,9 +250,9 @@ static PyObject* MetricRegistry_MakeHistogram(MetricRegistryPyObject* self, PyOb
 	PyObject* arg_labels = NULL;
 	PyObject* arg_boundaries = NULL;
 
-	static char* keyword_list[] = { "name", "labels", "boundaries", NULL };
+	static const char* keyword_list[] = { "name", "labels", "boundaries", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|OO", keyword_list, &arg_name, &arg_labels, &arg_boundaries)) {
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|OO", (char**)keyword_list, &arg_name, &arg_labels, &arg_boundaries)) {
 		Py_RETURN_NONE;
 	}
 
@@ -305,9 +305,9 @@ static PyObject* MetricRegistry_MakeSummary(MetricRegistryPyObject* self, PyObje
 	int window_size_seconds = 0;
 	int window_partitions = 0;
 
-	static char* keyword_list[] = { "name", "labels", "quantiles", "window_size_seconds", "window_partitions", NULL };
+	static const char* keyword_list[] = { "name", "labels", "quantiles", "window_size_seconds", "window_partitions", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|OOii", keyword_list, &arg_name, &arg_labels, &arg_quantiles, &window_size_seconds, &window_partitions)) {
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|OOii", (char**)keyword_list, &arg_name, &arg_labels, &arg_quantiles, &window_size_seconds, &window_partitions)) {
 		Py_RETURN_NONE;
 	}
 
@@ -365,9 +365,9 @@ static PyObject* MetricRegistry_MakeSummary(MetricRegistryPyObject* self, PyObje
 
 static PyObject* MetricRegistry_Serve(MetricRegistryPyObject* self, PyObject* args, PyObject* keywords) {
 	char* bind_address = NULL;
-	static char* keyword_list[] = {"bind_address", NULL};
+	static const char* keyword_list[] = {"bind_address", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s", keyword_list, &bind_address) || bind_address == NULL) {
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s", (char**)keyword_list, &bind_address) || bind_address == NULL) {
 		Py_RETURN_FALSE;
 	}
 
@@ -452,4 +452,3 @@ void MetricRegistry::RegisterPythonObject(PyObject* module) {
 	Py_INCREF(&MetricRegistryPyType);
 	PyModule_AddObject(module, "MetricRegistry", (PyObject *)&MetricRegistryPyType);
 }
-

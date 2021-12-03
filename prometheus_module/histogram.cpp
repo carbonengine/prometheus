@@ -120,9 +120,9 @@ static int Histogram_init(HistogramPyObject *self, PyObject *args, PyObject *kwd
 	PyObject* capsule = NULL;
 	PyObject* family = NULL;
 
-	static char *kwlist[] = { "capsule", "family", NULL };
+	static const char *kwlist[] = { "capsule", "family", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist, &capsule, &family))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", (char**)kwlist, &capsule, &family))
 		return -1;
 
 	Histogram* wrapped = (Histogram*)PyCapsule_GetPointer(capsule, NULL);
@@ -155,9 +155,9 @@ static void Histogram_dealloc(HistogramPyObject* self) {
 
 static PyObject* Histogram_Observe(HistogramPyObject* self, PyObject* args, PyObject* keywords) {
 	double value = 0.0;
-	static char* keyword_list[] = {"value", NULL};
+	static const char* keyword_list[] = {"value", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "d", keyword_list, &value)) {
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "d", (char**)keyword_list, &value)) {
 		Py_RETURN_FALSE;
 	}
 
@@ -169,9 +169,9 @@ static PyObject* Histogram_Observe(HistogramPyObject* self, PyObject* args, PyOb
 static PyObject* Histogram_WithLabelValues(HistogramPyObject* self, PyObject* args, PyObject* keywords) {
 	PyObject* arg_labels = NULL;
 
-	static char* keyword_list[] = { "labels", NULL };
+	static const char* keyword_list[] = { "labels", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "|O", keyword_list, &arg_labels)) {
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "|O", (char**)keyword_list, &arg_labels)) {
 		return Py_BuildValue("O", self);
 	}
 

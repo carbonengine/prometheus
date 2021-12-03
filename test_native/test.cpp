@@ -132,18 +132,6 @@ std::string TestBase::RandomString(int length) {
 //
 
 class TestServing : public TestBase {
-protected:
-
-	void ExpectServeSuccess(std::string port="") {
-		EXPECT_FALSE(IsServerListening(port));
-		EXPECT_TRUE(registry->Serve(port.c_str()));
-		registry->StopServing();
-		EXPECT_FALSE(IsServerListening(port));
-	}
-
-	void ExpectServeFailure(std::string port = "") {
-		EXPECT_FALSE(registry->Serve(port.c_str()));
-	}
 };
 
 TEST_F(TestServing, ServerStartStop) {
@@ -153,24 +141,6 @@ TEST_F(TestServing, ServerStartStop) {
 	registry->StopServing();
 	EXPECT_FALSE(IsServerListening());
 }
-
-TEST_F(TestServing, BadPortFormats) {
-	ExpectServeFailure("invalid_string");
-	ExpectServeFailure("http://localhost:20800"); // must not contain the protocol prefix
-	ExpectServeFailure("localhost:20800"); // does not support hostnames
-	ExpectServeFailure(":20800"); // must not prefix the port with a colon unless an ip address is specified
-	ExpectServeFailure("");
-}
-
-TEST_F(TestServing, GoodPortFormats) {
-	ExpectServeSuccess("20800");
-	ExpectServeSuccess("127.0.0.1:20800");
-	ExpectServeSuccess("[::]:20800");
-	// todo: test ssl (specify port with a trailing 's', e.g. '443s')
-	// todo: test multiple ports in one string (separate ports with a comma, e.g. '20800,20801,[::]:20800', each gets its own socket)
-	// todo: test ipv4 and ipv6 in one socket (specify port with a leading '+', e.g. '+20800', one socket serves both)
-}
-
 
 //
 // Counter

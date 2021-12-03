@@ -1,6 +1,5 @@
-find_package(CURL CONFIG REQUIRED)
-find_package(Python REQUIRED)
-find_package(GTest CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
+find_package(CURL REQUIRED)
 
 add_library(TestNative SHARED
     module.cpp
@@ -20,15 +19,15 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         SUFFIX ".pyd"
     )
 endif()
-target_link_libraries(TestNative PRIVATE GTest::gmock_main PrometheusModule CURL::libcurl)
+target_link_libraries(TestNative PRIVATE GTest::GTest GTest::Main PrometheusModule CURL::libcurl ZLIB::ZLIB OpenSSL::SSL OpenSSL::Crypto)
 
-set(_PIP_DIR "${CMAKE_BINARY_DIR}/get-pip.py")
-file(DOWNLOAD https://bootstrap.pypa.io/pip/2.7/get-pip.py ${_PIP_DIR})
-add_custom_command(TARGET TestNative
-    POST_BUILD
-    COMMAND ${Python_EXECUTABLE} ${_PIP_DIR}
-    COMMAND ${Python_EXECUTABLE} -m pip install --user pytest==4.6.11
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/tests"
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:PrometheusModule> $<TARGET_FILE:TestNative> ${CMAKE_SOURCE_DIR}/test/test.py "${CMAKE_BINARY_DIR}/tests"
-    COMMAND ${Python_EXECUTABLE} -m pytest -v --junitxml=test_results.xml "${CMAKE_BINARY_DIR}/tests/test.py"
+# Temporary folder where tests are run
+set(PYTHON_TEST_DIR "${CMAKE_CURRENT_BINARY_DIR}/tests/")
+
+# Copy tests and pyds to the test folder
+add_custom_command(TARGET TestNative POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PYTHON_TEST_DIR}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../test/ ${PYTHON_TEST_DIR}
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:PrometheusModule> $<TARGET_FILE:TestNative> ${PYTHON_TEST_DIR}
+    COMMAND ${Python_EXECUTABLE} -m pytest -v -p no:cacheprovider --junitxml=${PYTHON_TEST_DIR}/test_results.xml "${PYTHON_TEST_DIR}/test.py"
 )

@@ -137,9 +137,9 @@ static int Gauge_init(GaugePyObject *self, PyObject *args, PyObject *kwds) {
 	PyObject* capsule = NULL;
 	PyObject* family = NULL;
 
-	static char *kwlist[] = { "capsule", "family", NULL };
+	static const char *kwlist[] = { "capsule", "family", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist, &capsule, &family))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", (char**)kwlist, &capsule, &family))
 		return -1;
 
 	Gauge* wrapped = (Gauge*)PyCapsule_GetPointer(capsule, NULL);
@@ -178,9 +178,9 @@ static PyObject* Gauge_Increment(GaugePyObject* self, PyObject* args, PyObject* 
 	double sentinel = 0.0;
 	double value = sentinel;
 
-	static char* keyword_list[] = {"value", NULL};
+	static const char* keyword_list[] = {"value", NULL};
 
-	if (PyArg_ParseTupleAndKeywords(args, keywords, "|d", keyword_list, &value) && value != sentinel) {
+	if (PyArg_ParseTupleAndKeywords(args, keywords, "|d", (char**)keyword_list, &value) && value != sentinel) {
 		self->gauge->Increment(value);
 	} else {
 		self->gauge->Increment();
@@ -196,9 +196,9 @@ static PyObject* Gauge_Decrement(GaugePyObject* self, PyObject* args, PyObject* 
 	// I chose zero for the sentinel since it would be a no-op, and therefore useless as a value.
 	double sentinel = 0.0;
 	double value = sentinel;
-	static char* keyword_list[] = {"value", NULL};
+	static const char* keyword_list[] = {"value", NULL};
 
-	if (PyArg_ParseTupleAndKeywords(args, keywords, "|d", keyword_list, &value) && value != sentinel) {
+	if (PyArg_ParseTupleAndKeywords(args, keywords, "|d", (char**)keyword_list, &value) && value != sentinel) {
 		self->gauge->Decrement(value);
 	}
 	else {
@@ -210,9 +210,9 @@ static PyObject* Gauge_Decrement(GaugePyObject* self, PyObject* args, PyObject* 
 
 static PyObject* Gauge_Set(GaugePyObject* self, PyObject* args, PyObject* keywords) {
 	double value = 0.0;
-	static char* keyword_list[] = {"value", NULL};
+	static const char* keyword_list[] = {"value", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "d", keyword_list, &value)) {
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "d", (char**)keyword_list, &value)) {
 		Py_RETURN_FALSE;
 	}
 
@@ -224,9 +224,9 @@ static PyObject* Gauge_Set(GaugePyObject* self, PyObject* args, PyObject* keywor
 static PyObject* Gauge_WithLabelValues(GaugePyObject* self, PyObject* args, PyObject* keywords) {
 	PyObject* arg_labels = NULL;
 
-	static char* keyword_list[] = {"labels", NULL};
+	static const char* keyword_list[] = {"labels", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "|O", keyword_list, &arg_labels)) {
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "|O", (char**)keyword_list, &arg_labels)) {
 		return Py_BuildValue("O", self);
 	}
 
@@ -370,4 +370,3 @@ PyObject* Gauge::CreatePythonObject(Gauge* wrapped, PyObject* family) {
 	}
 	return obj;
 }
-

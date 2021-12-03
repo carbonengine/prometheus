@@ -126,9 +126,9 @@ static int Summary_init(SummaryPyObject *self, PyObject *args, PyObject *kwds) {
 	PyObject* capsule = NULL;
 	PyObject* family = NULL;
 
-	static char *kwlist[] = { "capsule", "family", NULL };
+	static const char *kwlist[] = { "capsule", "family", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist, &capsule, &family))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", (char**)kwlist, &capsule, &family))
 		return -1;
 
 	Summary* wrapped = (Summary*)PyCapsule_GetPointer(capsule, NULL);
@@ -161,9 +161,9 @@ static void Summary_dealloc(SummaryPyObject* self) {
 
 static PyObject* Summary_Observe(SummaryPyObject* self, PyObject* args, PyObject* keywords) {
 	double value = 0.0;
-	static char* keyword_list[] = {"value", NULL};
+	static const char* keyword_list[] = {"value", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "d", keyword_list, &value)) {
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "d", (char**)keyword_list, &value)) {
 		Py_RETURN_FALSE;
 	}
 
@@ -175,9 +175,9 @@ static PyObject* Summary_Observe(SummaryPyObject* self, PyObject* args, PyObject
 static PyObject* Summary_WithLabelValues(SummaryPyObject* self, PyObject* args, PyObject* keywords) {
 	PyObject* arg_labels = NULL;
 
-	static char* keyword_list[] = { "labels", NULL };
+	static const char* keyword_list[] = { "labels", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "|O", keyword_list, &arg_labels)) {
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "|O", (char**)keyword_list, &arg_labels)) {
 		return Py_BuildValue("O", self);
 	}
 
@@ -319,4 +319,3 @@ PyObject* Summary::CreatePythonObject(Summary* wrapped, PyObject* family) {
 	}
 	return obj;
 }
-

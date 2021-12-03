@@ -94,7 +94,7 @@ Counter& MetricFactory::MakeCounter(const std::string& name, const std::vector<s
 	auto label_names_map = private_->GetLabelNames(labels);
 	auto family_hash = private_->GetHashKey(name, label_names_map);
 	auto family_iter = private_->counter_families.find(family_hash);
-	auto family = family_iter->second;
+    prometheus::Family<prometheus::Counter>* family = nullptr;
 	if (family_iter == private_->counter_families.end()) {
 		// If not, then create it
 
@@ -108,7 +108,9 @@ Counter& MetricFactory::MakeCounter(const std::string& name, const std::vector<s
 		std::map<std::string, std::string> empty_labels;
 		family = &prometheus::BuildCounter().Name(name).Labels(empty_labels).Register(*private_->registry.get());
 		private_->counter_families.insert(std::make_pair(family_hash, family));
-	}
+	} else {
+        family = family_iter->second;
+    }
 
 	// Create the metric (if not lazy) and create or update its wrapper
 	if (make_option == MakeMetricOption::kLazy) {
@@ -151,13 +153,15 @@ Gauge& MetricFactory::MakeGauge(const std::string& name, const std::vector<std::
 	auto label_names_map = private_->GetLabelNames(labels);
 	auto family_hash = private_->GetHashKey(name, label_names_map);
 	auto family_iter = private_->gauge_families.find(family_hash);
-	auto family = family_iter->second;
+	prometheus::Family<prometheus::Gauge>* family = nullptr;
 	if (family_iter == private_->gauge_families.end()) {
 		// If not, then create it
 		std::map<std::string, std::string> empty_labels; ///< See MetricFactory::MakeCounter for an explanation of empty_labels
 		family = &prometheus::BuildGauge().Name(name).Labels(empty_labels).Register(*private_->registry.get());
 		private_->gauge_families.insert(std::make_pair(family_hash, family));
-	}
+	} else {
+        family = family_iter->second;
+    }
 
 	// Create the metric (if not lazy) and create or update its wrapper
 	if (make_option == MakeMetricOption::kLazy) {
@@ -204,13 +208,15 @@ Histogram& MetricFactory::MakeHistogram(const std::string& name, const std::vect
 	auto label_names_map = private_->GetLabelNames(labels);
 	auto family_hash = private_->GetHashKey(name, label_names_map);
 	auto family_iter = private_->histogram_families.find(family_hash);
-	auto family = family_iter->second;
+    prometheus::Family<prometheus::Histogram>* family = nullptr;
 	if (family_iter == private_->histogram_families.end()) {
 		// If not, then create it
 		std::map<std::string, std::string> empty_labels; ///< See MetricFactory::MakeCounter for an explanation of empty_labels
 		family = &prometheus::BuildHistogram().Name(name).Labels(empty_labels).Register(*private_->registry.get());
 		private_->histogram_families.insert(std::make_pair(family_hash, family));
-	}
+	} else {
+        family = family_iter->second;
+    }
 
 	// Create the metric (if not lazy) and create or update its wrapper
 	if (make_option == MakeMetricOption::kLazy) {
@@ -257,13 +263,15 @@ Summary& MetricFactory::MakeSummary(const std::string& name, const std::vector<s
 	auto label_names_map = private_->GetLabelNames(labels);
 	auto family_hash = private_->GetHashKey(name, label_names_map);
 	auto family_iter = private_->summary_families.find(family_hash);
-	auto family = family_iter->second;
+	prometheus::Family<prometheus::Summary>* family = nullptr;
 	if (family_iter == private_->summary_families.end()) {
 		// If not, then create it
 		std::map<std::string, std::string> empty_labels; ///< See MetricFactory::MakeCounter for an explanation of empty_labels
 		family = &prometheus::BuildSummary().Name(name).Labels(empty_labels).Register(*private_->registry.get());
 		private_->summary_families.insert(std::make_pair(family_hash, family));
-	}
+	} else {
+        family = family_iter->second;
+    }
 
 	// Convert to prometheus quantiles type
 	prometheus::Summary::Quantiles quantiles_converted;
