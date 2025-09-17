@@ -46,6 +46,14 @@ static PyMethodDef ModuleMethods[] = {
     {nullptr, nullptr, 0, nullptr}        /* Sentinel */
 };
 
+static struct PyModuleDef testModule = {
+	PyModuleDef_HEAD_INIT,
+	"prometheus",
+	nullptr,
+	-1,
+	ModuleMethods
+};
+
 PyMODINIT_FUNC inittest_native(void) {
-    Py_InitModule("test_native", ModuleMethods);
+    return PyModule_Create(&testModule);
 }

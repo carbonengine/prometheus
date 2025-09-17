@@ -198,7 +198,7 @@ static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self, PyObje
 	if (arg_labels != NULL && PyList_Check(arg_labels)) {
 		auto num_elements = PyList_Size(arg_labels);
 		for (auto i = 0; i < num_elements; i++) {
-			char* label = PyString_AsString(PyList_GetItem(arg_labels, i));
+			const char* label = PyUnicode_AsUTF8(PyList_GetItem(arg_labels, i));
 			if (label == NULL) {
 				continue;
 			}
@@ -230,7 +230,7 @@ static PyObject* MetricRegistry_MakeGauge(MetricRegistryPyObject* self, PyObject
 	if (arg_labels != NULL && PyList_Check(arg_labels)) {
 		auto num_elements = PyList_Size(arg_labels);
 		for (auto i = 0; i < num_elements; i++) {
-			char* label = PyString_AsString(PyList_GetItem(arg_labels, i));
+			const char* label = PyUnicode_AsUTF8(PyList_GetItem(arg_labels, i));
 			if (label == NULL) {
 				continue;
 			}
@@ -267,7 +267,7 @@ static PyObject* MetricRegistry_MakeHistogram(MetricRegistryPyObject* self, PyOb
 	if (arg_labels != NULL && PyList_Check(arg_labels)) {
 		auto num_elements = PyList_Size(arg_labels);
 		for (auto i = 0; i < num_elements; i++) {
-			char* label = PyString_AsString(PyList_GetItem(arg_labels, i));
+			const char* label = PyUnicode_AsUTF8(PyList_GetItem(arg_labels, i));
 			if (label == NULL) {
 				continue;
 			}
@@ -323,7 +323,7 @@ static PyObject* MetricRegistry_MakeSummary(MetricRegistryPyObject* self, PyObje
 	if (arg_labels != NULL && PyList_Check(arg_labels)) {
 		auto num_elements = PyList_Size(arg_labels);
 		for (auto i = 0; i < num_elements; i++) {
-			char* label = PyString_AsString(PyList_GetItem(arg_labels, i));
+			const char* label = PyUnicode_AsUTF8(PyList_GetItem(arg_labels, i));
 			if (label == NULL) {
 				continue;
 			}

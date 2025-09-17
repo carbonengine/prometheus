@@ -28,15 +28,24 @@ static PyMethodDef ModuleMethods[] = {
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
-PyMODINIT_FUNC initprometheus_module(void) {
-    PyObject *m = Py_InitModule("prometheus_module", ModuleMethods);
-    if (m == NULL)
-        return;
+static struct PyModuleDef prometheusModule = {
+	PyModuleDef_HEAD_INIT,
+	"prometheus",
+	nullptr,
+	-1,
+	ModuleMethods
+};
 
-	MetricRegistry::RegisterPythonObject(m);
-	Counter::RegisterPythonObject(m);
-	Gauge::RegisterPythonObject(m);
-	Histogram::RegisterPythonObject(m);
-	Summary::RegisterPythonObject(m);
+PyMODINIT_FUNC PyInit_prometheus(void)
+{
+	PyObject* module = PyModule_Create(&prometheusModule);
+
+	MetricRegistry::RegisterPythonObject(module);
+	Counter::RegisterPythonObject(module);
+	Gauge::RegisterPythonObject(module);
+	Histogram::RegisterPythonObject(module);
+	Summary::RegisterPythonObject(module);
+
+	return module;
 }
 
