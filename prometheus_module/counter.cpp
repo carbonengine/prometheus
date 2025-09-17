@@ -10,9 +10,6 @@
 #include <thread>
 #include <unordered_map>
 
-// Python
-#include <Python.h>
-
 // Prometheus
 #include <prometheus/counter.h>
 using namespace prometheus_module;
@@ -106,10 +103,6 @@ void Counter::set_wrapped(prometheus::Counter& wrapped) {
 	private_->counter = &wrapped;
 }
 
-
-// Python linkage
-
-#include <Python.h>
 
 typedef struct {
 	PyObject_HEAD

@@ -10,9 +10,6 @@
 #include <thread>
 #include <unordered_map>
 
-// Python
-#include <Python.h>
-
 // Prometheus
 #include <prometheus/gauge.h>
 using namespace prometheus_module;
@@ -120,11 +117,6 @@ const std::vector<std::string>& Gauge::label_names() {
 void Gauge::set_wrapped(prometheus::Gauge& wrapped) {
 	private_->gauge = &wrapped;
 }
-
-
-// Python linkage
-
-#include <Python.h>
 
 typedef struct {
 	PyObject_HEAD

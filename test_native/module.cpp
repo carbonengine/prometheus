@@ -1,8 +1,5 @@
 #include <iostream>
 
-// Python
-#include <Python.h>
-
 // gtest
 #include <gtest/gtest.h>
 

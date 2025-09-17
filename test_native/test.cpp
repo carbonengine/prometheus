@@ -8,8 +8,6 @@
 
 #include <curl/curl.h>
 
-#include <Python.h>
-
 #include "metric_registry_interface.h"
 #include "counter_interface.h"
 #include "gauge_interface.h"

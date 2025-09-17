@@ -9,9 +9,6 @@
 #include <thread>
 #include <vector>
 
-// Python
-#include <Python.h>
-
 // Prometheus
 //#include <prometheus/exposer.h>
 #include <prometheus/registry.h>

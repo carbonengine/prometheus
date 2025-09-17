@@ -10,9 +10,6 @@
 #include <thread>
 #include <unordered_map>
 
-// Python
-#include <Python.h>
-
 // Prometheus
 #include <prometheus/histogram.h>
 using namespace prometheus_module;
@@ -103,11 +100,6 @@ const std::vector<std::string>& Histogram::label_names() {
 void Histogram::set_wrapped(prometheus::Histogram& wrapped) {
 	private_->histogram = &wrapped;
 }
-
-
-// Python linkage
-
-#include <Python.h>
 
 typedef struct {
 	PyObject_HEAD
