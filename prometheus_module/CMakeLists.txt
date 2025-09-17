@@ -1,3 +1,6 @@
+find_package(prometheus-cpp CONFIG REQUIRED)
+find_package(ZLIB CONFIG REQUIRED)
+
 add_python_extension(PrometheusModule SHARED
     counter.cpp
     counter.h
@@ -25,19 +28,10 @@ add_python_extension(PrometheusModule SHARED
     utilities.h
 )
 
-FetchContent_GetProperties(prometheus-cpp SOURCE_DIR _PROMCPP_SOURCE_DIR BINARY_DIR _PROMCPP_BINARY_DIR)
-set(_CIVETWEB_INCLUDE_DIR ${_PROMCPP_SOURCE_DIR}/3rdparty/civetweb/include)
-if(NOT EXISTS ${_CIVETWEB_INCLUDE_DIR})
-    message(FATAL_ERROR "Could not find civetweb includes at ${_CIVETWEB_INCLUDE_DIR}")
-endif()
-
 target_link_libraries(PrometheusModule PRIVATE prometheus-cpp::pull ZLIB::ZLIB)
 # guaranteed to not reach this if zlib was not found by CMake.
 # But for some reason not automatically added by the relevant CMake module, so we need to add the define ourselves.
 target_compile_definitions(PrometheusModule PRIVATE HAVE_ZLIB _WINDLL)
-target_include_directories(PrometheusModule PRIVATE
-    ${_CIVETWEB_INCLUDE_DIR}
-)
 target_include_directories(PrometheusModule INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
