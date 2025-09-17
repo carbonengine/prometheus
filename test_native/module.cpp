@@ -45,12 +45,12 @@ static PyMethodDef ModuleMethods[] = {
 
 static struct PyModuleDef testModule = {
 	PyModuleDef_HEAD_INIT,
-	"prometheus",
+	"test_native",
 	nullptr,
 	-1,
 	ModuleMethods
 };
 
-PyMODINIT_FUNC inittest_native(void) {
+PyMODINIT_FUNC PyInit_test_native(void) {
     return PyModule_Create(&testModule);
 }

@@ -33,7 +33,7 @@ static struct PyModuleDef prometheusModule = {
 	ModuleMethods
 };
 
-PyMODINIT_FUNC PyInit_prometheus(void)
+PyMODINIT_FUNC PyInit_prometheus_module(void)
 {
 	PyObject* module = PyModule_Create(&prometheusModule);
 
