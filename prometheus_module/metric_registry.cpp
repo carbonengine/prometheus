@@ -176,28 +176,34 @@ static void MetricRegistry_dealloc(MetricRegistryPyObject* self) {
 }
 
 
-static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self, PyObject* args, PyObject* keywords) {
+static PyObject* MetricRegistry_MakeCounter(MetricRegistryPyObject* self, PyObject* args, PyObject* keywords)
+{
 	const char* arg_name = NULL;
 	PyObject* arg_labels = NULL;
 
 	static const char* keyword_list[] = {"name", "labels", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|O", (char**)keyword_list, &arg_name, &arg_labels)) {
-		Py_RETURN_NONE;
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|O", (char**)keyword_list, &arg_name, &arg_labels))
+	{
+		return nullptr;
 	}
 
 	std::string name = "Unnamed Counter";
-	if (arg_name != NULL) {
+	if (arg_name != NULL)
+	{
 		name = arg_name;
 	}
 
 	std::vector<std::string> label_names;
-	if (arg_labels != NULL && PyList_Check(arg_labels)) {
+	if (arg_labels != NULL && PyList_Check(arg_labels))
+	{
 		auto num_elements = PyList_Size(arg_labels);
-		for (auto i = 0; i < num_elements; i++) {
+		for (auto i = 0; i < num_elements; i++)
+		{
 			const char* label = PyUnicode_AsUTF8(PyList_GetItem(arg_labels, i));
-			if (label == NULL) {
-				continue;
+			if (label == NULL)
+			{
+				return nullptr;
 			}
 
 			label_names.push_back(label);
