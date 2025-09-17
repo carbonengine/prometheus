@@ -23,7 +23,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         SUFFIX ".pyd"
     )
 endif()
-target_link_libraries(TestNative PRIVATE GTest::GTest GTest::Main PrometheusModule CURL::libcurl ZLIB::ZLIB OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(TestNative PRIVATE GTest::GTest GTest::Main PrometheusModule CURL::libcurl ZLIB::ZLIB OpenSSL::SSL OpenSSL::Crypto Python3::Python)
 
 # Temporary folder where tests are run
 set(PYTHON_TEST_DIR "${CMAKE_CURRENT_BINARY_DIR}/tests/")

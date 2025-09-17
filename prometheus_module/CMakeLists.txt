@@ -32,9 +32,9 @@ target_link_libraries(PrometheusModule PRIVATE prometheus-cpp::pull ZLIB::ZLIB)
 # guaranteed to not reach this if zlib was not found by CMake.
 # But for some reason not automatically added by the relevant CMake module, so we need to add the define ourselves.
 target_compile_definitions(PrometheusModule PRIVATE HAVE_ZLIB _WINDLL)
-target_precompile_headers(PrometheusModule PUBLIC stdafx.h)
 target_include_directories(PrometheusModule INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+target_precompile_headers(PrometheusModule PRIVATE stdafx.h)
 )
 set_target_properties(PrometheusModule PROPERTIES
     OUTPUT_NAME prometheus_module

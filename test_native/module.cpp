@@ -11,6 +11,7 @@
 
 
 // Python linkage
+#include <Python.h>
 
 static PyObject* RunTests(PyObject *, PyObject *args, PyObject *kwds) {
 	PyObject* capsule = nullptr;

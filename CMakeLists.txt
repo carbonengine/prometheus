@@ -27,7 +27,7 @@ function(add_python_extension target_name)
             SUFFIX ".pyd"
             )
     endif()
-    target_link_libraries(${target_name} PUBLIC Python3::Python)
+    target_link_libraries(${target_name} PRIVATE Python3::Python)
 endfunction()
 
 
