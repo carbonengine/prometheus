@@ -27,11 +27,3 @@ target_link_libraries(TestNative PRIVATE GTest::GTest GTest::Main PrometheusModu
 
 # Temporary folder where tests are run
 set(PYTHON_TEST_DIR "${CMAKE_CURRENT_BINARY_DIR}/tests/")
-
-# Copy tests and pyds to the test folder
-add_custom_command(TARGET TestNative POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PYTHON_TEST_DIR}
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../test/ ${PYTHON_TEST_DIR}
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:PrometheusModule> $<TARGET_FILE:TestNative> ${PYTHON_TEST_DIR}
-    COMMAND ${Python3_EXECUTABLE} -m pytest -v -p no:cacheprovider --junitxml=${PYTHON_TEST_DIR}/test_results.xml "${PYTHON_TEST_DIR}/test.py"
-)
