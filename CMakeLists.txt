@@ -6,7 +6,7 @@ include(cmake/CcpMinimumTargetPlatform.cmake)
 include(cmake/CcpBuildConfigurations.cmake)
 include(cmake/CcpPacIdentifiers.cmake)
 include(cmake/CcpGlobalSettings.cmake)
-
+include(cmake/CcpPackageConfigHelpers.cmake)
 
 find_package(Python3 REQUIRED COMPONENTS Development Interpreter)
 
