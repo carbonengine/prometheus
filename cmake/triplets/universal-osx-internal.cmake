@@ -7,3 +7,15 @@ set(VCPKG_CMAKE_SYSTEM_NAME Darwin)
 set(VCPKG_OSX_ARCHITECTURES "arm64;x86_64")
 
 set(CARBON_BUILD_TYPE "Internal")
+
+if (PORT MATCHES "zlib")
+    set(VCPKG_LIBRARY_LINKAGE static)
+endif ()
+
+if (PORT MATCHES "curl")
+    set(VCPKG_LIBRARY_LINKAGE static)
+endif ()
+
+if (PORT MATCHES "openssl")
+    set(VCPKG_LIBRARY_LINKAGE static)
+endif ()

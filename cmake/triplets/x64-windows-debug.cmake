@@ -8,3 +8,15 @@ set(VCPKG_CMAKE_SYSTEM_VERSION "10.0.17763.0")
 set(VCPKG_CMAKE_CONFIGURE_OPTIONS -DCMAKE_MSVC_RUNTIME_LIBRARY:STRING=MultiThreadedDLL)
 
 set(CARBON_BUILD_TYPE "Debug")
+
+if (PORT MATCHES "zlib")
+    set(VCPKG_LIBRARY_LINKAGE static)
+endif ()
+
+if (PORT MATCHES "curl")
+    set(VCPKG_LIBRARY_LINKAGE static)
+endif ()
+
+if (PORT MATCHES "openssl")
+    set(VCPKG_LIBRARY_LINKAGE static)
+endif ()
