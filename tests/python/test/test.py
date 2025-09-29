@@ -7,6 +7,10 @@ import time
 import unittest
 from urllib.error import URLError
 from urllib.request import Request, urlopen
+
+import environment
+environment.add_dll_search_paths()
+
 import prometheus_module
 import test_native
 
