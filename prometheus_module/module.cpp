@@ -33,7 +33,10 @@ static struct PyModuleDef prometheusModule = {
 	ModuleMethods
 };
 
-PyMODINIT_FUNC PyInit_prometheus_module(void)
+#define CCP_CONCATENATE_DIRECT(s1, s2) s1##s2
+#define CCP_CONCATENATE(s1, s2) CCP_CONCATENATE_DIRECT(s1, s2)
+
+PyMODINIT_FUNC CCP_CONCATENATE(PyInit_prometheus_module, CCP_BUILD_FLAVOR)(void)
 {
 	PyObject* module = PyModule_Create(&prometheusModule);
 
