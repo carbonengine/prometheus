@@ -1,7 +1,7 @@
 find_package(prometheus-cpp CONFIG REQUIRED)
 find_package(ZLIB CONFIG REQUIRED)
 
-add_python_extension(PrometheusModule SHARED
+ccp_add_library(PrometheusModule SHARED
     counter.cpp
     counter.h
     exposer.cpp
