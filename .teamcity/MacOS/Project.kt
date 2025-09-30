@@ -145,6 +145,7 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String) : 
                     token = "credentialsJSON:06ae89f1-d5f2-4c8d-a91a-9712c233ce06"
                 }
                 filterTargetBranch = """
+                                    +:refs/heads/main
                                     +:refs/heads/release/*.x
                                     -:refs/heads/release/1.x
                                     -:refs/heads/release/2.x
