@@ -11,7 +11,6 @@ include(cmake/CcpPackageConfigHelpers.cmake)
 find_package(GTest REQUIRED)
 find_package(Python3 REQUIRED COMPONENTS Development Interpreter)
 
-include(CTest)
 
 # a convenience wrapper around add_library(target_name SHARED ...)
 function(add_python_extension target_name)
@@ -34,7 +33,9 @@ endfunction()
 
 # Actual projects
 add_subdirectory(prometheus_module)
-if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR PROMETHEUS_MODULE_BUILD_TESTING) AND BUILD_TESTING)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
+    include(CTest)
+
     add_subdirectory(test_native)
 
     set(ENV{PYTHONPATH} ${CMAKE_CURRENT_SOURCE_DIR}/python)
