@@ -1,7 +1,7 @@
 find_package(prometheus-cpp CONFIG REQUIRED)
 find_package(ZLIB CONFIG REQUIRED)
 
-add_python_extension(PrometheusModule SHARED
+ccp_add_library(PrometheusModule SHARED
     counter.cpp
     counter.h
     exposer.cpp
@@ -23,7 +23,7 @@ add_python_extension(PrometheusModule SHARED
     utilities.h
 )
 
-target_link_libraries(PrometheusModule PRIVATE prometheus-cpp::pull ZLIB::ZLIB)
+target_link_libraries(PrometheusModule PRIVATE prometheus-cpp::pull ZLIB::ZLIB Python3::Python)
 # guaranteed to not reach this if zlib was not found by CMake.
 # But for some reason not automatically added by the relevant CMake module, so we need to add the define ourselves.
 target_compile_definitions(PrometheusModule PRIVATE HAVE_ZLIB _WINDLL)

@@ -164,7 +164,7 @@ cmake --list-presets
 To configure your project, run the following from the project root:
 
 ```cmake
-cmake --preset[preset_name] -S .
+cmake --preset [preset_name] -S .
 ```
 
 ### Building

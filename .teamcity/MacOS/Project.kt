@@ -61,6 +61,8 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String) : 
         param("env.CMAKE_PRESET", preset)
         param("env.VCPKG_BINARY_SOURCES", "clear;x-aws,s3://vcpkg-binary-cache-static/cache/,readwrite")
         param("env.X_VCPKG_REGISTRIES_CACHE", "%teamcity.build.checkoutDir%/%github_checkout_folder%/regcache")
+        param("env.CMAKE_BUILD_PARALLEL_LEVEL", "8")
+        param("env.CTEST_PARALLEL_LEVEL", "1")
     }
 
 
@@ -91,18 +93,18 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String) : 
         exec {
             name = "Configure"
             path = "cmake"
-            arguments = "--preset %env.CMAKE_PRESET% -S %teamcity.build.checkoutDir%/%github_checkout_folder% -B %env.CMAKE_BUILD_FOLDER% -DCMAKE_INSTALL_PREFIX=%env.CMAKE_INSTALL_PREFIX% -DVCPKG_INSTALL_OPTIONS=--x-buildtrees-root=%teamcity.build.checkoutDir%/%github_checkout_folder%/buildtrees"
+            arguments = "--preset %env.CMAKE_PRESET% -S %teamcity.build.checkoutDir%/%github_checkout_folder% -B %env.CMAKE_BUILD_FOLDER% -DCMAKE_INSTALL_PREFIX=%env.CMAKE_INSTALL_PREFIX% -DINSTALL_TO_MONOLITH=ON -DVCPKG_INSTALL_OPTIONS=--x-buildtrees-root=%teamcity.build.checkoutDir%/%github_checkout_folder%/buildtrees"
         }
         exec {
             name = "Build"
             path = "cmake"
-            arguments = "--build %env.CMAKE_BUILD_FOLDER% --config %env.CMAKE_CONFIG_TYPE% --target %env.CMAKE_BUILD_TARGETS% --parallel 8"
+            arguments = "--build %env.CMAKE_BUILD_FOLDER% --config %env.CMAKE_CONFIG_TYPE% --target %env.CMAKE_BUILD_TARGETS%"
         }
         exec {
             name = "Run Tests"
             workingDir = "%env.CMAKE_BUILD_FOLDER%"
             path = "ctest"
-            arguments = "-C %env.CMAKE_CONFIG_TYPE% -V --output-on-failure --output-junit %env.CTEST_JUNIT_OUTPUT_FILE% -j 8"
+            arguments = "-C %env.CMAKE_CONFIG_TYPE% -V --output-on-failure --output-junit %env.CTEST_JUNIT_OUTPUT_FILE%"
         }
         exec {
             name = "Package artifact"
@@ -145,6 +147,7 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String) : 
                     token = "credentialsJSON:06ae89f1-d5f2-4c8d-a91a-9712c233ce06"
                 }
                 filterTargetBranch = """
+                                    +:refs/heads/main
                                     +:refs/heads/release/*.x
                                     -:refs/heads/release/1.x
                                     -:refs/heads/release/2.x
