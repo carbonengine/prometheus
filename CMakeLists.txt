@@ -1,57 +1,16 @@
 cmake_minimum_required(VERSION 3.16)
 
-macro(require_path_in_environment_variable ENV_VAR_NAME OUTPUT_VAR)
-    if(NOT DEFINED ENV{${ENV_VAR_NAME}})
-        message(FATAL_ERROR "Missing required environment variable ${ENV_VAR_NAME}")
-    elseif(NOT IS_ABSOLUTE $ENV{${ENV_VAR_NAME}})
-        message(FATAL_ERROR "${ENV_VAR_NAME} needs to be an absolute path")
-    elseif(NOT EXISTS $ENV{${ENV_VAR_NAME}})
-        message(FATAL_ERROR "${ENV_VAR_NAME} is pointing at a non-existing location $ENV{${ENV_VAR_NAME}}")
-    elseif(NOT IS_DIRECTORY $ENV{${ENV_VAR_NAME}})
-        message(FATAL_ERROR "${ENV_VAR_NAME} needs to be a directory")
-    else()
-        message(STATUS "Using ${ENV_VAR_NAME} located at $ENV{${ENV_VAR_NAME}}")
-    endif()
-
-    file(TO_CMAKE_PATH "$ENV{${ENV_VAR_NAME}}" ${OUTPUT_VAR})
-endmacro()
-require_path_in_environment_variable(CCP_EVE_PERFORCE_BRANCH_PATH BRANCH_ROOT_DIR)
-
-include(vendor/ccpgames/platform-cmake/CcpMinimumTargetPlatform.cmake)
-
-# CCP vendors libraries using <packageName>Config.cmake files, so let's prefer that.
-set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
-
 project(PrometheusModule)
 
-include(vendor/ccpgames/platform-cmake/CcpBuildConfigurations.cmake)
-include(vendor/ccpgames/platform-cmake/CcpPacIdentifiers.cmake)
-
-set(GTest_ROOT "${BRANCH_ROOT_DIR}/vendor/GoogleTest/1.10.0")
-set(Python_ROOT "${BRANCH_ROOT_DIR}/vendor/python/2.7.1+ccp-stackless")
-set(CURL_ROOT "${BRANCH_ROOT_DIR}/vendor/libcurl/7.76.1")
-set(ZLIB_ROOT "${BRANCH_ROOT_DIR}/vendor/zlib-ng/2.0.2")
-set(OpenSSL_ROOT "${BRANCH_ROOT_DIR}/vendor/openssl/1.1.1k")
+include(cmake/CcpMinimumTargetPlatform.cmake)
+include(cmake/CcpBuildConfigurations.cmake)
+include(cmake/CcpPacIdentifiers.cmake)
+include(cmake/CcpGlobalSettings.cmake)
+include(cmake/CcpPackageConfigHelpers.cmake)
 
 find_package(GTest REQUIRED)
-find_package(Git REQUIRED)
-find_package(CURL CONFIG REQUIRED)
-find_package(ZLIB REQUIRED)
-find_package(Python REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS Development Interpreter)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-include(FetchContent)
-set(ENABLE_TESTING OFF)  # Do not build the prometheus-cpp tests
-FetchContent_Declare(
-    prometheus-cpp
-    GIT_REPOSITORY https://github.com/jupp0r/prometheus-cpp
-    GIT_TAG        v1.0.0
-)
-FetchContent_MakeAvailable(prometheus-cpp)
-
-include(CTest)
 
 # a convenience wrapper around add_library(target_name SHARED ...)
 function(add_python_extension target_name)
@@ -68,17 +27,43 @@ function(add_python_extension target_name)
             SUFFIX ".pyd"
             )
     endif()
-    target_link_libraries(${target_name} PUBLIC Python)
+    target_link_libraries(${target_name} PRIVATE Python3::Python)
 endfunction()
 
-if(CMAKE_SYSTEM_NAME STREQUAL Windows)
-    set(Python_EXECUTABLE "${BRANCH_ROOT_DIR}/eve/client/pythonInterpreter.bat")
-else()
-    set(Python_EXECUTABLE "${BRANCH_ROOT_DIR}/eve/client/pythonInterpreter.sh")
-endif()
 
 # Actual projects
 add_subdirectory(prometheus_module)
-if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR PROMETHEUS_MODULE_BUILD_TESTING) AND BUILD_TESTING)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
+    include(CTest)
+
     add_subdirectory(test_native)
+
+    set(ENV{PYTHONPATH} ${CMAKE_CURRENT_SOURCE_DIR}/python)
+    execute_process(COMMAND ${Python3_EXECUTABLE} discover.py
+            OUTPUT_VARIABLE PYTHON_TESTS_STR
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_STRIP_TRAILING_WHITESPACE
+            RESULT_VARIABLE PYTHON_TEST_DISCOVERY_RETVAL
+            ERROR_VARIABLE PYTHON_TEST_DISCOVERY_ERRORS
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/python
+    )
+    if(${PYTHON_TEST_DISCOVERY_RETVAL})
+        message(FATAL_ERROR "Error encountered during test discovery:\n=== stderr: ===\n${PYTHON_TEST_DISCOVERY_ERRORS}\n=== stdout: ===\n${PYTHON_TESTS_STR}")
+    endif()
+
+    separate_arguments(PYTHON_TESTS UNIX_COMMAND ${PYTHON_TESTS_STR})
+    foreach(PYTHON_TEST ${PYTHON_TESTS})
+        message(STATUS "Found test ${PYTHON_TEST}")
+        add_test(NAME ${PYTHON_TEST}
+                COMMAND ${Python3_EXECUTABLE} -m unittest -v ${PYTHON_TEST}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/python
+        )
+        if(WIN32)
+            set_tests_properties(${PYTHON_TEST} PROPERTIES ENVIRONMENT  "PYTHONPATH=$<TARGET_FILE_DIR:TestNative>\;$<TARGET_FILE_DIR:PrometheusModule>\;${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin\;${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib\;${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/python\;${Python3_STDLIB};BUILDFLAVOR=$<LOWER_CASE:$<CONFIG>>;DLL_PATHS=$<TARGET_FILE_DIR:GTest::gtest>\;$<TARGET_FILE_DIR:GTest::gtest_main>")
+        elseif (APPLE)
+            set_tests_properties(${PYTHON_TEST} PROPERTIES ENVIRONMENT "PYTHONPATH=$<TARGET_FILE_DIR:TestNative>:$<TARGET_FILE_DIR:PrometheusModule>:${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin:${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib:${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/python:${Python3_STDLIB};BUILDFLAVOR=$<LOWER_CASE:$<CONFIG>>")
+        else()
+            message(FATAL_ERROR "Unsupported platform")
+        endif ()
+    endforeach()
 endif()

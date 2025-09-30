@@ -1,11 +1,15 @@
 import gzip
 import math
 import string
-import StringIO
+from io import StringIO, BytesIO
 import random
 import time
 import unittest
-import urllib2
+from urllib.error import URLError
+from urllib.request import Request, urlopen
+
+import environment
+environment.add_dll_search_paths()
 
 import prometheus_module
 import test_native
@@ -23,14 +27,12 @@ class TestBase(unittest.TestCase):
         if not port:
             port = self.port
         url = 'http://localhost:' + port
-        r = urllib2.urlopen(url, timeout=0.5)
+        r = urlopen(url, timeout=0.5)
         result = r.read()
-        print result
-        return result
+        return result.decode()
 
     def FetchLine(self, substr, port=''):
         for line in self.Fetch(port).split('\n'):
-            print line
             if (substr in line) and not ('#' in line):
                 return line.strip()
         return ''
@@ -54,12 +56,11 @@ class TestBase(unittest.TestCase):
             content = self.Fetch(port)
             has_valid_content = 'exposer' in content
             return has_valid_content
-        except urllib2.URLError:
+        except URLError:
             return False
 
     def RandomString(self, length=6):
         return ''.join(random.choice(string.ascii_uppercase) for _ in range(length))
-
 
 #
 # Server
@@ -99,14 +100,14 @@ class TestServing(TestBase):
     def test_gzip_supported(self):
         self.assertTrue(self.registry.Serve(self.port))
         url = 'http://localhost:' + self.port
-        request = urllib2.Request(url)
+        request = Request(url)
         request.add_header('Accept-encoding', 'gzip')
-        response = urllib2.urlopen(request)
+        response = urlopen(request)
         encoding = response.info().get('Content-Encoding')
         self.assertEqual(encoding, 'gzip', 'Exposer must provide gzipped data when requested')
-        buf = StringIO.StringIO(response.read())
+        buf = BytesIO(response.read())
         f = gzip.GzipFile(fileobj=buf)
-        content = f.read()
+        content = f.read().decode()
         self.assertTrue('exposer' in content, 'Returned content must unzip correctly and contain metrics')
         self.registry.StopServing()
 
@@ -127,8 +128,8 @@ class TestCounter(TestBase):
         line = self.FetchLine(name)
         if not line:
             return 0
-        string_value = line.split(' ')[-1]
-        return float(string_value)
+        byte_value = line.split(' ')[-1]
+        return float(byte_value)
 
 
     def test_MakeCounter(self):
@@ -140,9 +141,9 @@ class TestCounter(TestBase):
 
 
     def test_MakeCounter_with_labels(self):
-        n = u'name' + unicode(self.RandomString(), 'utf-8')
-        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
-        label_value = u'label_value' + unicode(self.RandomString(), 'utf-8')
+        n = 'name' + self.RandomString()
+        label_name = 'label_name' + self.RandomString()
+        label_value = 'label_value' + self.RandomString()
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
@@ -156,8 +157,8 @@ class TestCounter(TestBase):
         self.assertTrue(label_value2 in line)
 
     def test_MakeCounter_lazy_instantiates(self):
-        n = u'name' + unicode(self.RandomString(), 'utf-8')
-        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+        n = 'name' + self.RandomString()
+        label_name = 'label_name' + self.RandomString()
 
         counter_family = self.registry.MakeCounter(n, [label_name])
         line = self.FetchLine(n)
@@ -170,13 +171,13 @@ class TestCounter(TestBase):
         self.assertTrue(label_name in line)
 
     def test_MakeCounter_preserves_label_order(self):
-        n = u'name' + unicode(self.RandomString(), 'utf-8')
-        label_name_a = u'label_name_a' + unicode(self.RandomString(), 'utf-8')
-        label_value_a = u'label_value_a' + unicode(self.RandomString(), 'utf-8')
-        label_name_b = u'label_name_b' + unicode(self.RandomString(), 'utf-8')
-        label_value_b = u'label_value_b' + unicode(self.RandomString(), 'utf-8')
-        label_name_c = u'label_name_c' + unicode(self.RandomString(), 'utf-8')
-        label_value_c = u'label_value_c' + unicode(self.RandomString(), 'utf-8')
+        n = 'name' + self.RandomString()
+        label_name_a = 'label_name_a' + self.RandomString()
+        label_value_a = 'label_value_a' + self.RandomString()
+        label_name_b = 'label_name_b' + self.RandomString()
+        label_value_b = 'label_value_b' + self.RandomString()
+        label_name_c = 'label_name_c' + self.RandomString()
+        label_value_c = 'label_value_c' + self.RandomString()
 
         # Define the counter with labels in non-alphabetical order
         counter_family = self.registry.MakeCounter(n, [label_name_b, label_name_a, label_name_c])
@@ -195,8 +196,8 @@ class TestCounter(TestBase):
 
     def test_counter_increment(self):
         n = self.RandomString()
-        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
-        label_value = u'label_value' + unicode(self.RandomString(), 'utf-8')
+        label_name = 'label_name' + self.RandomString()
+        label_value = 'label_value' + self.RandomString()
         f = self.registry.MakeCounter(n, [label_name])
         c = f.WithLabelValues({label_name:label_value})
 
@@ -302,9 +303,9 @@ class TestGauge(TestBase):
         self.assertFalse(self.FetchLine(n)) # Lazy
 
     def test_MakeGauge_with_labels(self):
-        n = u'name' + unicode(self.RandomString(), 'utf-8')
-        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
-        label_value = u'label_value' + unicode(self.RandomString(), 'utf-8')
+        n = 'name' + self.RandomString()
+        label_name = 'label_name' + self.RandomString()
+        label_value = 'label_value' + self.RandomString()
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
@@ -318,8 +319,8 @@ class TestGauge(TestBase):
         self.assertTrue(label_value2 in line)
 
     def test_MakeGauge_lazy_instantiates(self):
-        n = u'name' + unicode(self.RandomString(), 'utf-8')
-        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+        n = 'name' + self.RandomString()
+        label_name = 'label_name' + self.RandomString()
 
         gauge_family = self.registry.MakeGauge(n, [label_name])
         line = self.FetchLine(n)
@@ -332,13 +333,13 @@ class TestGauge(TestBase):
         self.assertTrue(label_name in line)
 
     def test_MakeGauge_preserves_label_order(self):
-        n = u'name' + unicode(self.RandomString(), 'utf-8')
-        label_name_a = u'label_name_a' + unicode(self.RandomString(), 'utf-8')
-        label_value_a = u'label_value_a' + unicode(self.RandomString(), 'utf-8')
-        label_name_b = u'label_name_b' + unicode(self.RandomString(), 'utf-8')
-        label_value_b = u'label_value_b' + unicode(self.RandomString(), 'utf-8')
-        label_name_c = u'label_name_c' + unicode(self.RandomString(), 'utf-8')
-        label_value_c = u'label_value_c' + unicode(self.RandomString(), 'utf-8')
+        n = 'name' + self.RandomString()
+        label_name_a = 'label_name_a' + self.RandomString()
+        label_value_a = 'label_value_a' + self.RandomString()
+        label_name_b = 'label_name_b' + self.RandomString()
+        label_value_b = 'label_value_b' + self.RandomString()
+        label_name_c = 'label_name_c' + self.RandomString()
+        label_value_c = 'label_value_c' + self.RandomString()
 
         # Define the counter with labels in non-alphabetical order
         family = self.registry.MakeGauge(n, [label_name_b, label_name_a, label_name_c])
@@ -479,9 +480,9 @@ class TestHistogram(TestBase):
         self.assertFalse(self.FetchLine(n)) # Lazy
 
     def test_MakeHistogram_with_labels(self):
-        n = u'name' + unicode(self.RandomString(), 'utf-8')
-        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
-        label_value = u'label_value' + unicode(self.RandomString(), 'utf-8')
+        n = 'name' + self.RandomString()
+        label_name = 'label_name' + self.RandomString()
+        label_value = 'label_value' + self.RandomString()
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
@@ -495,8 +496,8 @@ class TestHistogram(TestBase):
         self.assertTrue(label_value2 in line)
 
     def test_MakeHistogram_lazy_instantiates(self):
-        n = u'name' + unicode(self.RandomString(), 'utf-8')
-        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+        n = 'name' + self.RandomString()
+        label_name = 'label_name' + self.RandomString()
 
         histogram_family = self.registry.MakeHistogram(n, [label_name])
         line = self.FetchLine(n)
@@ -507,13 +508,13 @@ class TestHistogram(TestBase):
         self.assertEqual(values['count'], 1, 'Histogram with empty label values must be published after being modified')
 
     def test_MakeHistogram_preserves_label_order(self):
-        n = u'name' + unicode(self.RandomString(), 'utf-8')
-        label_name_a = u'label_name_a' + unicode(self.RandomString(), 'utf-8')
-        label_value_a = u'label_value_a' + unicode(self.RandomString(), 'utf-8')
-        label_name_b = u'label_name_b' + unicode(self.RandomString(), 'utf-8')
-        label_value_b = u'label_value_b' + unicode(self.RandomString(), 'utf-8')
-        label_name_c = u'label_name_c' + unicode(self.RandomString(), 'utf-8')
-        label_value_c = u'label_value_c' + unicode(self.RandomString(), 'utf-8')
+        n = 'name' + self.RandomString()
+        label_name_a = 'label_name_a' + self.RandomString()
+        label_value_a = 'label_value_a' + self.RandomString()
+        label_name_b = 'label_name_b' + self.RandomString()
+        label_value_b = 'label_value_b' + self.RandomString()
+        label_name_c = 'label_name_c' + self.RandomString()
+        label_value_c = 'label_value_c' + self.RandomString()
 
         # Define the metric with labels in non-alphabetical order
         family = self.registry.MakeHistogram(n, [label_name_b, label_name_a, label_name_c])
@@ -667,9 +668,9 @@ class TestSummary(TestBase):
         self.assertFalse(self.FetchLine(n)) # Lazy
 
     def test_MakeSummary_with_labels(self):
-        n = u'name' + unicode(self.RandomString(), 'utf-8')
-        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
-        label_value = u'label_value' + unicode(self.RandomString(), 'utf-8')
+        n = 'name' + self.RandomString()
+        label_name = 'label_name' + self.RandomString()
+        label_value = 'label_value' + self.RandomString()
         label_name2 = self.RandomString()
         label_value2 = self.RandomString()
 
@@ -683,8 +684,8 @@ class TestSummary(TestBase):
         self.assertTrue(label_value2 in line)
 
     def test_MakeSummary_lazy_instantiates(self):
-        n = u'name' + unicode(self.RandomString(), 'utf-8')
-        label_name = u'label_name' + unicode(self.RandomString(), 'utf-8')
+        n = 'name' + self.RandomString()
+        label_name = 'label_name' + self.RandomString()
 
         summary_family = self.registry.MakeSummary(n, [label_name])
         line = self.FetchLine(n)
@@ -695,13 +696,13 @@ class TestSummary(TestBase):
         self.assertEqual(values['count'], 1, 'Summary with empty label values must be published after being modified')
 
     def test_MakeSummary_preserves_label_order(self):
-        n = u'name' + unicode(self.RandomString(), 'utf-8')
-        label_name_a = u'label_name_a' + unicode(self.RandomString(), 'utf-8')
-        label_value_a = u'label_value_a' + unicode(self.RandomString(), 'utf-8')
-        label_name_b = u'label_name_b' + unicode(self.RandomString(), 'utf-8')
-        label_value_b = u'label_value_b' + unicode(self.RandomString(), 'utf-8')
-        label_name_c = u'label_name_c' + unicode(self.RandomString(), 'utf-8')
-        label_value_c = u'label_value_c' + unicode(self.RandomString(), 'utf-8')
+        n = 'name' + self.RandomString()
+        label_name_a = 'label_name_a' + self.RandomString()
+        label_value_a = 'label_value_a' + self.RandomString()
+        label_name_b = 'label_name_b' + self.RandomString()
+        label_value_b = 'label_value_b' + self.RandomString()
+        label_name_c = 'label_name_c' + self.RandomString()
+        label_value_c = 'label_value_c' + self.RandomString()
 
         # Define the metric with labels in non-alphabetical order
         family = self.registry.MakeSummary(n, [label_name_b, label_name_a, label_name_c])

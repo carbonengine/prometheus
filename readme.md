@@ -154,27 +154,34 @@ assert(http_response_total is http_response_total.WithLabelValues({'response_cod
 
 ## Building
 
-### via Docker
+### Configuration
 
-* Install [Docker for Windows](https://docs.docker.com/docker-for-windows/install/)
-* Run `build.bat` (or `build.bat -test` if you want to run tests as well)
-* Resulting artifacts will appear in `.\export`
+Configuration is managed via cmake presets. For a list of available presets run:
 
-## Running tests
-
-### Docker
-
-* Run `build.bat -test`
-
-### Manual
-
-* Build and run prometheus_module.sln with Visual Studio (press Ctrl+F5).
-* Alternately, use the command line:
-```DOS .bat
-cd test
-copy ..\x64\release\*.pyd
-copy ..\import\vcpkg\x64-windows\bin\*.dll
-
-python test.py
+```cmake
+cmake --list-presets
 ```
-* For verbose output, use `python -m unittest discover -v -p test.py` in place of the last line above
+To configure your project, run the following from the project root:
+
+```cmake
+cmake --preset[preset_name] -S .
+```
+
+### Building
+
+To build your configured project, run:
+
+```cmake
+cmake build [BUILD_DIRECTORY]
+```
+
+### Installing
+
+To install your project, run:
+
+```cmake
+cmake install [BUILD_DIRECTORY]
+```
+
+When installing into the monolith, ensure the `INSTALL_TO_MONOLITH` option is set to `ON`. This installs a package which
+is compliant with the package layout expected from the monolith.

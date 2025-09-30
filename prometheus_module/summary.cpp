@@ -10,9 +10,6 @@
 #include <thread>
 #include <unordered_map>
 
-// Python
-#include <Python.h>
-
 // Prometheus
 #include <prometheus/summary.h>
 using namespace prometheus_module;
@@ -109,11 +106,6 @@ const std::vector<std::string>& Summary::label_names() {
 void Summary::set_wrapped(prometheus::Summary& wrapped) {
 	private_->summary = &wrapped;
 }
-
-
-// Python linkage
-
-#include <Python.h>
 
 typedef struct {
 	PyObject_HEAD

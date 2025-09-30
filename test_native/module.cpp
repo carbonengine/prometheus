@@ -1,8 +1,5 @@
 #include <iostream>
 
-// Python
-#include <Python.h>
-
 // gtest
 #include <gtest/gtest.h>
 
@@ -14,6 +11,7 @@
 
 
 // Python linkage
+#include <Python.h>
 
 static PyObject* RunTests(PyObject *, PyObject *args, PyObject *kwds) {
 	PyObject* capsule = nullptr;
@@ -46,6 +44,14 @@ static PyMethodDef ModuleMethods[] = {
     {nullptr, nullptr, 0, nullptr}        /* Sentinel */
 };
 
-PyMODINIT_FUNC inittest_native(void) {
-    Py_InitModule("test_native", ModuleMethods);
+static struct PyModuleDef testModule = {
+	PyModuleDef_HEAD_INIT,
+	"test_native",
+	nullptr,
+	-1,
+	ModuleMethods
+};
+
+PyMODINIT_FUNC PyInit_test_native(void) {
+    return PyModule_Create(&testModule);
 }
