@@ -23,7 +23,7 @@ ccp_add_library(PrometheusModule SHARED
     utilities.h
 )
 
-target_link_libraries(PrometheusModule PRIVATE prometheus-cpp::pull ZLIB::ZLIB)
+target_link_libraries(PrometheusModule PRIVATE prometheus-cpp::pull ZLIB::ZLIB Python3::Python)
 # guaranteed to not reach this if zlib was not found by CMake.
 # But for some reason not automatically added by the relevant CMake module, so we need to add the define ourselves.
 target_compile_definitions(PrometheusModule PRIVATE HAVE_ZLIB _WINDLL)
