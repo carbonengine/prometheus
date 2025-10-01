@@ -18,4 +18,6 @@ endif ()
 
 if (PORT MATCHES "openssl")
     set(VCPKG_LIBRARY_LINKAGE static)
+    set(CARBON_x86_64_TRIPLET "arm64-osx-release")
+    set(CARBON_arm64_TRIPLET "x64-osx-release")
 endif ()
