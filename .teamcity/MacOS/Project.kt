@@ -122,13 +122,6 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String) : 
                 )
             """.trimIndent())
         }
-        script {
-            name = "(Mac OS) TGZ Artifacts"
-            scriptContent = """
-                cd %env.CMAKE_INSTALL_PREFIX%
-                tar -czvf artifacts.tar.gz *
-            """.trimIndent()
-        }
     }
 
     triggers {
