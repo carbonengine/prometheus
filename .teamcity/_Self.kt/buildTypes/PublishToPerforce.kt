@@ -20,8 +20,7 @@ class Publish(perforce_publish_path: String) : BuildType({
         select("reverse.dep.*.project", "eve", label = "Which project to publish into?", description = "e.g. EVE or Frontier", display = ParameterDisplay.PROMPT,
                 options = listOf("EVE Online" to "eve", "Frontier" to "eve-frontier", "Frontier Stream" to "frontier"))
         param("perforce_path_to_publish_into", perforce_publish_path)
-        param("env.P4PASSWD", "%eve_automation_ticket_hack%")
-        password("eve_automation_pass", "credentialsJSON:2f76d519-ba71-4b87-9472-7e3e1cb285a3")
+        param("env.P4PASSWD", "%eve_automation_pass%")
         param("env.P4USER", "eve_automation")
         text("reverse.dep.*.env.GIT_TAG_HASH_OVERRIDE", "", label = "GTH override for component version in vendor", description = "GIT TAG HASH OVERRIDE, IF NEEDED FOR DEPENDENCIES", display = ParameterDisplay.PROMPT, allowEmpty = true)
         param("env.TC_BUILD_URL", "%teamcity.serverUrl%/viewLog.html?buildId=%teamcity.build.id%")
@@ -32,7 +31,6 @@ class Publish(perforce_publish_path: String) : BuildType({
         param("env.P4PORT", "perforce.ccp.ad.local:1666")
         param("eve_branch_shortname", "%reverse.dep.*.eve_branch_shortname%")
         param("env.TC_EVE_BRANCH_SHORTNAME", "%eve_branch_shortname%")
-        password("eve_automation_ticket_hack", "credentialsJSON:d45170af-9873-41b6-a782-fb558da31234")
         select("reverse.dep.*.env.VISUAL_STUDIO_PLATFORM_TOOLSET", "v141", label = "Visual Studio Platform Toolset", description = "Specify the toolset for the build. e.g. v141 or v143.", display = ParameterDisplay.PROMPT,
                 options = listOf("v141 (2017)" to "v141", "v143 (2022)" to "v143"))
         param("env.TC_EVE_PROJECT", "%project%")
@@ -75,7 +73,7 @@ class Publish(perforce_publish_path: String) : BuildType({
             scriptMode = script {
                 content = """
                     Write-Host "Logging in to p4 ..."
-                    echo "%eve_automation_pass%" | p4 -p "%env.P4PORT%" -u "%env.P4USER%" login
+                    echo "env.P4PASSWD" | p4 -p "%env.P4PORT%" -u "%env.P4USER%" login
 
                     ${'$'}loginResult = p4 login -s 2>&1
                     ${'$'}loginStatus = if (${'$'}LASTEXITCODE -eq 0) { "Valid" } else { "Invalid/Expired" }
