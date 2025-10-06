@@ -9,7 +9,6 @@ include(cmake/CcpGlobalSettings.cmake)
 include(cmake/CcpPackageConfigHelpers.cmake)
 include(cmake/CcpTargetConfigurations.cmake)
 
-find_package(GTest REQUIRED)
 find_package(Python3 REQUIRED COMPONENTS Development Interpreter)
 
 # Actual projects
