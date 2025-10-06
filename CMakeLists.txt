@@ -9,7 +9,6 @@ include(cmake/CcpGlobalSettings.cmake)
 include(cmake/CcpPackageConfigHelpers.cmake)
 include(cmake/CcpTargetConfigurations.cmake)
 
-find_package(GTest REQUIRED)
 find_package(Python3 REQUIRED COMPONENTS Development Interpreter)
 
 # Actual projects
@@ -18,7 +17,7 @@ add_subdirectory(prometheus_module)
 option(BUILD_TESTING "Build tests. Enabled by default." ON)
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     include(CTest)
-
+    find_package(GTest CONFIG REQUIRED)
     add_subdirectory(test_native)
 
     set(ENV{PYTHONPATH} ${CMAKE_CURRENT_SOURCE_DIR}/python)
