@@ -17,7 +17,7 @@ add_subdirectory(prometheus_module)
 option(BUILD_TESTING "Build tests. Enabled by default." ON)
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     include(CTest)
-
+    find_package(GTest CONFIG REQUIRED)
     add_subdirectory(test_native)
 
     set(ENV{PYTHONPATH} ${CMAKE_CURRENT_SOURCE_DIR}/python)
