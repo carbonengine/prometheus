@@ -20,22 +20,34 @@ import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
 import jetbrains.buildServer.configs.kotlin.buildFeatures.provideAwsCredentials
 
-val Debug = CarbonBuildMacOS("Debug MacOS", "Debug", "nmc-universal-osx-debug")
-val Internal = CarbonBuildMacOS("Internal MacOS", "Internal", "nmc-universal-osx-internal")
-val TrinityDev = CarbonBuildMacOS("TrinityDev MacOS", "TrinityDev", "nmc-universal-osx-trinitydev")
-val Release = CarbonBuildMacOS("Release MacOS", "Release", "nmc-universal-osx-release")
+val arm64_Debug = CarbonBuildMacOS("Debug MacOS arm64", "Debug", "arm64-osx-debug", "aarch64")
+val arm64_Internal = CarbonBuildMacOS("Internal MacOS arm64", "Internal", "arm64-osx-internal", "aarch64")
+val arm64_TrinityDev = CarbonBuildMacOS("TrinityDev MacOS arm64", "TrinityDev", "arm64-osx-trinitydev", "aarch64")
+val arm64_Release = CarbonBuildMacOS("Release MacOS arm64", "Release", "arm64-osx-release", "aarch64")
+
+val x64_Debug = CarbonBuildMacOS("Debug MacOS x64", "Debug", "x64-osx-debug", "x86_64")
+val x64_Internal = CarbonBuildMacOS("Internal MacOS x64", "Internal", "x64-osx-internal", "x86_64")
+val x64_TrinityDev = CarbonBuildMacOS("TrinityDev MacOS x64", "TrinityDev", "x64-osx-trinitydev", "x86_64")
+val x64_Release = CarbonBuildMacOS("Release MacOS x64", "Release", "x64-osx-release", "x86_64")
 
 object Project : Project({
     id("MacOS")
     name = "macOS"
 
-    buildType(Debug)
-    buildType(Internal)
-    buildType(TrinityDev)
-    buildType(Release)
+    buildType(_Self.buildTypes.CreateUniversalBuilds)
+
+    buildType(arm64_Debug)
+    buildType(arm64_Internal)
+    buildType(arm64_TrinityDev)
+    buildType(arm64_Release)
+
+    buildType(x64_Debug)
+    buildType(x64_Internal)
+    buildType(x64_TrinityDev)
+    buildType(x64_Release)
 })
 
-class CarbonBuildMacOS(buildName: String, configType: String, preset: String) : BuildType({
+class CarbonBuildMacOS(buildName: String, configType: String, preset: String, agentArchitecture: String) : BuildType({
     id(buildName.toId())
     name = buildName
 
@@ -44,7 +56,6 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String) : 
     params {
         param("env.SENTRY_CLI_DEBUG_SYMBOL_TYPE", "dsym")
         param("env.GIT_TAG_HASH_OVERRIDE", "")
-        param("project", "eve-frontier")
         param("env.CMAKE_CONFIG_TYPE", configType)
         param("env.CMAKE_GENERATOR", "Ninja Multi-Config")
         param("teamcity.vcsTrigger.runBuildInNewEmptyBranch", "true")
@@ -62,7 +73,7 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String) : 
         param("env.VCPKG_BINARY_SOURCES", "clear;x-aws,s3://vcpkg-binary-cache-static/cache/,readwrite")
         param("env.X_VCPKG_REGISTRIES_CACHE", "%teamcity.build.checkoutDir%/%github_checkout_folder%/regcache")
         param("env.CMAKE_BUILD_PARALLEL_LEVEL", "8")
-        param("env.CTEST_PARALLEL_LEVEL", "1")
+        param("env.CTEST_PARALLEL_LEVEL", "8")
     }
 
 
@@ -93,7 +104,7 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String) : 
         exec {
             name = "Configure"
             path = "cmake"
-            arguments = "--preset %env.CMAKE_PRESET% -S %teamcity.build.checkoutDir%/%github_checkout_folder% -B %env.CMAKE_BUILD_FOLDER% -DCMAKE_INSTALL_PREFIX=%env.CMAKE_INSTALL_PREFIX% -DINSTALL_TO_MONOLITH=ON -DVCPKG_INSTALL_OPTIONS=--x-buildtrees-root=%teamcity.build.checkoutDir%/%github_checkout_folder%/buildtrees"
+            arguments = "--preset %env.CMAKE_PRESET% -S %teamcity.build.checkoutDir%/%github_checkout_folder% -B %env.CMAKE_BUILD_FOLDER% -DINSTALL_TO_MONOLITH=ON -DCMAKE_INSTALL_PREFIX=%env.CMAKE_INSTALL_PREFIX% -DVCPKG_INSTALL_OPTIONS=--x-buildtrees-root=%teamcity.build.checkoutDir%/%github_checkout_folder%/buildtrees"
         }
         exec {
             name = "Build"
@@ -127,8 +138,10 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String) : 
     triggers {
         vcs {
             triggerRules = "+:root=${DslContext.settingsRootId.id}:."
-
-            param("disabled", "true")
+             branchFilter = """
+                            +:<default>
+                            +pr:*
+                        """.trimIndent()
         }
     }
 
@@ -139,13 +152,6 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String) : 
                 authType = token {
                     token = "%GITHUB_TEAMCITY_TOKEN%"
                 }
-                filterTargetBranch = """
-                                    +:refs/heads/main
-                                    +:refs/heads/release/*.x
-                                    -:refs/heads/release/1.x
-                                    -:refs/heads/release/2.x
-                                    -:refs/heads/release/3.x
-                                """.trimIndent()
                 filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
             }
         }
@@ -178,6 +184,7 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String) : 
 
     requirements {
         startsWith("teamcity.agent.jvm.os.name", "Mac OS X")
+        startsWith("teamcity.agent.jvm.os.arch", agentArchitecture)
     }
 })
 
