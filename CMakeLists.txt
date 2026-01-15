@@ -2,12 +2,11 @@ cmake_minimum_required(VERSION 3.16)
 
 project(PrometheusModule)
 
-include(cmake/CcpMinimumTargetPlatform.cmake)
-include(cmake/CcpBuildConfigurations.cmake)
-include(cmake/CcpPacIdentifiers.cmake)
-include(cmake/CcpGlobalSettings.cmake)
-include(cmake/CcpPackageConfigHelpers.cmake)
 include(cmake/CcpTargetConfigurations.cmake)
+include(cmake/CcpDocsGenerator.cmake)
+include(cmake/CcpPackageConfigHelpers.cmake)
+include(cmake/CcpBuildConfigurations.cmake)
+
 
 find_package(Python3 REQUIRED COMPONENTS Development Interpreter)
 
@@ -41,7 +40,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/python
         )
         if(WIN32)
-            set_tests_properties(${PYTHON_TEST} PROPERTIES ENVIRONMENT  "PYTHONPATH=$<TARGET_FILE_DIR:TestNative>\;$<TARGET_FILE_DIR:PrometheusModule>\;${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin\;${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib\;${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/python\;${Python3_STDLIB};BUILDFLAVOR=$<LOWER_CASE:$<CONFIG>>;DLL_PATHS=$<TARGET_FILE_DIR:GTest::gtest>\;$<TARGET_FILE_DIR:GTest::gtest_main>")
+            set_tests_properties(${PYTHON_TEST} PROPERTIES ENVIRONMENT  "PYTHONPATH=$<TARGET_FILE_DIR:TestNative>\;$<TARGET_FILE_DIR:PrometheusModule>\;${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin\;${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/python\;${Python3_STDLIB};BUILDFLAVOR=$<LOWER_CASE:$<CONFIG>>")
         elseif (APPLE)
             set_tests_properties(${PYTHON_TEST} PROPERTIES ENVIRONMENT "PYTHONPATH=$<TARGET_FILE_DIR:TestNative>:$<TARGET_FILE_DIR:PrometheusModule>:${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin:${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib:${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/python:${Python3_STDLIB};BUILDFLAVOR=$<LOWER_CASE:$<CONFIG>>")
         else()
