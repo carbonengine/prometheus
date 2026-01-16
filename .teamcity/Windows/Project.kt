@@ -20,10 +20,10 @@ import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
 import jetbrains.buildServer.configs.kotlin.buildFeatures.provideAwsCredentials
 
-val Debug = CarbonBuildWindows("Debug Windows", "Debug", "nmc-x64-windows-debug")
-val Internal = CarbonBuildWindows("Internal Windows", "Internal", "nmc-x64-windows-internal")
-val TrinityDev = CarbonBuildWindows("TrinityDev Windows", "TrinityDev", "nmc-x64-windows-trinitydev")
-val Release = CarbonBuildWindows("Release Windows", "Release", "nmc-x64-windows-release")
+val Debug = CarbonBuildWindows("Debug Windows", "Debug", "x64-windows-debug")
+val Internal = CarbonBuildWindows("Internal Windows", "Internal", "x64-windows-internal")
+val TrinityDev = CarbonBuildWindows("TrinityDev Windows", "TrinityDev", "x64-windows-trinitydev")
+val Release = CarbonBuildWindows("Release Windows", "Release", "x64-windows-release")
 
 object Project : Project({
     id("Windows")
@@ -49,7 +49,6 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
         select("env.VISUAL_STUDIO_PLATFORM_TOOLSET", "v141", label = "Visual Studio Platform Toolset", description = "Specify the toolset for the build. e.g. v141 or v143.",
                 options = listOf("v141 (2017)" to "v141", "v143 (2022)" to "v143"))
         param("env.CMAKE_BUILD_TARGETS", "all")
-        param("project", "eve-frontier")
         param("env.CMAKE_INSTALL_PREFIX", ".build-artifact")
         param("env.CMAKE_CONFIG_TYPE", configType)
         param("env.SENTRY_PROJECT", "exefile-crashes")
@@ -100,7 +99,7 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
         exec {
             name = "Configure"
             path = "cmake"
-            arguments = "--preset %env.CMAKE_PRESET% -S %teamcity.build.checkoutDir%/%github_checkout_folder% -B %env.CMAKE_BUILD_FOLDER% -DCMAKE_INSTALL_PREFIX=%env.CMAKE_INSTALL_PREFIX% -DINSTALL_TO_MONOLITH=ON -DVCPKG_INSTALL_OPTIONS=--x-buildtrees-root=%teamcity.build.checkoutDir%/%github_checkout_folder%/buildtrees"
+            arguments = "--preset %env.CMAKE_PRESET% -S %teamcity.build.checkoutDir%/%github_checkout_folder% -B %env.CMAKE_BUILD_FOLDER% -DINSTALL_TO_MONOLITH=ON -DCMAKE_INSTALL_PREFIX=%env.CMAKE_INSTALL_PREFIX% -DVCPKG_INSTALL_OPTIONS=--x-buildtrees-root=%teamcity.build.checkoutDir%/%github_checkout_folder%/buildtrees"
         }
         exec {
             name = "Build"
@@ -195,8 +194,10 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
     triggers {
         vcs {
             triggerRules = "+:root=${DslContext.settingsRootId.id}:."
-
-            param("disabled", "true")
+             branchFilter = """
+                            +:<default>
+                            +pr:*
+                        """.trimIndent()
         }
     }
 
@@ -207,13 +208,6 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
                 authType = token {
                     token = "%GITHUB_TEAMCITY_TOKEN%"
                 }
-                filterTargetBranch = """
-                                    +:refs/heads/main
-                                    +:refs/heads/release/*.x
-                                    -:refs/heads/release/1.x
-                                    -:refs/heads/release/2.x
-                                    -:refs/heads/release/3.x
-                                """.trimIndent()
                 filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
             }
         }

@@ -27,3 +27,24 @@ target_link_libraries(TestNative PRIVATE GTest::GTest GTest::Main PrometheusModu
 
 # Temporary folder where tests are run
 set(PYTHON_TEST_DIR "${CMAKE_CURRENT_BINARY_DIR}/tests/")
+
+if (WIN32)
+    add_custom_command(
+            TARGET TestNative POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+            $<TARGET_RUNTIME_DLLS:PrometheusModule>
+            $<TARGET_FILE_DIR:TestNative>
+            COMMAND_EXPAND_LISTS
+            VERBATIM
+    )
+
+    add_custom_command(
+            TARGET TestNative POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+            $<TARGET_RUNTIME_DLLS:TestNative>
+            $<TARGET_FILE_DIR:TestNative>
+            COMMAND_EXPAND_LISTS
+            VERBATIM
+    )
+endif()
+
