@@ -29,9 +29,9 @@ include(vendor/ccpgames/platform-cmake/CcpPacIdentifiers.cmake)
 
 set(GTest_ROOT "${BRANCH_ROOT_DIR}/vendor/GoogleTest/1.10.0")
 set(Python_ROOT "${BRANCH_ROOT_DIR}/vendor/python/2.7.1+ccp-stackless")
-set(CURL_ROOT "${BRANCH_ROOT_DIR}/vendor/libcurl/7.76.1")
+set(CURL_ROOT "${BRANCH_ROOT_DIR}/vendor/libcurl/8.6.0")
 set(ZLIB_ROOT "${BRANCH_ROOT_DIR}/vendor/zlib-ng/2.0.2")
-set(OpenSSL_ROOT "${BRANCH_ROOT_DIR}/vendor/openssl/1.1.1k")
+set(OpenSSL_ROOT "${BRANCH_ROOT_DIR}/vendor/openssl/3.2.1")
 
 find_package(GTest REQUIRED)
 find_package(Git REQUIRED)

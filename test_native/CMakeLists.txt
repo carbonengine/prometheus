@@ -12,6 +12,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         PREFIX ""
         SUFFIX ".so"
     )
+    target_link_libraries(TestNative PRIVATE "-framework CoreFoundation" "-framework SystemConfiguration")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set_target_properties(TestNative PROPERTIES
         OUTPUT_NAME test_native
