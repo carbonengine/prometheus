@@ -88,7 +88,7 @@ function(add_trinity_dev_debug_flags target)
         # Disable /GL and /LTCG for /ZI support
         set_target_properties(${target} PROPERTIES INTERPROCEDURAL_OPTIMIZATION_TRINITYDEV OFF)
         target_link_options(${target} PRIVATE "$<IF:$<CONFIG:TrinityDev>,/LTCG:OFF,>")
-    elseif(APPLE)
+    elseif(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_compile_options(${target} PRIVATE "$<IF:$<CONFIG:TrinityDev>,-Og,>")
     endif()
 endfunction()
