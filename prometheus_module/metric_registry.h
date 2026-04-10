@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <string>
 
 #include "metric_registry_interface.h"
 
