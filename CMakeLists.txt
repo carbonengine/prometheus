@@ -1,3 +1,5 @@
+# Copyright © 2021 CCP ehf.
+
 cmake_minimum_required(VERSION 3.16)
 
 macro(require_path_in_environment_variable ENV_VAR_NAME OUTPUT_VAR)

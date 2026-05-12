@@ -1,3 +1,5 @@
+// Copyright © 2019 CCP ehf.
+
 #ifndef COUNTER_H
 #define COUNTER_H
 

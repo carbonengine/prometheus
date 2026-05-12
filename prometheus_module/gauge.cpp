@@ -1,3 +1,5 @@
+// Copyright © 2019 CCP ehf.
+
 #include "gauge.h"
 
 // STL

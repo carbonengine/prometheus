@@ -1,3 +1,5 @@
+# Copyright © 2019 CCP ehf.
+
 import time
 
 import prometheus_module

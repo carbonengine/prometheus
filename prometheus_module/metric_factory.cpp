@@ -1,3 +1,5 @@
+// Copyright © 2019 CCP ehf.
+
 #include "metric_factory.h"
 using namespace prometheus_module;
 

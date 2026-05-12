@@ -1,3 +1,5 @@
+# Copyright © 2021 CCP ehf.
+
 find_package(OpenSSL REQUIRED)
 find_package(CURL REQUIRED)
 

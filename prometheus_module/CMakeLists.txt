@@ -1,3 +1,5 @@
+# Copyright © 2021 CCP ehf.
+
 add_python_extension(PrometheusModule SHARED
     counter.cpp
     counter.h

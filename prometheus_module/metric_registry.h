@@ -1,3 +1,5 @@
+// Copyright © 2019 CCP ehf.
+
 #ifndef METRIC_REGISTRY_H
 #define METRIC_REGISTRY_H
 

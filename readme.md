@@ -178,3 +178,15 @@ copy ..\import\vcpkg\x64-windows\bin\*.dll
 python test.py
 ```
 * For verbose output, use `python -m unittest discover -v -p test.py` in place of the last line above
+
+## 📄 License and Legal Notices
+
+© 2026 CCP Games
+
+This software is provided by CCP Games and does not include or distribute any third-party libraries or frameworks.
+
+This software is a Native Prometheus client for the monolith .
+
+Trademark Notice: CCP Games is a trademark of CCP ehf.
+
+This project is licensed under the [MIT License](LICENSE.md). Nothing in the [MIT License](LICENSE.md) grants any rights to CCP Games' trademarks or game content.

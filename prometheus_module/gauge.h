@@ -1,3 +1,5 @@
+// Copyright © 2019 CCP ehf.
+
 #ifndef GAUGE_H
 #define GAUGE_H
 
