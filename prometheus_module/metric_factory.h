@@ -1,3 +1,5 @@
+// Copyright © 2019 CCP ehf.
+
 #ifndef METRIC_FACTORY_H
 #define METRIC_FACTORY_H
 

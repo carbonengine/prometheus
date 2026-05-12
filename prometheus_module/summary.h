@@ -1,3 +1,5 @@
+// Copyright © 2019 CCP ehf.
+
 #ifndef SUMMARY_H
 #define SUMMARY_H
 

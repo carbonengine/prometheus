@@ -1,3 +1,5 @@
+# Copyright © 2021 CCP ehf.
+
 find_package(prometheus-cpp CONFIG REQUIRED)
 find_package(ZLIB CONFIG REQUIRED)
 

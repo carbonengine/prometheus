@@ -1,3 +1,5 @@
+// Copyright © 2019 CCP ehf.
+
 #ifndef TEST_H
 #define TEST_H
 

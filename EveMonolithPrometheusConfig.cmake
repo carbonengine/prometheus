@@ -1,3 +1,5 @@
+# Copyright © 2022 CCP ehf.
+
 # A CMake find_package module to support using EveMonolithPrometheus from the Perforce vendor/ folder.
 message(STATUS "Using vendored EveMonolithPrometheus package")
 

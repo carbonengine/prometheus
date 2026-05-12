@@ -185,3 +185,15 @@ cmake install [BUILD_DIRECTORY]
 
 When installing into the monolith, ensure the `INSTALL_TO_MONOLITH` option is set to `ON`. This installs a package which
 is compliant with the package layout expected from the monolith.
+
+## 📄 License and Legal Notices
+
+© 2026 CCP Games
+
+This software is provided by CCP Games and does not include or distribute any third-party libraries or frameworks.
+
+This software is a Native Prometheus client for the monolith .
+
+Trademark Notice: CCP Games is a trademark of CCP ehf.
+
+This project is licensed under the [MIT License](LICENSE.md). Nothing in the [MIT License](LICENSE.md) grants any rights to CCP Games' trademarks or game content.

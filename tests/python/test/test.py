@@ -1,3 +1,5 @@
+# Copyright © 2019 CCP ehf.
+
 import gzip
 import math
 import string

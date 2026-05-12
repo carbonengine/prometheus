@@ -1,3 +1,5 @@
+// Copyright © 2025 CCP ehf.
+
 package _Self
 
 import _Self.buildTypes.*

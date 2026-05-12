@@ -1,3 +1,5 @@
+// Copyright © 2019 CCP ehf.
+
 #ifndef GAUGEINTERFACE_H
 #define GAUGEINTERFACE_H
 

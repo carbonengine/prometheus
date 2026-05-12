@@ -1,3 +1,5 @@
+// Copyright © 2019 CCP ehf.
+
 #ifndef HISTOGRAMINTERFACE_H
 #define HISTOGRAMINTERFACE_H
 
