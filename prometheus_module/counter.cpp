@@ -108,7 +108,7 @@ void Counter::set_wrapped(prometheus::Counter& wrapped) {
 
 typedef struct {
 	PyObject_HEAD
-	std::unique_ptr<Counter> counter;
+	Counter* counter;
 	PyObject* family;
 	std::unordered_map<std::string, PyObject*>* cache;
 } CounterPyObject;
@@ -123,7 +123,7 @@ static int Counter_init(CounterPyObject *self, PyObject *args, PyObject *kwds) {
 		return -1;
 
 	Counter* wrapped = (Counter*)PyCapsule_GetPointer(capsule, NULL);
-	self->counter.reset(wrapped);
+	self->counter = wrapped;
 
 	if (family != NULL) {
 		self->family = family;
@@ -139,13 +139,11 @@ static int Counter_init(CounterPyObject *self, PyObject *args, PyObject *kwds) {
 }
 
 static void Counter_dealloc(CounterPyObject* self) {
-	self->counter.reset(nullptr);
+	self->counter = nullptr;
 
 	if (self->family != reinterpret_cast<PyObject*>(self)) {
 		Py_DecRef(self->family);
 	}
-
-	delete self->family;
 
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }

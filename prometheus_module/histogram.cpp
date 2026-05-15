@@ -105,7 +105,7 @@ void Histogram::set_wrapped(prometheus::Histogram& wrapped) {
 
 typedef struct {
 	PyObject_HEAD
-	std::unique_ptr<Histogram> histogram;
+	Histogram* histogram;
 	PyObject* family;
 	std::unordered_map<std::string, PyObject*>* cache;
 } HistogramPyObject;
@@ -120,7 +120,7 @@ static int Histogram_init(HistogramPyObject *self, PyObject *args, PyObject *kwd
 		return -1;
 
 	Histogram* wrapped = (Histogram*)PyCapsule_GetPointer(capsule, NULL);
-	self->histogram.reset(wrapped);
+	self->histogram = wrapped;
 
 	if (family != NULL) {
 		self->family = family;
@@ -136,13 +136,11 @@ static int Histogram_init(HistogramPyObject *self, PyObject *args, PyObject *kwd
 }
 
 static void Histogram_dealloc(HistogramPyObject* self) {
-	self->histogram.reset(nullptr);
+	self->histogram = nullptr;
 
 	if (self->family != reinterpret_cast<PyObject*>(self)) {
 		Py_DecRef(self->family);
 	}
-
-	delete self->family;
 
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
