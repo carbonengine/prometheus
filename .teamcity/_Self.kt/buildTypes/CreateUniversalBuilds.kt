@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 // Copyright © 2026 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 package _Self.buildTypes
 
 import jetbrains.buildServer.configs.kotlin.*
@@ -88,7 +91,11 @@ class UniversalBuild() : BuildType({
             }
 
             artifacts {
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/arm64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/arm64"
+>>>>>>> template/carbonengine/prometheus-updates
             }
         }
         dependency(MacOS.x64_Debug) {
@@ -97,7 +104,11 @@ class UniversalBuild() : BuildType({
             }
 
             artifacts {
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/x64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/x64"
+>>>>>>> template/carbonengine/prometheus-updates
             }
         }
 
@@ -107,7 +118,11 @@ class UniversalBuild() : BuildType({
             }
 
             artifacts {
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/arm64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/arm64"
+>>>>>>> template/carbonengine/prometheus-updates
             }
         }
         dependency(MacOS.x64_Release) {
@@ -116,7 +131,11 @@ class UniversalBuild() : BuildType({
             }
 
             artifacts {
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/x64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/x64"
+>>>>>>> template/carbonengine/prometheus-updates
             }
         }
 
@@ -126,7 +145,11 @@ class UniversalBuild() : BuildType({
             }
 
             artifacts {
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/arm64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/arm64"
+>>>>>>> template/carbonengine/prometheus-updates
             }
         }
         dependency(MacOS.x64_Internal) {
@@ -135,7 +158,11 @@ class UniversalBuild() : BuildType({
             }
 
             artifacts {
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/x64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/x64"
+>>>>>>> template/carbonengine/prometheus-updates
             }
         }
 
@@ -145,7 +172,11 @@ class UniversalBuild() : BuildType({
             }
 
             artifacts {
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/arm64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/arm64"
+>>>>>>> template/carbonengine/prometheus-updates
             }
         }
         dependency(MacOS.x64_TrinityDev) {
@@ -154,7 +185,11 @@ class UniversalBuild() : BuildType({
             }
 
             artifacts {
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/x64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/x64"
+>>>>>>> template/carbonengine/prometheus-updates
             }
         }
     }

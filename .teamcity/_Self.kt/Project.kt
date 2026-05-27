@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 // Copyright © 2025 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 package _Self
 
 import _Self.buildTypes.*
@@ -10,7 +13,11 @@ import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
 
 object Project : Project({
 
+<<<<<<< HEAD
     description = "Build / Publish pipeline for https://github.com/carbonengine/prometheus"
+=======
+    description = "Build / Publish pipeline for https://github.com/ccpgames/carbon-template"
+>>>>>>> template/carbonengine/prometheus-updates
 
     params {
         /* before changing carbon_ref, make sure to disable automatic settings synchronization on teamcity */

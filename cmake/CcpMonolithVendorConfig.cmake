@@ -1,5 +1,8 @@
 # Copyright © 2025 CCP ehf.
+<<<<<<< HEAD
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 #[[
  Provides variables to help with installing into the monolith. This should eventually be removed
 ]]
