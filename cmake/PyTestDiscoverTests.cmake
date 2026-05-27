@@ -1,6 +1,9 @@
 # Copyright © 2025 CCP ehf.
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 #[[

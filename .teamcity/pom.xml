@@ -2,9 +2,15 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
 <<<<<<< HEAD
+<<<<<<< HEAD
   <name>Carbon Prometheus Config DSL Script</name>
   <groupId>Carbon_Prometheus</groupId>
   <artifactId>Carbon_Prometheus_dsl</artifactId>
+=======
+  <name>Carbon Template Config DSL Script</name>
+  <groupId>Carbon_Template</groupId>
+  <artifactId>Carbon_Template_dsl</artifactId>
+>>>>>>> template/carbonengine/prometheus-updates
 =======
   <name>Carbon Template Config DSL Script</name>
   <groupId>Carbon_Template</groupId>

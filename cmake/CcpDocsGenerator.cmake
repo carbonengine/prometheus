@@ -1,6 +1,9 @@
 # Copyright © 2025 CCP ehf.
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 function(_create_venv_and_install_packages)
@@ -69,6 +72,12 @@ function(create_carbon_docs_sphinx_target)
     endif()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
 =======
     message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
     message(STATUS "Command: ${SPHINX_COMMAND}")

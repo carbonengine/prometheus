@@ -1,6 +1,9 @@
 # Copyright © 2025 CCP ehf.
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 #[[
@@ -93,7 +96,11 @@ function(add_trinity_dev_debug_flags target)
         set_target_properties(${target} PROPERTIES INTERPROCEDURAL_OPTIMIZATION_TRINITYDEV OFF)
         target_link_options(${target} PRIVATE "$<IF:$<CONFIG:TrinityDev>,/LTCG:OFF,>")
 <<<<<<< HEAD
+<<<<<<< HEAD
     elseif(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
+=======
+    elseif(APPLE)
+>>>>>>> template/carbonengine/prometheus-updates
 =======
     elseif(APPLE)
 >>>>>>> template/carbonengine/prometheus-updates

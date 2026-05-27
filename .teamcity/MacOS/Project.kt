@@ -1,6 +1,9 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Copyright © 2025 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 package MacOS
@@ -57,7 +60,11 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String, ag
     name = buildName
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     artifactRules = "%env.CMAKE_INSTALL_PREFIX%"
+=======
+    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
     artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -83,7 +90,11 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String, ag
         param("env.X_VCPKG_REGISTRIES_CACHE", "%teamcity.build.checkoutDir%/%github_checkout_folder%/regcache")
         param("env.CMAKE_BUILD_PARALLEL_LEVEL", "8")
 <<<<<<< HEAD
+<<<<<<< HEAD
         param("env.CTEST_PARALLEL_LEVEL", "1")
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
 =======
         param("env.CTEST_PARALLEL_LEVEL", "8")
 >>>>>>> template/carbonengine/prometheus-updates
