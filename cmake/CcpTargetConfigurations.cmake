@@ -1,7 +1,10 @@
 # Copyright © 2025 CCP ehf.
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
@@ -66,8 +69,13 @@ function(set_prefix_and_suffix target)
     if(target_type STREQUAL SHARED_LIBRARY OR target_type STREQUAL MODULE_LIBRARY)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
             # on macOS/Linux we like to still use the .so naming convention, without a prefix
+=======
+        if(APPLE)
+            # on macOS we like to still use the .so naming convention, without a prefix
+>>>>>>> template/carbonengine/prometheus-updates
 =======
         if(APPLE)
             # on macOS we like to still use the .so naming convention, without a prefix

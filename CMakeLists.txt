@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Copyright © 2021 CCP ehf.
 
 cmake_minimum_required(VERSION 3.16)
@@ -53,6 +54,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     endforeach()
 endif()
 =======
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 cmake_minimum_required(VERSION 3.16)
@@ -162,6 +165,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     install(DIRECTORY include DESTINATION . FILES_MATCHING PATTERN "*.h")
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+endif()
+>>>>>>> template/carbonengine/prometheus-updates
+=======
 endif()
 >>>>>>> template/carbonengine/prometheus-updates
 =======

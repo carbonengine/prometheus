@@ -3,6 +3,7 @@
     {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       "name": "zlib",
       "version>=": "2.2.5"
     },
@@ -35,14 +36,24 @@
       "version>=": "3.12.9#1",
       "host": true
 >>>>>>> template/carbonengine/prometheus-updates
+=======
+      "name": "python3",
+      "version>=": "3.12.9#1",
+      "host": true
+>>>>>>> template/carbonengine/prometheus-updates
     }
   ],
   "overrides": [
     {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       "name": "openssl",
       "version": "1.1.1k#8"
+=======
+      "name": "protobuf",
+      "version": "3.6.0.1"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
       "name": "protobuf",
       "version": "3.6.0.1"
