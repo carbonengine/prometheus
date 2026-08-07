@@ -1,6 +1,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Copyright © 2021 CCP ehf.
 
 cmake_minimum_required(VERSION 3.16)
@@ -54,6 +55,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     endforeach()
 endif()
 =======
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
@@ -166,6 +169,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+endif()
+>>>>>>> template/carbonengine/prometheus-updates
+=======
 endif()
 >>>>>>> template/carbonengine/prometheus-updates
 =======
