@@ -1,5 +1,23 @@
 # Copyright © 2025 CCP ehf.
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 #[[
 Defines our supported build configurations, also known as build flavors.
 
@@ -89,7 +107,31 @@ function(add_trinity_dev_debug_flags target)
         # Disable /GL and /LTCG for /ZI support
         set_target_properties(${target} PROPERTIES INTERPROCEDURAL_OPTIMIZATION_TRINITYDEV OFF)
         target_link_options(${target} PRIVATE "$<IF:$<CONFIG:TrinityDev>,/LTCG:OFF,>")
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
     elseif(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
+=======
+    elseif(APPLE)
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    elseif(APPLE)
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    elseif(APPLE)
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    elseif(APPLE)
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    elseif(APPLE)
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    elseif(APPLE)
+>>>>>>> template/carbonengine/prometheus-updates
         target_compile_options(${target} PRIVATE "$<IF:$<CONFIG:TrinityDev>,-Og,>")
     endif()
 endfunction()
