@@ -3,8 +3,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Copyright © 2025 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
@@ -62,7 +65,11 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     artifactRules = "%env.CMAKE_INSTALL_PREFIX%"
+=======
+    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
     artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -85,6 +92,10 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
         param("env.CTEST_JUNIT_OUTPUT_FILE", "ctest_results.xml")
         select("env.VISUAL_STUDIO_PLATFORM_TOOLSET", "v141", label = "Visual Studio Platform Toolset", description = "Specify the toolset for the build. e.g. v141 or v143.",
                 options = listOf("v141 (2017)" to "v141", "v143 (2022)" to "v143"))
+<<<<<<< HEAD
+=======
+        param("VS_DEV_BAT_SWITCHES", "-arch=x64")
+>>>>>>> template/carbonengine/prometheus-updates
         param("env.CMAKE_BUILD_TARGETS", "all")
         param("env.CMAKE_INSTALL_PREFIX", ".build-artifact")
         param("env.CMAKE_CONFIG_TYPE", configType)
@@ -103,7 +114,11 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         param("env.CTEST_PARALLEL_LEVEL", "1")
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
 =======
         param("env.CTEST_PARALLEL_LEVEL", "8")
 >>>>>>> template/carbonengine/prometheus-updates
@@ -151,6 +166,7 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 call "%%ProgramFiles(x86)%%\Microsoft Visual Studio\2017\BuildTools\Common7\Tools\vsdevcmd.bat" -arch=x64
 =======
                 call "%env.VSDEV_BAT_PATH%" -arch=x64
@@ -166,6 +182,9 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 >>>>>>> template/carbonengine/prometheus-updates
 =======
                 call "%env.VSDEV_BAT_PATH%" -arch=x64
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+                call "%env.VSDEV_BAT_PATH%" %VS_DEV_BAT_SWITCHES%
 >>>>>>> template/carbonengine/prometheus-updates
                 echo ##teamcity[setParameter name='env.INCLUDE' value='%%INCLUDE%%']
                 echo ##teamcity[setParameter name='env.LIB' value='%%LIB%%']
@@ -215,7 +234,11 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
                 echo ${'$'}Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ${'$'}User, ${'$'}Password
                 echo New-PSDrive -Name "symbols" -PSProvider FileSystem -Root ${'$'}Env:TC_SYMBOL_STORE_PATH -Credential ${'$'}Credential
                 echo Write-Host "##teamcity[progressMessage 'Storing symbols']"
+<<<<<<< HEAD
                 echo ${'$'}symstoreFlags = ^@^("add","/compress","/t", "CCP Games", "/c", "TeamCity %build.number%", "/s", "${'$'}Env:TC_SYMBOL_STORE_PATH", "/o", "/r",  "/f", "%env.CMAKE_BUILD_FOLDER%"^) 
+=======
+                echo ${'$'}symstoreFlags = ^@^("add","/compress","/t", "CCP Games", "/c", "TeamCity %build.number%", "/s", "${'$'}Env:TC_SYMBOL_STORE_PATH", "/o", "/r",  "/f", "%env.CMAKE_BUILD_FOLDER%"^)
+>>>>>>> template/carbonengine/prometheus-updates
                 echo ^& ${'$'}Env:TC_SYMSTORE_PATH ${'$'}symstoreFlags ^| Tee-Object -file symstore.txt
                 echo ${'$'}stored = get-content symstore.txt ^| Select-String "^SYMSTORE: Number of files stored = (.*)${'$'}"
                 echo ${'$'}stored = ${'$'}stored.Matches.Groups[1].Value
@@ -241,7 +264,11 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
                     ${'$'}Password = ConvertTo-SecureString -String "%DOMAIN_USER_PASSWORD%" -AsPlainText -Force
                     ${'$'}Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ${'$'}User, ${'$'}Password
                     New-PSDrive -Name "symbols" -PSProvider FileSystem -Root ${'$'}Env:TC_SYMBOL_STORE_PATH -Credential ${'$'}Credential
+<<<<<<< HEAD
                     
+=======
+
+>>>>>>> template/carbonengine/prometheus-updates
                     Write-Host "##teamcity[progressMessage 'Storing symbols']"
                     ${'$'}symstoreFlags = @("add",
                                      "/compress",
@@ -252,6 +279,7 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
                                      "/r", # Recursive
                                      "/f", "%env.CMAKE_BUILD_FOLDER%") # source folder
                     & ${'$'}Env:TC_SYMSTORE_PATH ${'$'}symstoreFlags | Tee-Object -file symstore.txt
+<<<<<<< HEAD
                     
                     ${'$'}stored = get-content symstore.txt | Select-String "^SYMSTORE: Number of files stored = (.*)${'$'}"
                     ${'$'}stored = ${'$'}stored.Matches.Groups[1].Value
@@ -262,6 +290,18 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
                     ${'$'}ignored = get-content symstore.txt | Select-String "^SYMSTORE: Number of files ignored = (.*)${'$'}"
                     ${'$'}ignored = ${'$'}ignored.Matches.Groups[1].Value
                     
+=======
+
+                    ${'$'}stored = get-content symstore.txt | Select-String "^SYMSTORE: Number of files stored = (.*)${'$'}"
+                    ${'$'}stored = ${'$'}stored.Matches.Groups[1].Value
+
+                    ${'$'}errors = get-content symstore.txt | Select-String "^SYMSTORE: Number of errors = (.*)${'$'}"
+                    ${'$'}errors = ${'$'}errors.Matches.Groups[1].Value
+
+                    ${'$'}ignored = get-content symstore.txt | Select-String "^SYMSTORE: Number of files ignored = (.*)${'$'}"
+                    ${'$'}ignored = ${'$'}ignored.Matches.Groups[1].Value
+
+>>>>>>> template/carbonengine/prometheus-updates
                     Write-Host "##teamcity[buildStatus text='Stored: ${'$'}stored, Errors: ${'$'}errors, Ignored: ${'$'}ignored']"
                 """.trimIndent()
             }
@@ -287,7 +327,11 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
                 }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
+=======
+                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
 >>>>>>> template/carbonengine/prometheus-updates

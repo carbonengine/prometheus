@@ -20,7 +20,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         "VCPKG_ROOT": "${sourceDir}/vendor/github.com/microsoft/vcpkg"
+=======
+        "PATH_TO_VCPKG_ROOT": "${sourceDir}/vendor/github.com/microsoft/vcpkg"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
         "PATH_TO_VCPKG_ROOT": "${sourceDir}/vendor/github.com/microsoft/vcpkg"
 >>>>>>> template/carbonengine/prometheus-updates

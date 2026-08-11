@@ -3,8 +3,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Copyright © 2025 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
@@ -49,6 +52,7 @@ class Publish(perforce_publish_path: String) : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         param("env.TC_BUILD_NUMBER", "Carbon Prometheus #%build.number%")
 =======
         param("env.TC_BUILD_NUMBER", "Carbon Template #%build.number%")
@@ -67,11 +71,16 @@ class Publish(perforce_publish_path: String) : BuildType({
         param("env.TC_EVE_PROJECT", "%project%")
         param("carbon-pipeline-tools-ref", "refs/heads/main")
 =======
+=======
+>>>>>>> template/carbonengine/prometheus-updates
         param("env.TC_BUILD_NUMBER", "Carbon Template #%build.number%")
         param("env.P4PORT", "p4is.ccp.ad.local:1666")
         param("env.TC_EVE_BRANCH_SHORTNAME", "%eve_branch_shortname%")
         param("env.TC_EVE_PROJECT", "%project%")
         param("carbon-pipeline-tools-ref", "refs/tags/v0.1.0")
+<<<<<<< HEAD
+>>>>>>> template/carbonengine/prometheus-updates
+=======
 >>>>>>> template/carbonengine/prometheus-updates
         select("eve_branch_path", "//%project%/%eve_branch_shortname%/", label = "Perforce branch", description = "Is this a regular perforce branch or a perforce stream? Used for setting the proper branch path.", display = ParameterDisplay.PROMPT,
                 options = listOf("Regular" to "//%project%/branches/%eve_branch_type%/%eve_branch_shortname%/", "Frontier Stream" to "//%project%/%eve_branch_shortname%/"))
@@ -254,7 +263,11 @@ class Publish(perforce_publish_path: String) : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 artifactRules = "**/*=>%perforce_path_to_publish_into%/${MacOS.arm64_Release.depParamRefs["env.GIT_TAG_HASH"]}"
+=======
+                artifactRules = "artifact.zip!**=>%perforce_path_to_publish_into%/${MacOS.arm64_Release.depParamRefs["env.GIT_TAG_HASH"]}"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 artifactRules = "artifact.zip!**=>%perforce_path_to_publish_into%/${MacOS.arm64_Release.depParamRefs["env.GIT_TAG_HASH"]}"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -283,7 +296,11 @@ class Publish(perforce_publish_path: String) : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 artifactRules = "**/*=>%perforce_path_to_publish_into%/${Windows.Debug.depParamRefs["env.GIT_TAG_HASH"]}"
+=======
+                artifactRules = "artifact.zip!**=>%perforce_path_to_publish_into%/${Windows.Debug.depParamRefs["env.GIT_TAG_HASH"]}"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 artifactRules = "artifact.zip!**=>%perforce_path_to_publish_into%/${Windows.Debug.depParamRefs["env.GIT_TAG_HASH"]}"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -312,7 +329,11 @@ class Publish(perforce_publish_path: String) : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 artifactRules = "**/*=>%perforce_path_to_publish_into%/${Windows.Internal.depParamRefs["env.GIT_TAG_HASH"]}"
+=======
+                artifactRules = "artifact.zip!**=>%perforce_path_to_publish_into%/${Windows.Internal.depParamRefs["env.GIT_TAG_HASH"]}"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 artifactRules = "artifact.zip!**=>%perforce_path_to_publish_into%/${Windows.Internal.depParamRefs["env.GIT_TAG_HASH"]}"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -341,7 +362,11 @@ class Publish(perforce_publish_path: String) : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 artifactRules = "**/*=>%perforce_path_to_publish_into%/${Windows.Release.depParamRefs["env.GIT_TAG_HASH"]}"
+=======
+                artifactRules = "artifact.zip!**=>%perforce_path_to_publish_into%/${Windows.Release.depParamRefs["env.GIT_TAG_HASH"]}"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 artifactRules = "artifact.zip!**=>%perforce_path_to_publish_into%/${Windows.Release.depParamRefs["env.GIT_TAG_HASH"]}"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -370,7 +395,11 @@ class Publish(perforce_publish_path: String) : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 artifactRules = "**/*=>%perforce_path_to_publish_into%/${Windows.TrinityDev.depParamRefs["env.GIT_TAG_HASH"]}"
+=======
+                artifactRules = "artifact.zip!**=>%perforce_path_to_publish_into%/${Windows.TrinityDev.depParamRefs["env.GIT_TAG_HASH"]}"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 artifactRules = "artifact.zip!**=>%perforce_path_to_publish_into%/${Windows.TrinityDev.depParamRefs["env.GIT_TAG_HASH"]}"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -405,7 +434,11 @@ class Publish(perforce_publish_path: String) : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-prometheus")
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
 >>>>>>> template/carbonengine/prometheus-updates
