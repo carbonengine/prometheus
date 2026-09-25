@@ -111,7 +111,7 @@ void Summary::set_wrapped(prometheus::Summary& wrapped) {
 
 typedef struct {
 	PyObject_HEAD
-	std::unique_ptr<Summary> summary;
+	Summary* summary;
 	PyObject* family;
 	std::unordered_map<std::string, PyObject*>* cache;
 } SummaryPyObject;
@@ -126,7 +126,7 @@ static int Summary_init(SummaryPyObject *self, PyObject *args, PyObject *kwds) {
 		return -1;
 
 	Summary* wrapped = (Summary*)PyCapsule_GetPointer(capsule, NULL);
-	self->summary.reset(wrapped);
+	self->summary = wrapped;
 
 	if (family != NULL) {
 		self->family = family;
@@ -142,13 +142,11 @@ static int Summary_init(SummaryPyObject *self, PyObject *args, PyObject *kwds) {
 }
 
 static void Summary_dealloc(SummaryPyObject* self) {
-	self->summary.reset(nullptr);
+	self->summary = nullptr;
 
 	if (self->family != reinterpret_cast<PyObject*>(self)) {
 		Py_DecRef(self->family);
 	}
-
-	delete self->family;
 
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }

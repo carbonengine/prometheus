@@ -122,7 +122,7 @@ void Gauge::set_wrapped(prometheus::Gauge& wrapped) {
 
 typedef struct {
 	PyObject_HEAD
-	std::unique_ptr<Gauge> gauge;
+	Gauge* gauge;
 	PyObject* family;
 	std::unordered_map<std::string, PyObject*>* cache;
 } GaugePyObject;
@@ -137,7 +137,7 @@ static int Gauge_init(GaugePyObject *self, PyObject *args, PyObject *kwds) {
 		return -1;
 
 	Gauge* wrapped = (Gauge*)PyCapsule_GetPointer(capsule, NULL);
-	self->gauge.reset(wrapped);
+	self->gauge = wrapped;
 
 	if (family != NULL) {
 		self->family = family;
@@ -153,13 +153,11 @@ static int Gauge_init(GaugePyObject *self, PyObject *args, PyObject *kwds) {
 }
 
 static void Gauge_dealloc(GaugePyObject* self) {
-	self->gauge.reset(nullptr);
+	self->gauge = nullptr;
 
 	if (self->family != reinterpret_cast<PyObject*>(self)) {
 		Py_DecRef(self->family);
 	}
-
-	delete self->family;
 
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
