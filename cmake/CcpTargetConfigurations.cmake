@@ -7,7 +7,10 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
@@ -90,8 +93,13 @@ function(set_prefix_and_suffix target)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
             # on macOS/Linux we like to still use the .so naming convention, without a prefix
+=======
+        if(APPLE)
+            # on macOS we like to still use the .so naming convention, without a prefix
+>>>>>>> template/carbonengine/prometheus-updates
 =======
         if(APPLE)
             # on macOS we like to still use the .so naming convention, without a prefix
