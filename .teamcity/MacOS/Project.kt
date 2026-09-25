@@ -5,8 +5,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Copyright © 2025 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
@@ -81,7 +84,11 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String, ag
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     artifactRules = "%env.CMAKE_INSTALL_PREFIX%"
+=======
+    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
     artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -131,7 +138,11 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String, ag
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         param("env.CTEST_PARALLEL_LEVEL", "1")
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
 =======
         param("env.CTEST_PARALLEL_LEVEL", "8")
 >>>>>>> template/carbonengine/prometheus-updates
@@ -235,7 +246,11 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String, ag
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
+=======
+                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
 >>>>>>> template/carbonengine/prometheus-updates
@@ -271,7 +286,11 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String, ag
         }
         sshAgent {
 <<<<<<< HEAD
+<<<<<<< HEAD
             teamcitySshKey = "ccpgames-evetech GitHub"
+=======
+            teamcitySshKey = "ccpgames-carbon"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
             teamcitySshKey = "ccpgames-carbon"
 >>>>>>> template/carbonengine/prometheus-updates
