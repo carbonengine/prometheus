@@ -4,8 +4,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Copyright © 2026 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
@@ -33,7 +36,11 @@ class UniversalBuild() : BuildType({
     params{
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         param("carbon-pipeline-tools-ref", "refs/heads/main")
+=======
+        param("carbon-pipeline-tools-ref", "refs/tags/v0.1.0")
+>>>>>>> template/carbonengine/prometheus-updates
 =======
         param("carbon-pipeline-tools-ref", "refs/tags/v0.1.0")
 >>>>>>> template/carbonengine/prometheus-updates
@@ -63,6 +70,7 @@ class UniversalBuild() : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     artifactRules = "%universal-output-dir%"
 =======
     artifactRules = "%universal-output-dir% => artifact.zip"
@@ -81,6 +89,12 @@ class UniversalBuild() : BuildType({
 >>>>>>> template/carbonengine/prometheus-updates
 
     vcs {
+=======
+    artifactRules = "%universal-output-dir% => artifact.zip"
+
+    vcs {
+        root(DslContext.settingsRootId, "-:.")
+>>>>>>> template/carbonengine/prometheus-updates
         root(AbsoluteId("CarbonPipelineTools"), "+:carbon/.=>carbon")
 
         checkoutMode = CheckoutMode.ON_AGENT
@@ -140,7 +154,11 @@ class UniversalBuild() : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/arm64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/arm64"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/arm64"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -173,7 +191,11 @@ class UniversalBuild() : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/x64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/x64"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/x64"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -207,7 +229,11 @@ class UniversalBuild() : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/arm64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/arm64"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/arm64"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -240,7 +266,11 @@ class UniversalBuild() : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/x64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/x64"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/x64"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -274,7 +304,11 @@ class UniversalBuild() : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/arm64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/arm64"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/arm64"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -307,7 +341,11 @@ class UniversalBuild() : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/x64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/x64"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/x64"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -341,7 +379,11 @@ class UniversalBuild() : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/arm64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/arm64"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/arm64"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -374,7 +416,11 @@ class UniversalBuild() : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 artifactRules = "**/*=>%system.teamcity.build.workingDir%/x64"
+=======
+                artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/x64"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 artifactRules = "artifact.zip!**=>%system.teamcity.build.workingDir%/x64"
 >>>>>>> template/carbonengine/prometheus-updates
@@ -397,6 +443,21 @@ class UniversalBuild() : BuildType({
         }
     }
 
+<<<<<<< HEAD
+=======
+    features {
+        pullRequests {
+            vcsRootExtId = "${DslContext.settingsRootId.id}"
+            provider = github {
+                authType = token {
+                    token = "%GITHUB_CARBON_PAT%"
+                }
+                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
+            }
+        }
+    }
+    
+>>>>>>> template/carbonengine/prometheus-updates
     requirements {
         startsWith("teamcity.agent.jvm.os.name", "Mac OS X")
     }
