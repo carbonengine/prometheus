@@ -7,8 +7,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Copyright © 2025 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
@@ -33,7 +36,10 @@ import jetbrains.buildServer.configs.kotlin.DslContext
 import jetbrains.buildServer.configs.kotlin.Project
 import jetbrains.buildServer.configs.kotlin.*
 <<<<<<< HEAD
+<<<<<<< HEAD
 import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
@@ -41,6 +47,10 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.freeDiskSpace
 import jetbrains.buildServer.configs.kotlin.buildFeatures.nuGetFeedCredentials
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
+<<<<<<< HEAD
+=======
+import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
+>>>>>>> template/carbonengine/prometheus-updates
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.sshAgent
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
@@ -55,6 +65,7 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.provideAwsCredentials
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 val BuildParameters = "-arch=x64 -vcvars_ver=14.51"
 val Debug = CarbonBuildWindows("Debug Windows", "Debug", "x64-windows-debug", BuildParameters)
 val Internal = CarbonBuildWindows("Internal Windows", "Internal", "x64-windows-internal", BuildParameters)
@@ -65,12 +76,17 @@ val Release = CarbonBuildWindows("Release Windows", "Release", "x64-windows-rele
 >>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 val Debug = CarbonBuildWindows("Debug Windows", "Debug", "x64-windows-debug")
 val Internal = CarbonBuildWindows("Internal Windows", "Internal", "x64-windows-internal")
 val TrinityDev = CarbonBuildWindows("TrinityDev Windows", "TrinityDev", "x64-windows-trinitydev")
 val Release = CarbonBuildWindows("Release Windows", "Release", "x64-windows-release")
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> template/carbonengine/prometheus-updates
+=======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
@@ -88,6 +104,7 @@ object Project : Project({
 })
 
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -125,6 +142,8 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String, 
 >>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 class CarbonBuildWindows(buildName: String, configType: String, preset: String) : BuildType({
     id(buildName.toId())
     this.name = buildName
@@ -132,6 +151,9 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
     artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> template/carbonengine/prometheus-updates
+=======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
@@ -145,7 +167,13 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         param("VS_DEV_BAT_SWITCHES", vsDevBatSwitches)
+=======
+        select("env.VISUAL_STUDIO_PLATFORM_TOOLSET", "v141", label = "Visual Studio Platform Toolset", description = "Specify the toolset for the build. e.g. v141 or v143.",
+                options = listOf("v141 (2017)" to "v141", "v143 (2022)" to "v143"))
+        param("VS_DEV_BAT_SWITCHES", "-arch=x64")
+>>>>>>> template/carbonengine/prometheus-updates
 =======
         select("env.VISUAL_STUDIO_PLATFORM_TOOLSET", "v141", label = "Visual Studio Platform Toolset", description = "Specify the toolset for the build. e.g. v141 or v143.",
                 options = listOf("v141 (2017)" to "v141", "v143 (2022)" to "v143"))
@@ -183,7 +211,11 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         param("env.CTEST_PARALLEL_LEVEL", "1")
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
 =======
         param("env.CTEST_PARALLEL_LEVEL", "8")
 >>>>>>> template/carbonengine/prometheus-updates
@@ -291,7 +323,11 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 echo ${'$'}symstoreFlags = ^@^("add","/compress","/t", "CCP Games", "/c", "TeamCity %build.number%", "/s", "${'$'}Env:TC_SYMBOL_STORE_PATH", "/o", "/r",  "/f", "%env.CMAKE_BUILD_FOLDER%"^) 
+=======
+                echo ${'$'}symstoreFlags = ^@^("add","/compress","/t", "CCP Games", "/c", "TeamCity %build.number%", "/s", "${'$'}Env:TC_SYMBOL_STORE_PATH", "/o", "/r",  "/f", "%env.CMAKE_BUILD_FOLDER%"^)
+>>>>>>> template/carbonengine/prometheus-updates
 =======
                 echo ${'$'}symstoreFlags = ^@^("add","/compress","/t", "CCP Games", "/c", "TeamCity %build.number%", "/s", "${'$'}Env:TC_SYMBOL_STORE_PATH", "/o", "/r",  "/f", "%env.CMAKE_BUILD_FOLDER%"^)
 >>>>>>> template/carbonengine/prometheus-updates
@@ -333,7 +369,11 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     
+=======
+
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 
 >>>>>>> template/carbonengine/prometheus-updates
@@ -360,6 +400,7 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     
                     ${'$'}stored = get-content symstore.txt | Select-String "^SYMSTORE: Number of files stored = (.*)${'$'}"
                     ${'$'}stored = ${'$'}stored.Matches.Groups[1].Value
@@ -377,6 +418,8 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 >>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 
                     ${'$'}stored = get-content symstore.txt | Select-String "^SYMSTORE: Number of files stored = (.*)${'$'}"
                     ${'$'}stored = ${'$'}stored.Matches.Groups[1].Value
@@ -390,6 +433,9 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> template/carbonengine/prometheus-updates
+=======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
@@ -426,6 +472,7 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
 =======
                 filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
@@ -444,6 +491,9 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 >>>>>>> template/carbonengine/prometheus-updates
 =======
                 filterAuthorRole = GitHubRoleFilter.EVERYBODY
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
 >>>>>>> template/carbonengine/prometheus-updates
             }
         }
@@ -470,7 +520,11 @@ class CarbonBuildWindows(buildName: String, configType: String, preset: String) 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             teamcitySshKey = "ccpgames-evetech GitHub"
+=======
+            teamcitySshKey = "ccpgames-carbon"
+>>>>>>> template/carbonengine/prometheus-updates
 =======
             teamcitySshKey = "ccpgames-carbon"
 >>>>>>> template/carbonengine/prometheus-updates

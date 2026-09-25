@@ -8,7 +8,10 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
