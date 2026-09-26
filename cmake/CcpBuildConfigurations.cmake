@@ -10,7 +10,10 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
@@ -133,7 +136,11 @@ function(add_trinity_dev_debug_flags target)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     elseif(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
+=======
+    elseif(APPLE)
+>>>>>>> template/carbonengine/prometheus-updates
 =======
     elseif(APPLE)
 >>>>>>> template/carbonengine/prometheus-updates

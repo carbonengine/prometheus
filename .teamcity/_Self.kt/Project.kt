@@ -9,8 +9,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Copyright © 2025 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
@@ -43,6 +46,7 @@ import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
 
 object Project : Project({
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -88,6 +92,9 @@ object Project : Project({
 =======
     description = "Build / Publish pipeline for https://github.com/ccpgames/carbon-template"
 >>>>>>> template/carbonengine/prometheus-updates
+=======
+    description = "Build / Publish pipeline for https://github.com/ccpgames/carbon-template"
+>>>>>>> template/carbonengine/prometheus-updates
 
     params {
         /* before changing carbon_ref, make sure to disable automatic settings synchronization on teamcity */
@@ -99,7 +106,11 @@ object Project : Project({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         param("carbon-pipeline-tools-ref", "refs/heads/main")
+=======
+        param("carbon-pipeline-tools-ref", "refs/tags/v0.1.0")
+>>>>>>> template/carbonengine/prometheus-updates
 =======
         param("carbon-pipeline-tools-ref", "refs/tags/v0.1.0")
 >>>>>>> template/carbonengine/prometheus-updates
@@ -132,6 +143,10 @@ object Project : Project({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    buildType(SyncToMirror)
+>>>>>>> template/carbonengine/prometheus-updates
 =======
     buildType(SyncToMirror)
 >>>>>>> template/carbonengine/prometheus-updates
