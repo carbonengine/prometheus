@@ -43,7 +43,31 @@
       "name": "x64-windows",
       "inherits": "windows",
       "cacheVariables": {
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/vendor/github.com/carbonengine/vcpkg-registry/toolchains/x64-windows-145-carbon.cmake"
+=======
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/vendor/github.com/carbonengine/vcpkg-registry/toolchains/x64-windows-carbon.cmake"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/vendor/github.com/carbonengine/vcpkg-registry/toolchains/x64-windows-carbon.cmake"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/vendor/github.com/carbonengine/vcpkg-registry/toolchains/x64-windows-carbon.cmake"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/vendor/github.com/carbonengine/vcpkg-registry/toolchains/x64-windows-carbon.cmake"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/vendor/github.com/carbonengine/vcpkg-registry/toolchains/x64-windows-145-carbon.cmake"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/vendor/github.com/carbonengine/vcpkg-registry/toolchains/x64-windows-145-carbon.cmake"
+>>>>>>> template/carbonengine/prometheus-updates
       },
       "hidden": true
     },
@@ -70,8 +94,38 @@
       "inherits": "x64-windows",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Internal",
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
         "VCPKG_TARGET_TRIPLET": "x64-windows-145-internal",
         "VCPKG_HOST_TRIPLET": "x64-windows-145-internal"
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-internal",
+        "VCPKG_HOST_TRIPLET": "x64-windows-internal"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-internal",
+        "VCPKG_HOST_TRIPLET": "x64-windows-internal"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-internal",
+        "VCPKG_HOST_TRIPLET": "x64-windows-internal"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-internal",
+        "VCPKG_HOST_TRIPLET": "x64-windows-internal"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-145-internal",
+        "VCPKG_HOST_TRIPLET": "x64-windows-145-internal"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-145-internal",
+        "VCPKG_HOST_TRIPLET": "x64-windows-145-internal"
+>>>>>>> template/carbonengine/prometheus-updates
       }
     },
     {
@@ -79,8 +133,38 @@
       "inherits": "x64-windows",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
         "VCPKG_TARGET_TRIPLET": "x64-windows-145-release",
         "VCPKG_HOST_TRIPLET": "x64-windows-145-release"
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-release",
+        "VCPKG_HOST_TRIPLET": "x64-windows-release"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-release",
+        "VCPKG_HOST_TRIPLET": "x64-windows-release"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-release",
+        "VCPKG_HOST_TRIPLET": "x64-windows-release"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-release",
+        "VCPKG_HOST_TRIPLET": "x64-windows-release"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-145-release",
+        "VCPKG_HOST_TRIPLET": "x64-windows-145-release"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-145-release",
+        "VCPKG_HOST_TRIPLET": "x64-windows-145-release"
+>>>>>>> template/carbonengine/prometheus-updates
       }
     },
     {
@@ -88,8 +172,38 @@
       "inherits": "x64-windows",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
         "VCPKG_TARGET_TRIPLET": "x64-windows-145-debug",
         "VCPKG_HOST_TRIPLET": "x64-windows-145-debug"
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-debug",
+        "VCPKG_HOST_TRIPLET": "x64-windows-debug"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-debug",
+        "VCPKG_HOST_TRIPLET": "x64-windows-debug"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-debug",
+        "VCPKG_HOST_TRIPLET": "x64-windows-debug"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-debug",
+        "VCPKG_HOST_TRIPLET": "x64-windows-debug"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-145-debug",
+        "VCPKG_HOST_TRIPLET": "x64-windows-145-debug"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-145-debug",
+        "VCPKG_HOST_TRIPLET": "x64-windows-145-debug"
+>>>>>>> template/carbonengine/prometheus-updates
       }
     },
     {
@@ -97,8 +211,38 @@
       "inherits": "x64-windows",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "TrinityDev",
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
         "VCPKG_TARGET_TRIPLET": "x64-windows-145-trinitydev",
         "VCPKG_HOST_TRIPLET": "x64-windows-145-trinitydev"
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-trinitydev",
+        "VCPKG_HOST_TRIPLET": "x64-windows-trinitydev"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-trinitydev",
+        "VCPKG_HOST_TRIPLET": "x64-windows-trinitydev"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-trinitydev",
+        "VCPKG_HOST_TRIPLET": "x64-windows-trinitydev"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-trinitydev",
+        "VCPKG_HOST_TRIPLET": "x64-windows-trinitydev"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-145-trinitydev",
+        "VCPKG_HOST_TRIPLET": "x64-windows-145-trinitydev"
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        "VCPKG_TARGET_TRIPLET": "x64-windows-145-trinitydev",
+        "VCPKG_HOST_TRIPLET": "x64-windows-145-trinitydev"
+>>>>>>> template/carbonengine/prometheus-updates
       }
     },
     {
