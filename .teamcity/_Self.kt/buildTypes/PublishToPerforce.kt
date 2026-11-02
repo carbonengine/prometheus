@@ -10,8 +10,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Copyright © 2025 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
@@ -69,7 +72,11 @@ class Publish(perforce_publish_path: String) : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         param("env.TC_BUILD_NUMBER", "Carbon Prometheus #%build.number%")
+=======
+        param("env.TC_BUILD_NUMBER", "Carbon Template #%build.number%")
+>>>>>>> template/carbonengine/prometheus-updates
 =======
         param("env.TC_BUILD_NUMBER", "Carbon Template #%build.number%")
 >>>>>>> template/carbonengine/prometheus-updates
@@ -319,7 +326,11 @@ class Publish(perforce_publish_path: String) : BuildType({
             }
         }
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> template/carbonengine/prometheus-updates
     requirements {
         contains("teamcity.agent.jvm.os.name", "Windows")
         doesNotContain("teamcity.agent.name", "TEST-AUTOM")
@@ -338,7 +349,11 @@ class Publish(perforce_publish_path: String) : BuildType({
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-prometheus")
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
 >>>>>>> template/carbonengine/prometheus-updates

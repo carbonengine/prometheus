@@ -16,7 +16,11 @@ object SyncToMirror : BuildType({
     maxRunningBuilds = 1
 
     params {
+<<<<<<< HEAD
         param("github_mirror_repository", "ccpgames/carbon-prometheus-mirror")
+=======
+        param("github_mirror_repository", "ccpgames/carbon-*-mirror TYPE IN NAME HERE")
+>>>>>>> template/carbonengine/prometheus-updates
         param("teamcity.vcsTrigger.runBuildInNewEmptyBranch", "true")
     }
 

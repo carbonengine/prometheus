@@ -10,8 +10,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Copyright © 2026 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
@@ -199,6 +202,7 @@ class UniversalBuild() : BuildType({
             }
         }
     }
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -260,6 +264,9 @@ class UniversalBuild() : BuildType({
 =======
 >>>>>>> template/carbonengine/prometheus-updates
 =======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    
 >>>>>>> template/carbonengine/prometheus-updates
     requirements {
         startsWith("teamcity.agent.jvm.os.name", "Mac OS X")
