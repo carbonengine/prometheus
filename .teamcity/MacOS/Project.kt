@@ -113,55 +113,7 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String, ag
     id(buildName.toId())
     name = buildName
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    artifactRules = "%env.CMAKE_INSTALL_PREFIX%"
-=======
     artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
->>>>>>> template/carbonengine/prometheus-updates
 
     params {
         param("env.SENTRY_CLI_DEBUG_SYMBOL_TYPE", "dsym")
@@ -310,43 +262,7 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String, ag
                 authType = token {
                     token = "%GITHUB_CARBON_PAT%"
                 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-                filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
-=======
                 filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
->>>>>>> template/carbonengine/prometheus-updates
-=======
-                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
->>>>>>> template/carbonengine/prometheus-updates
-=======
-                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
->>>>>>> template/carbonengine/prometheus-updates
-=======
-                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
->>>>>>> template/carbonengine/prometheus-updates
-=======
-                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
->>>>>>> template/carbonengine/prometheus-updates
-=======
-                filterAuthorRole = GitHubRoleFilter.EVERYBODY
->>>>>>> template/carbonengine/prometheus-updates
-=======
-                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
->>>>>>> template/carbonengine/prometheus-updates
-=======
-                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
->>>>>>> template/carbonengine/prometheus-updates
-=======
-                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
->>>>>>> template/carbonengine/prometheus-updates
             }
         }
         commitStatusPublisher {
@@ -369,31 +285,7 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String, ag
             failBuild = true
         }
         sshAgent {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-            teamcitySshKey = "ccpgames-evetech GitHub"
-=======
             teamcitySshKey = "ccpgames-carbon"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-            teamcitySshKey = "ccpgames-carbon"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-            teamcitySshKey = "ccpgames-carbon"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-            teamcitySshKey = "ccpgames-carbon"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-            teamcitySshKey = "ccpgames-carbon"
->>>>>>> template/carbonengine/prometheus-updates
-=======
-            teamcitySshKey = "ccpgames-carbon"
->>>>>>> template/carbonengine/prometheus-updates
         }
         provideAwsCredentials {
             awsConnectionId = "Carbon_AwsVcpkgBinaryCacheServiceAccount"

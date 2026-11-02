@@ -99,67 +99,12 @@ object Project : Project({
     params {
         /* before changing carbon_ref, make sure to disable automatic settings synchronization on teamcity */
         param("carbon_ref", "refs/heads/main")
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        param("carbon-pipeline-tools-ref", "refs/heads/main")
-=======
         param("carbon-pipeline-tools-ref", "refs/tags/v0.1.0")
->>>>>>> template/carbonengine/prometheus-updates
-=======
-        param("carbon-pipeline-tools-ref", "refs/tags/v0.1.0")
->>>>>>> template/carbonengine/prometheus-updates
-=======
-        param("carbon-pipeline-tools-ref", "refs/tags/v0.1.0")
->>>>>>> template/carbonengine/prometheus-updates
-=======
-        param("carbon-pipeline-tools-ref", "refs/tags/v0.1.0")
->>>>>>> template/carbonengine/prometheus-updates
-=======
-        param("carbon-pipeline-tools-ref", "refs/tags/v0.1.0")
->>>>>>> template/carbonengine/prometheus-updates
-=======
-        param("carbon-pipeline-tools-ref", "refs/tags/v0.1.0")
->>>>>>> template/carbonengine/prometheus-updates
-=======
-        param("carbon-pipeline-tools-ref", "refs/tags/v0.1.0")
->>>>>>> template/carbonengine/prometheus-updates
-=======
-        param("carbon-pipeline-tools-ref", "refs/tags/v0.1.0")
->>>>>>> template/carbonengine/prometheus-updates
     }
     
     subProject(Windows.Project)
     subProject(MacOS.Project)
 
     buildType(PublishToPerforce)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
     buildType(SyncToMirror)
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    buildType(SyncToMirror)
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    buildType(SyncToMirror)
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    buildType(SyncToMirror)
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    buildType(SyncToMirror)
->>>>>>> template/carbonengine/prometheus-updates
-=======
-    buildType(SyncToMirror)
->>>>>>> template/carbonengine/prometheus-updates
 })
