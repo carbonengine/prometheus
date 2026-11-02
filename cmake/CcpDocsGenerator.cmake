@@ -1,5 +1,44 @@
 # Copyright © 2025 CCP ehf.
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 function(_create_venv_and_install_packages)
     set(options "")
     set(single_value_keywords "PYTHON_EXE;VENV_NAME")
@@ -15,7 +54,11 @@ function(_create_venv_and_install_packages)
 
     if(WIN32)
         set(PIP_EXE ${CMAKE_CURRENT_BINARY_DIR}/${arg_VENV_NAME}/Scripts/pip)
+<<<<<<< HEAD
     elseif(APPLE)
+=======
+    elseif(APPLE OR LINUX)
+>>>>>>> template/carbonengine/prometheus-updates
         set(PIP_EXE ${CMAKE_CURRENT_BINARY_DIR}/${arg_VENV_NAME}/bin/pip)
     endif()
 
@@ -61,10 +104,92 @@ function(create_carbon_docs_sphinx_target)
 
     if (WIN32)
         set(SPHINX_COMMAND Scripts/sphinx-build -E -b html -D breathe_projects.doxygen=${CMAKE_CURRENT_BINARY_DIR}/docs/xml -c ${arg_SPHINX_SOURCE} ${arg_SPHINX_SOURCE} ${arg_SPHINX_BUILD})
+<<<<<<< HEAD
     elseif(APPLE)
         set(SPHINX_COMMAND bin/sphinx-build -E -b html -D breathe_projects.doxygen=${CMAKE_CURRENT_BINARY_DIR}/docs/xml -c ${arg_SPHINX_SOURCE} ${arg_SPHINX_SOURCE} ${arg_SPHINX_BUILD})
     endif()
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    elseif(APPLE OR LINUX)
+        set(SPHINX_COMMAND bin/sphinx-build -E -b html -D breathe_projects.doxygen=${CMAKE_CURRENT_BINARY_DIR}/docs/xml -c ${arg_SPHINX_SOURCE} ${arg_SPHINX_SOURCE} ${arg_SPHINX_BUILD})
+    endif()
+
+    message(STATUS "Working directory is ${CMAKE_CURRENT_BINARY_DIR}")
+    message(STATUS "Command: ${SPHINX_COMMAND}")
+
+>>>>>>> template/carbonengine/prometheus-updates
     add_custom_target(${arg_SPHINX_TARGET_NAME} ALL
             COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${arg_PYTHONPATH_ENV} ${SPHINX_COMMAND}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${arg_VENV_NAME}

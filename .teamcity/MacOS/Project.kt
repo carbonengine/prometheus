@@ -1,16 +1,86 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 // Copyright © 2025 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 package MacOS
 
 import jetbrains.buildServer.configs.kotlin.DslContext
 import jetbrains.buildServer.configs.kotlin.Project
 import jetbrains.buildServer.configs.kotlin.*
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 import jetbrains.buildServer.configs.kotlin.buildFeatures.XmlReport
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.freeDiskSpace
 import jetbrains.buildServer.configs.kotlin.buildFeatures.nuGetFeedCredentials
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
+>>>>>>> template/carbonengine/prometheus-updates
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.sshAgent
 import jetbrains.buildServer.configs.kotlin.buildFeatures.xmlReport
@@ -75,7 +145,59 @@ class CarbonBuildMacOS(buildName: String, configType: String, preset: String, ag
         param("env.VCPKG_BINARY_SOURCES", "clear;x-aws,s3://vcpkg-binary-cache-static/cache/,readwrite")
         param("env.X_VCPKG_REGISTRIES_CACHE", "%teamcity.build.checkoutDir%/%github_checkout_folder%/regcache")
         param("env.CMAKE_BUILD_PARALLEL_LEVEL", "8")
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
         param("env.CTEST_PARALLEL_LEVEL", "1")
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.CTEST_PARALLEL_LEVEL", "8")
+>>>>>>> template/carbonengine/prometheus-updates
     }
 
 

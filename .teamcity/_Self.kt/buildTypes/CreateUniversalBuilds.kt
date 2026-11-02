@@ -1,5 +1,34 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 // Copyright © 2026 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 package _Self.buildTypes
 
 import jetbrains.buildServer.configs.kotlin.*
@@ -173,7 +202,72 @@ class UniversalBuild() : BuildType({
             }
         }
     }
+<<<<<<< HEAD
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+    features {
+        pullRequests {
+            vcsRootExtId = "${DslContext.settingsRootId.id}"
+            provider = github {
+                authType = token {
+                    token = "%GITHUB_CARBON_PAT%"
+                }
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
+=======
+                filterAuthorRole = GitHubRoleFilter.EVERYBODY
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+                filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
+>>>>>>> template/carbonengine/prometheus-updates
+            }
+        }
+    }
+    
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+    
+>>>>>>> template/carbonengine/prometheus-updates
     requirements {
         startsWith("teamcity.agent.jvm.os.name", "Mac OS X")
     }

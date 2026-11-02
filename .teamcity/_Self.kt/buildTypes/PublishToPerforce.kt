@@ -1,5 +1,34 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 // Copyright © 2025 CCP ehf.
 
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+>>>>>>> template/carbonengine/prometheus-updates
 package _Self.buildTypes
 
 import jetbrains.buildServer.configs.kotlin.*
@@ -31,7 +60,35 @@ class Publish(perforce_publish_path: String) : BuildType({
         param("env.TC_BUILD_URL", "%teamcity.serverUrl%/viewLog.html?buildId=%teamcity.build.id%")
         text("eve_branch_shortname", "", label = "Branch Name", description = """The name of the branch, for example MAINLINE""", display = ParameterDisplay.PROMPT, allowEmpty = false)
         param("env.TC_BUILDID", "%teamcity.build.id%")
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
         param("env.TC_BUILD_NUMBER", "Carbon Prometheus #%build.number%")
+=======
+        param("env.TC_BUILD_NUMBER", "Carbon Template #%build.number%")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.TC_BUILD_NUMBER", "Carbon Template #%build.number%")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.TC_BUILD_NUMBER", "Carbon Template #%build.number%")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.TC_BUILD_NUMBER", "Carbon Template #%build.number%")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+        param("env.TC_BUILD_NUMBER", "Carbon Template #%build.number%")
+>>>>>>> template/carbonengine/prometheus-updates
         param("env.P4PORT", "p4is.ccp.ad.local:1666")
         param("env.TC_EVE_BRANCH_SHORTNAME", "%eve_branch_shortname%")
         param("env.TC_EVE_PROJECT", "%project%")
@@ -269,11 +326,67 @@ class Publish(perforce_publish_path: String) : BuildType({
             }
         }
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> template/carbonengine/prometheus-updates
     requirements {
         contains("teamcity.agent.jvm.os.name", "Windows")
         doesNotContain("teamcity.agent.name", "TEST-AUTOM")
     }
 })
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-prometheus")
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
+=======
+val PublishToPerforce = Publish("vendor/github.com/ccpgames/carbon-template")
+>>>>>>> template/carbonengine/prometheus-updates
