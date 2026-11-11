@@ -12,7 +12,7 @@ add_library(TestNative SHARED
     test.cpp
     test.h
 )
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set_target_properties(TestNative PROPERTIES
         OUTPUT_NAME test_native
         PREFIX ""

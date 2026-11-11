@@ -22,7 +22,7 @@ if(NOT TARGET EveMonolithPrometheus::EveMonolithPrometheus)
             INTERFACE_LINK_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/${CCP_VENDOR_LIB_PATH}"
             IMPORTED_LOCATION ${EveMonolithPrometheus_RUNTIME_LOCATION}
         )
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
         set(EveMonolithPrometheus_RUNTIME_LOCATION "${CMAKE_CURRENT_LIST_DIR}/bin/${CCP_PLATFORM}/${CCP_ARCHITECTURE}/${CCP_TOOLSET}/prometheus_module.so")
         set_target_properties(EveMonolithPrometheus::EveMonolithPrometheus PROPERTIES
             IMPORTED_LOCATION ${EveMonolithPrometheus_RUNTIME_LOCATION}

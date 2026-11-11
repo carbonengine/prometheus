@@ -10,7 +10,7 @@
     },
     {
       "name": "python3",
-      "version>=": "3.12.9#1"
+      "version>=": "3.12.16"
     },
     "openssl",
     {
