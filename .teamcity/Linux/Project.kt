@@ -56,7 +56,7 @@ class CarbonBuildLinux(buildName: String, configType: String, preset: String, ag
     artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
 
     params {
-        param("env.SENTRY_CLI_DEBUG_SYMBOL_TYPE", "elf")
+        param("env.SENTRY_CLI_DEBUG_SYMBOL_TYPE", "dsym")
         param("env.GIT_TAG_HASH_OVERRIDE", "")
         param("env.CMAKE_CONFIG_TYPE", configType)
         param("env.CMAKE_GENERATOR", "Ninja Multi-Config")
@@ -120,7 +120,7 @@ class CarbonBuildLinux(buildName: String, configType: String, preset: String, ag
         exec {
             name = "Upload symbols to sentry"
             path = "sentry-cli"
-            arguments = "upload-dif --wait %env.CMAKE_BUILD_FOLDER%/%env.CMAKE_CONFIG_TYPE%"
+            arguments = "upload-dif --wait %env.CMAKE_BUILD_FOLDER%"
         }
     }
 
