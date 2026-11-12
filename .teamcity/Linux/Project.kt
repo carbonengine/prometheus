@@ -56,7 +56,7 @@ class CarbonBuildLinux(buildName: String, configType: String, preset: String, ag
     artifactRules = "%env.CMAKE_INSTALL_PREFIX% => artifact.zip"
 
     params {
-        param("env.SENTRY_CLI_DEBUG_SYMBOL_TYPE", "dsym")
+        param("env.SENTRY_CLI_DEBUG_SYMBOL_TYPE", "elf")
         param("env.GIT_TAG_HASH_OVERRIDE", "")
         param("env.CMAKE_CONFIG_TYPE", configType)
         param("env.CMAKE_GENERATOR", "Ninja Multi-Config")
